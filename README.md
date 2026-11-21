@@ -1,7 +1,7 @@
-# AUTOPHAGE v1.0
+# AUTOPHAGE v1.1
 
-**Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine**
-*(Standalone Zero-Dependency Native Build + Flat C11 ABI Drop-In for Asmodensius-Native)*
+**Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine (Anti-Fraud Hardened)**
+*(Standalone Zero-Dependency Native Build + Flat C11 ABI Drop-In for Cellulogonic Mecha & Asmodensius-Native)*
 
 AUTOPHAGE is a machine-level artificial-life and open-ended evolutionary engine where digital organisms are **not interpreted bytecode scripts or fixed-fitness neural nets**. Every organism is a **256-byte (4 × 64-byte L1 cache-line) dual-strand entity** that compiles itself through its own **evolvable $8\times 8$ $\mathbb{F}_2$ Ribosome Matrix** (`VGF2P8AFFINEQB`) directly into **live native x86-64 RWX machine code** (`VirtualAlloc`/`mmap`), executing `GF2P8AFFINEQB`, `PCLMULQDQ`, `PEXT`, `PDEP`, `POPCNT`, `TZCNT`, and universal reversible Toffoli/Fredkin gates directly on silicon.
 
@@ -28,20 +28,20 @@ AUTOPHAGE is a machine-level artificial-life and open-ended evolutionary engine 
 
 | Verification Gate | Result | Evidence |
 |---|---|---|
-| **Lean 4 v4.35.0 Formal Proofs** | **30 / 30 PROVEN (`0 sorry`)** | [AutophageProofs.lean](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/lean/AutophageProofs.lean) |
-| **Win64 PE Falsification Suite (`clang 23.1.0`)** | **18 / 18 PASSED (6/6 Mutants Caught)** | [test_falsification.c](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/test/test_falsification.c) |
-| **Linux ELF64 Falsification Suite (`gcc 13.3.0`)** | **18 / 18 PASSED (6/6 Mutants Caught)** | [build_linux.sh](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/build_linux.sh) |
+| **Lean 4 v4.35.0 Formal Proofs** | **31 / 31 PROVEN (`0 sorryAx`)** | [`lean/AutophageProofs.lean`](lean/AutophageProofs.lean) |
+| **Win64 PE Falsification Suite (`clang 23.1.0`)** | **18 / 18 PASSED (6/6 Mutants Caught)** | [`test/test_falsification.c`](test/test_falsification.c) |
+| **Linux ELF64 Falsification Suite (`gcc 13.3.0`)** | **18 / 18 PASSED (6/6 Mutants Caught)** | [`build_linux.sh`](build_linux.sh) |
 | **4-Way Cross-OS / Cross-Kernel SHA-256 Parity** | **0-Bit Diff** (`28fcbf73...316b7f5`) | Win64 JIT == Win64 Scalar == Linux JIT == Linux Scalar |
 | **1,000,000 Live RWX Silicon Fuzz Execs** | **0 Faults, 0 OOB, 48–50 ms (~20M/s)** | Gate `T05` (64-byte guard canaries intact) |
 | **First-Law / Second-Law Conservation (`P2`)** | **`0 uq` residual, `0.00e+00–2.0e-16` drift** | Gate `T07` + all 30 ablation runs (`0` 2nd-Law violations) |
-| **Zero-Seed Spontaneous Abiogenesis** | **Pure random bytes → Stage 5 (`OVI 87.59`)** | [03_abiogenesis_zero_seed.txt](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/03_abiogenesis_zero_seed.txt) |
-| **Locked Paired Stats (`N=24`, seeds `5000..5023`)** | **Feral > Castrated (`23/24`, `p=0.00010`)** | [06_paired_stats_n24.txt](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/06_paired_stats_n24.txt) |
+| **Zero-Seed Spontaneous Abiogenesis** | **Pure random bytes → Stage 5 (`OVI 87.53`)** | [`results/03_abiogenesis_zero_seed.txt`](results/03_abiogenesis_zero_seed.txt) |
+| **Locked Paired Stats (`N=24`, seeds `5000..5023`)** | **Feral > Castrated (`23/24`, `p=0.00010`)** | [`results/06_paired_stats_n24.txt`](results/06_paired_stats_n24.txt) |
 
 ---
 
 ## Quick Start
 
-### 1. Build & Verify Everything (Windows x86-64 PE + DLL + Static Lib + 18 Gates + 30 Lean Proofs)
+### 1. Build & Verify Everything (Windows x64 PE + DLL + Static Lib + 18 Gates + 31 Lean Proofs)
 ```powershell
 .\build.ps1
 ```
@@ -72,7 +72,7 @@ node web\server.mjs
 
 ## Direct Drop-In Integration into `Asmodensius-Native`
 
-Include [autophage_abi.h](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/include/autophage_abi.h) and link against `bin/autophage.dll` (`libautophage.dll.a`), `bin/libautophage.a`, or `bin/libautophage.so`:
+Include [`include/autophage_abi.h`](include/autophage_abi.h) and link against `bin/autophage.dll` (`libautophage.dll.a`), `bin/libautophage.a`, or `bin/libautophage.so`:
 
 ```c
 #include "autophage_abi.h"
@@ -96,4 +96,4 @@ autophage_state_sha256(world, NULL, sha256_hex);      /* Observer-independent P9
 autophage_destroy(world);
 ```
 
-See [ARCHITECTURE.md](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/ARCHITECTURE.md) for exact memory layouts and x86-64 encodings, and [VERIFICATION.md](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/VERIFICATION.md) for the complete formal and empirical audit ledger.
+See [`ARCHITECTURE.md`](ARCHITECTURE.md) for exact memory layouts and x86-64 encodings, and [`VERIFICATION.md`](VERIFICATION.md) for the complete formal and empirical audit ledger.

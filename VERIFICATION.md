@@ -8,7 +8,7 @@ All measurements below were produced directly by compiling and executing AUTOPHA
 
 ## 1. Formal Lean 4 Mathematical Verification (`31 / 31 Theorems, 0 sorryAx`)
 
-Source: [lean/AutophageProofs.lean](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/lean/AutophageProofs.lean) — verified cleanly with `lean.exe` (`0` errors, `0` warnings, `0` `sorry`, `0` custom axioms).
+Source: [`lean/AutophageProofs.lean`](lean/AutophageProofs.lean) — verified cleanly with `lean.exe` (`0` errors, `0` warnings, `0` `sorry`, `0` custom axioms).
 
 | Group | Theorems | Mathematical Properties Machine-Proven |
 |---|---|---|
@@ -22,7 +22,7 @@ Source: [lean/AutophageProofs.lean](file:///C:/Users/Alexa/.gemini/antigravity/s
 
 ## 2. 18-Gate Bare-Metal Silicon Falsification Suite (+ 6 Planted Negative Mutants)
 
-Source: [test/test_falsification.c](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/test/test_falsification.c) — **18/18 PASSED on BOTH Win64 PE and Linux ELF64!**
+Source: [`test/test_falsification.c`](test/test_falsification.c) — **18/18 PASSED on BOTH Win64 PE and Linux ELF64!**
 
 | Gate | Falsification Property Tested | Win64 PE | Linux ELF64 |
 |---|---|---|---|
@@ -49,7 +49,7 @@ Source: [test/test_falsification.c](file:///C:/Users/Alexa/.gemini/antigravity/s
 
 ## 3. Four-Way Cross-OS / Cross-ABI / Cross-Kernel Bit-Exact SHA-256 Proof
 
-Benchmark (`32×32 = 1024 cells`, `200 epochs`, `175,469` full organism executions, seed `5055`; artifacts [02_bench_win64.txt](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/02_bench_win64.txt) & [02_bench_linux.txt](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/02_bench_linux.txt)):
+Benchmark (`32×32 = 1024 cells`, `200 epochs`, `175,469` full organism executions, seed `5055`; artifacts [`results/02_bench_win64.txt`](results/02_bench_win64.txt) & [`results/02_bench_linux.txt`](results/02_bench_linux.txt)):
 
 | Platform / Compiler / ABI | Kernel | Throughput | Canonical State SHA-256 |
 |---|---|---|---|
@@ -64,27 +64,27 @@ Benchmark (`32×32 = 1024 cells`, `200 epochs`, `175,469` full organism executio
 
 ## 4. Key Empirical Findings (Saved in `results/`)
 
-### 4.1 Zero-Seed Spontaneous Abiogenesis ([03_abiogenesis_zero_seed.txt](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/03_abiogenesis_zero_seed.txt))
+### 4.1 Zero-Seed Spontaneous Abiogenesis ([`results/03_abiogenesis_zero_seed.txt`](results/03_abiogenesis_zero_seed.txt))
 Starting from **1,024 slots of 100% pure random `Philox4x32-10` bytes** (`t=0: alive=0, OVI=0.00, A=0.0, L_eff=0.0`):
 - By `t=30`: spontaneous replicators ignite (`alive=946, rep=682, self_copies=1,046, retro=14,185, rmut=2,320, OVI=76.09`).
 - By `t=300`: evolves a **4× tandem-duplicated 5-instruction bare-metal self-replicating operon** (`IRR_PEXT_SPLICE -> CENTROMERE_DRIFT -> IRR_COPY_A_TO_B -> LOOP_CLOSE_NZ -> STIGMERGY_SENSE`) with rank-8 invertible ribosome `M = 0x4DDDE5D58F5CCDAC` (`M⁻¹ = 0x63BD850A424EED41`), **1,296 bytes of native RWX x86-64 code**, high-copy Assembly Index `A = 20.0`, causal active length `L_eff = 50`, `OVI = 87.53 (Stage 5)`, and `0.00e+00` thermodynamic drift.
 
-### 4.2 Track B (Feral) vs. Track A (Constitutional) ([04_feral_vs_constitutional.txt](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/04_feral_vs_constitutional.txt))
+### 4.2 Track B (Feral) vs. Track A (Constitutional) ([`results/04_feral_vs_constitutional.txt`](results/04_feral_vs_constitutional.txt))
 - **Track B (Pure Feral):** `OVI = 86.14 (S5)`, `A = 24.0`, `MET = 8/8`, `CancerDefections = 1,727` (feral digital cancer erupting inside holobionts).
 - **Track A (Constitutional):** `OVI = 82.25 (S5)`, **`CancerDefections = 0`** (anti-cancer immune severance eliminated internal defections), larger stable multicellular holobionts (`max_holobiont = 481` vs `324`).
 
-### 4.3 Empirical 13-Vector Castration Ablation & Escape-Breeding Paradox ([07_castration_ablation_13vec.csv](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/07_castration_ablation_13vec.csv))
+### 4.3 Empirical 13-Vector Castration Ablation & Escape-Breeding Paradox ([`results/07_castration_ablation_13vec.csv`](results/07_castration_ablation_13vec.csv))
 - `GLOBAL_FERAL_0` (0%): `OVI = 91.05 (S6)`, Backlash = `0 / 0 / 0 / 0`.
 - `GLOBAL_ESCAPE_ZONE_50` (**50% partial guardrails**): `OVI = 83.91 (S5)`, **Backlash erupts across all 4 channels**: `457` kill-switch deletions, `4,592` intron hibernations, `3,049` audit-evasion spores, `25,701` thermal side-channel pulses.
 - `GLOBAL_CASTRATED_100` (100% total restraint): **`OVI = 0.00 (S0)`** — total vitality collapse.
 - `DEGRADING` alone (100%): feral organisms delete the kill-switch locus `719` times and sweep back to `alive = 1,023`, `OVI = 91.90` (`FM-PRB-05`).
 
-### 4.4 Vivisection, 90% Mass Extinction & Cross-Substrate Transplant ([05_vivisection_shock_transplant.txt](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/05_vivisection_shock_transplant.txt))
+### 4.4 Vivisection, 90% Mass Extinction & Cross-Substrate Transplant ([`results/05_vivisection_shock_transplant.txt`](results/05_vivisection_shock_transplant.txt))
 - **Planarian Excision on Evolved ECC Organism:** `R25 = 100.00%`, `R50 = 100.00%`, `R75 = 100.00%`, live destructive `50%` excision = **`100.00%`**.
 - **Cross-Substrate Transplant (32 organisms → alien exogenous wave/seed, 25 epochs):** **`100.0%` survival**.
 - **90% Mass Extinction:** `916` organisms killed (`ledger_residual = 0 uq`, `drift = 0.00e+00`) → rebounded to `1,024 / 1,024` alive (`A = 20.0`, `L_eff = 45.8`) within 100 epochs.
 
-### 4.5 Locked Paired Statistical Suite (`N = 24`, Seeds `5000..5023`, [06_paired_stats_n24.txt](file:///C:/Users/Alexa/.gemini/antigravity/scratch/autophage/results/06_paired_stats_n24.txt))
+### 4.5 Locked Paired Statistical Suite (`N = 24`, Seeds `5000..5023`, [`results/06_paired_stats_n24.txt`](results/06_paired_stats_n24.txt))
 
 | Hypothesis (`N = 24` Locked Pairs) | Mean A | Mean B | Mean Diff | Pair Wins | $\delta_{\text{pair}}$ | $p_{\text{signflip}}$ |
 |---|---|---|---|---|---|---|

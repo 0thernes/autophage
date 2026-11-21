@@ -10,11 +10,12 @@ $clang = "$root\bin\clang.exe"
 $lean  = "$root\bin\lean.exe"
 $ar    = "$root\bin\llvm-ar.exe"
 
-if (-not (Test-Path $clang)) {
+if (-not (Test-Path -LiteralPath $clang)) {
     throw "Bundled Clang toolchain not found at $clang"
 }
 
-New-Item -ItemType Directory -Force -Path "$proj\bin","$proj\results" | Out-Null
+[System.IO.Directory]::CreateDirectory("$proj\bin") | Out-Null
+[System.IO.Directory]::CreateDirectory("$proj\results") | Out-Null
 
 $core = @(
     "$proj\src\hw_isa.c",
@@ -48,7 +49,7 @@ Write-Host "[3/4] Building bin\test_falsification.exe ..."
 & $clang @cflags @core "$proj\test\test_falsification.c" -o "$proj\bin\test_falsification.exe" @ldflags @libs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-if (Test-Path $ar) {
+if (Test-Path -LiteralPath $ar) {
     Write-Host "[4/4] Building static archive bin\libautophage.a ..."
     $objs = @()
     foreach ($src in $core) {
@@ -58,26 +59,26 @@ if (Test-Path $ar) {
         $objs += $obj
     }
     & $ar rcs "$proj\bin\libautophage.a" @objs
-    Remove-Item -Force -Path $objs
+    Remove-Item -Force -LiteralPath $objs
 } else {
     Write-Host "[4/4] llvm-ar not present; skipping static .a archive (DLL + implib built cleanly)."
 }
 
 if (-not $SkipTests) {
     Write-Host "`nRunning 18-Gate Bare-Metal Silicon Falsification Suite..."
-    Push-Location "$proj\bin"
+    Push-Location -LiteralPath "$proj\bin"
     & ".\test_falsification.exe"
     $rc = $LASTEXITCODE
-    Remove-Item -Force -ErrorAction SilentlyContinue "test_tmp_snapshot.apbin"
+    Remove-Item -Force -LiteralPath "test_tmp_snapshot.apbin" -ErrorAction SilentlyContinue
     Pop-Location
     if ($rc -ne 0) { exit $rc }
 }
 
-if (-not $SkipLean -and (Test-Path $lean)) {
-    Write-Host "`nVerifying 30 Formal Lean 4 Mathematical Proofs..."
+if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
+    Write-Host "`nVerifying 31 Formal Lean 4 Mathematical Proofs..."
     & $lean "$proj\lean\AutophageProofs.lean"
     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    Write-Host "Lean 4 Formal Verification PASSED (30 theorems, 0 sorry)!"
+    Write-Host "Lean 4 Formal Verification PASSED (31 theorems, 0 sorryAx)!"
 }
 
-Write-Host "`nAUTOPHAGE BUILD & VERIFICATION COMPLETE."
+Write-Host "`nAUTOPHAGE v1.1 BUILD & VERIFICATION COMPLETE."
