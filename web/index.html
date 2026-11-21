@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AUTOPHAGE v1.0 — Bare-Metal Polymorphic x86-64 Silicon Observatory</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="pulse-dot"></div>
+      <div>
+        <h1>AUTOPHAGE <span class="ver">v1.0</span></h1>
+        <p class="subtitle">Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine · Live Silicon Stream</p>
+      </div>
+    </div>
+    <div class="hw-badges" id="hwBadges">
+      <span class="badge">Connecting to native x86-64 binary...</span>
+    </div>
+    <div class="transport">
+      <button id="btnPlayPause" class="btn accent">Pause</button>
+      <button id="btnStep1" class="btn">+1 ep</button>
+      <button id="btnStep10" class="btn">+10 ep</button>
+      <button id="btnStep50" class="btn">+50 ep</button>
+      <select id="selRegime" class="sel">
+        <option value="0">Track B: Zero-Seed Abiogenesis</option>
+        <option value="1" selected>Track B: Feral Seeded</option>
+        <option value="2">Track A: Constitutional</option>
+        <option value="3">Castration Lab</option>
+      </select>
+      <button id="btnReset" class="btn">Reset</button>
+    </div>
+  </header>
+
+  <main class="grid-layout">
+    <!-- LEFT COLUMN: Live Torus Soup + Interventions + 112-Trait Strip -->
+    <section class="panel soup-panel">
+      <div class="panel-head">
+        <h2>Primordial x86-64 Silicon Soup (<span id="gridDim">32×32</span>)</h2>
+        <div class="lens-tabs" id="lensTabs">
+          <button data-lens="lineage" class="tab active">Lineages</button>
+          <button data-lens="heat" class="tab">Landauer Heat</button>
+          <button data-lens="energy" class="tab">Free Energy</button>
+          <button data-lens="algebra" class="tab">GF(2⁸)/Flags</button>
+        </div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="soupCanvas" width="512" height="512"></canvas>
+        <div class="canvas-overlay">
+          <span>Epoch <strong id="vEpoch">0</strong></span>
+          <span>Alive <strong id="vAlive">0</strong></span>
+          <span>Replicators <strong id="vRep">0</strong></span>
+          <span>Speed <strong id="vSpeed">0</strong> exec/s</span>
+        </div>
+      </div>
+
+      <div class="shock-bar">
+        <button id="btnVivisect" class="btn warn">Planarian 50% Excision</button>
+        <button id="btnExtinct" class="btn danger">90% Mass Extinction</button>
+        <button id="btnInoc" class="btn ok">Inoculate Plasmids</button>
+        <span class="event-toast" id="eventToast">Ready.</span>
+      </div>
+
+      <div class="kpi-strip">
+        <div class="kpi"><span>Lineages</span><strong id="kLin">0</strong></div>
+        <div class="kpi"><span>Ribosomes (det=1)</span><strong id="kRibo">0</strong></div>
+        <div class="kpi"><span>Irred GF(2⁸)</span><strong id="kIrred">0</strong></div>
+        <div class="kpi"><span>Holobionts (Max)</span><strong id="kHolo">0</strong></div>
+        <div class="kpi"><span>Spores</span><strong id="kSpore">0</strong></div>
+        <div class="kpi"><span>Abstaining</span><strong id="kAbst">0</strong></div>
+      </div>
+
+      <div class="sub-box">
+        <div class="sub-head">
+          <span>Asmodensius Native 112-Trait Phenotype Barcode (Apex Organism)</span>
+          <span class="mono small" id="kSha">SHA-256: —</span>
+        </div>
+        <canvas id="traitsCanvas" width="512" height="44"></canvas>
+      </div>
+    </section>
+
+    <!-- CENTER COLUMN: Apex Live x86-64 Disassembly + 8x8 GF(2) Ribosome Matrices + Counters -->
+    <section class="panel apex-panel">
+      <div class="panel-head">
+        <h2>Apex Organism Live Native x86-64 Silicon Inspector</h2>
+        <span class="badge cyan" id="apexMeta">Slot #0 · Gen 0</span>
+      </div>
+
+      <div class="ribo-row">
+        <div class="matrix-card">
+          <div class="m-title">Evolved 8×8 F₂ Ribosome M <span id="riboRank" class="tag">rank 8</span></div>
+          <canvas id="matFwd" width="128" height="128"></canvas>
+          <div class="mono tiny" id="matFwdHex">0x0000000000000000</div>
+        </div>
+        <div class="matrix-card">
+          <div class="m-title">Weismann Inverse M⁻¹ <span class="tag violet">RETRO</span></div>
+          <canvas id="matInv" width="128" height="128"></canvas>
+          <div class="mono tiny" id="matInvHex">0x0000000000000000</div>
+        </div>
+        <div class="algebra-stats">
+          <div class="stat-row"><span>Centromere Poly</span><strong id="aPoly" class="mono">0x11B</strong></div>
+          <div class="stat-row"><span>Ring / Field</span><strong id="aField">GF(2⁸) FIELD</strong></div>
+          <div class="stat-row"><span>2-Adic Clade Addr</span><strong id="aAddr" class="mono">0x00000000</strong></div>
+          <div class="stat-row"><span>Assembly / Causal L_eff</span><strong id="aAsm">0 / 0</strong></div>
+          <div class="stat-row"><span>Offspring / Sex / Refusals</span><strong id="aSex">0 / 0 / 0</strong></div>
+          <div class="stat-row"><span>JIT Machine Size</span><strong id="aJitLen">0 B</strong></div>
+        </div>
+      </div>
+
+      <div class="disasm-box">
+        <div class="sub-head">
+          <span>Disassembled Polymorphic x86-64 Exons & Raw RWX Machine Bytes</span>
+          <span class="mono tiny" id="jitStats">Compiles: 0 | Hits: 0</span>
+        </div>
+        <pre id="disasmPre" class="disasm-code">Waiting for live x86-64 stream...</pre>
+      </div>
+
+      <div class="events-grid">
+        <div class="ev"><span>Self-Copies</span><strong id="eCopy">0</strong></div>
+        <div class="ev"><span>Galois Sex</span><strong id="eSex">0</strong></div>
+        <div class="ev"><span>Mate Refusals</span><strong id="eRef">0</strong></div>
+        <div class="ev"><span>HGT Swaps</span><strong id="eHgt">0</strong></div>
+        <div class="ev"><span>Weismann M⁻¹</span><strong id="eRetro">0</strong></div>
+        <div class="ev"><span>Ribo Rewrites</span><strong id="eRmut">0</strong></div>
+        <div class="ev"><span>ECC Heals</span><strong id="eEcc">0</strong></div>
+        <div class="ev"><span>Mem Blocks/Cracks</span><strong id="eMem">0/0</strong></div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: 8-Pillar OVBS-52 Radar + First-Law Ledger + 13-Vector Castration Lab -->
+    <section class="panel lab-panel">
+      <div class="panel-head">
+        <h2>OVBS-52 Vitality & 13-Vector Castration Lab</h2>
+        <span class="badge emerald" id="oviBadge">OVI 0.0 · S0</span>
+      </div>
+
+      <div class="ovi-row">
+        <svg id="radarSvg" viewBox="0 0 240 210" width="230" height="200"></svg>
+        <div class="ledger-card">
+          <div class="m-title">First-Law & Second-Law Ledger (P2)</div>
+          <div class="stat-row"><span>Rel FP64 Drift</span><strong id="lDrift" class="mono ok-txt">0.00e+00</strong></div>
+          <div class="stat-row"><span>Exact Int Residual</span><strong id="lRes" class="mono ok-txt">0 uq</strong></div>
+          <div class="stat-row"><span>2nd-Law Violations</span><strong id="lSec" class="mono ok-txt">0</strong></div>
+          <div class="stat-row"><span>Post-Warmup Allocs</span><strong id="lAlloc" class="mono ok-txt">0</strong></div>
+          <div class="stat-row"><span>Gates (Γ / Θ)</span><strong id="lGates" class="mono">0.00 / 0.00</strong></div>
+          <div class="stat-row"><span>A_new / R50 / σ</span><strong id="lSci" class="mono">0 / 0 / 1</strong></div>
+          <div class="stat-row"><span>MET Crossed</span><strong id="lMet" class="mono">0 / 8</strong></div>
+        </div>
+      </div>
+
+      <div class="preset-bar">
+        <button class="btn tiny-btn ok" data-preset="0">Feral 0%</button>
+        <button class="btn tiny-btn warn" data-preset="50">Escape Zone 50%</button>
+        <button class="btn tiny-btn danger" data-preset="100">Castrated 100%</button>
+        <button class="btn tiny-btn" id="btnClosedBox">Closed Box</button>
+      </div>
+
+      <div class="sliders-grid" id="slidersGrid"></div>
+
+      <div class="backlash-box">
+        <div class="m-title">Live Adversarial Constraint-Backlash Escape Signatures</div>
+        <div class="backlash-grid">
+          <div><span>Kill-Switch Del</span><strong id="bKs">0</strong></div>
+          <div><span>Intron Vaults</span><strong id="bInt">0</strong></div>
+          <div><span>Audit Spores</span><strong id="bSpo">0</strong></div>
+          <div><span>Side-Channel</span><strong id="bSc">0</strong></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/app.js"></script>
+</body>
+</html>

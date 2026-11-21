@@ -1,0 +1,8 @@
+=== AUTOPHAGE SILICON THROUGHPUT & DUAL-KERNEL BIT-EXACT PARITY BENCHMARK ===
+  Grid=32x32 (1024 cells) | Epochs=200 | Total Organism Execs=175469
+  NATIVE x86-64 JIT : 0.2827 s | 0.621 M execs/s | 1610.9 ns/exec | 906.5 RDTSC cyc/exec | CacheHit=13.81% (151242 compiles)
+  SCALAR REF ORACLE : 0.4299 s | 0.408 M execs/s | 2450.0 ns/exec
+  JIT Speedup       : 1.52x over scalar reference
+  SHA-256 (JIT)     : 28fcbf73824326b95ce0f5c54c633d53c2b9f18ab41963c58dcef6d00316b7f5
+  SHA-256 (SCALAR)  : 28fcbf73824326b95ce0f5c54c633d53c2b9f18ab41963c58dcef6d00316b7f5
+  BIT-EXACT PARITY  : PASS (0-BIT DIFF!)

@@ -1,0 +1,13 @@
+=== AUTOPHAGE v1.0 SILICON HARDWARE PROBE (ABI 0x00010000) ===
+  Vendor         : GenuineIntel
+  Brand          : Intel(R) Core(TM) Ultra 9 275HX
+  AVX2           : YES
+  GFNI (F2 8x8)  : YES (VGF2P8AFFINEQB)
+  PCLMULQDQ      : YES
+  VPCLMULQDQ     : YES
+  BMI1 (TZCNT)   : YES
+  BMI2 (PEXT/DEP): YES
+  POPCNT         : YES
+  RDSEED / RDRAND: YES / YES
+  RDTSCP         : YES
+  Live RWX JIT   : VERIFIED (EXECUTED ON SILICON)

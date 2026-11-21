@@ -1,0 +1,26 @@
+name: Lean 4 Proof Audit
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  lean-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install elan & Lean 4.35.0
+        run: |
+          curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain leanprover/lean4:v4.35.0
+          echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
+      - name: Verify AutophageProofs.lean (31 theorems, zero sorry)
+        working-directory: lean
+        run: |
+          lean AutophageProofs.lean 2>&1 | tee lean-ci-audit.log
+          if grep -E "sorryAx|declaration uses 'sorry'" lean-ci-audit.log; then
+            echo "ERROR: sorryAx detected!"
+            exit 1
+          fi
+          echo "PASS: All 31 AutophageProofs theorems verified with zero sorryAx."

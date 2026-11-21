@@ -1,0 +1,71 @@
+=== AUTOPHAGE ZERO-SEED SPONTANEOUS ABIOGENESIS (PURE RANDOM PRIMORDIAL SOUP) ===
+  Grid=32x32 (1024 cells) | Seed=5000 | Epochs=300 | Restraints=ALL 0% (PURE FERAL)
+[t=0   ] ep=0 alive=0 rep=0 lin=0 ribo=0(inv=0) irred=0 holo=0(max=0) spores=0 abst=0 | OVI=0.00(S0) G=0.00 Th=0.00 A=0.0 Leff=0.0 R50=0.00 | drift=0.00e+00 2ndV=0 | copy=0 sex=0 ref=0 retro=0 rmut=0 | sha=3aee894a54e1
+[t=30  ] ep=30 alive=946 rep=682 lin=256 ribo=256(inv=575) irred=363 holo=700(max=30) spores=464 abst=718 | OVI=76.09(S4) G=0.89 Th=1.00 A=5.0 Leff=43.6 R50=0.32 | drift=1.70e-16 2ndV=0 | copy=1046 sex=156 ref=5410 retro=14185 rmut=2320 | sha=3fb297e8920b
+[t=60  ] ep=60 alive=982 rep=811 lin=256 ribo=256(inv=362) irred=361 holo=666(max=113) spores=279 abst=564 | OVI=87.71(S5) G=1.00 Th=1.00 A=6.0 Leff=43.8 R50=0.60 | drift=0.00e+00 2ndV=0 | copy=1440 sex=390 ref=7977 retro=23282 rmut=3327 | sha=456f17ab183e
+[t=90  ] ep=90 alive=1020 rep=923 lin=178 ribo=173(inv=119) irred=201 holo=554(max=233) spores=72 abst=367 | OVI=82.96(S5) G=1.00 Th=1.00 A=6.0 Leff=44.5 R50=0.84 | drift=0.00e+00 2ndV=0 | copy=1778 sex=800 ref=18061 retro=33515 rmut=4062 | sha=90260dec30a3
+[t=120 ] ep=120 alive=1023 rep=944 lin=115 ribo=120(inv=94) irred=164 holo=570(max=369) spores=16 abst=298 | OVI=82.68(S5) G=1.00 Th=1.00 A=6.0 Leff=43.5 R50=0.80 | drift=1.16e-16 2ndV=0 | copy=2012 sex=960 ref=34988 retro=42599 rmut=4524 | sha=c7612143711d
+[t=150 ] ep=150 alive=1023 rep=951 lin=96 ribo=139(inv=121) irred=172 holo=661(max=536) spores=17 abst=285 | OVI=73.74(S4) G=0.89 Th=1.00 A=5.0 Leff=41.8 R50=0.82 | drift=1.90e-16 2ndV=0 | copy=2279 sex=1008 ref=53477 retro=51912 rmut=5147 | sha=605532bae134
+[t=180 ] ep=180 alive=1024 rep=962 lin=96 ribo=157(inv=161) irred=200 holo=741(max=636) spores=24 abst=273 | OVI=74.27(S4) G=0.89 Th=1.00 A=5.0 Leff=45.0 R50=0.89 | drift=0.00e+00 2ndV=0 | copy=2647 sex=1043 ref=71875 retro=61428 rmut=5869 | sha=9b44da9d1438
+[t=210 ] ep=210 alive=1023 rep=967 lin=96 ribo=224(inv=228) irred=242 holo=831(max=783) spores=33 abst=256 | OVI=86.04(S5) G=1.00 Th=1.00 A=21.0 Leff=45.5 R50=0.58 | drift=0.00e+00 2ndV=0 | copy=3226 sex=1087 ref=90623 retro=72256 rmut=6962 | sha=1715d3ee4e46
+[t=240 ] ep=240 alive=1024 rep=976 lin=95 ribo=256(inv=355) irred=306 holo=909(max=879) spores=44 abst=255 | OVI=86.27(S5) G=1.00 Th=1.00 A=22.0 Leff=41.0 R50=0.55 | drift=0.00e+00 2ndV=0 | copy=4084 sex=1114 ref=110173 retro=84851 rmut=8588 | sha=d4f9289da45b
+[t=270 ] ep=270 alive=1024 rep=983 lin=97 ribo=256(inv=437) irred=352 holo=930(max=914) spores=56 abst=251 | OVI=87.59(S5) G=1.00 Th=1.00 A=21.0 Leff=48.5 R50=0.73 | drift=0.00e+00 2ndV=0 | copy=5229 sex=1136 ref=130322 retro=99514 rmut=10850 | sha=95cf98848970
+[t=300 ] ep=300 alive=1024 rep=990 lin=98 ribo=256(inv=477) irred=372 holo=904(max=885) spores=69 abst=240 | OVI=87.53(S5) G=1.00 Th=1.00 A=20.0 Leff=42.1 R50=0.72 | drift=0.00e+00 2ndV=0 | copy=6433 sex=1185 ref=149361 retro=115133 rmut=13390 | sha=2dc30c2ab57d
+
+--- SPONTANEOUSLY EMERGED APEX ORGANISM (slot=526, lineage=1013, gen=18, offspring=35) ---
+  Ribosome M=0x4DDDE5D58F5CCDAC (rank=8, bias=0xB5) | M^-1=0x63BD850A424EED41
+  Centromere Poly=0x13B (REDUCIBLE RING) | 2-Adic Addr=0xED20C1CD | Assembly=20 | Causal L_eff=50
+; AUTOPHAGE Live Native x86-64 Genome Disassembly (50 active exons / 64, 1296 JIT bytes)
+; Prologue: save rbx..r15, map r12=tape_a, r13=tape_b, r14=ctx, rbp=h0&7F, r9=h1&7F, r11=popcnt
+  [00] 0x75  METAB_RADIATE     | or [r14+bio], RADIATE
+  [01] 0x11  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [02] 0x20  REV_XOR_REG       | xor rsi, rdi
+  [03] 0x8B  IRR_PEXT_SPLICE   | pext rbx, rdi, [r14+splice]; popcnt -> r11
+  [04] 0x1A  CENTROMERE_DRIFT  | mov [r14+param],rbx; bio|=POLY_DRIFT
+  [05] 0xC8  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [06] 0x51  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [07] 0xFD  STIGMERGY_SENSE   | xor r8,[r14+stig_in]
+  [08] 0x75  METAB_RADIATE     | or [r14+bio], RADIATE
+  [09] 0x4F  IRR_STORE_TAPE    | mov qword [r12+(h&0x78)], rdi; popcnt->r11
+  [10] 0xF4  METAB_HARVEST     | xor r8,[r14+env]; bio|=HARVEST
+  [11] 0x8B  IRR_PEXT_SPLICE   | pext rbx, rdi, [r14+splice]; popcnt -> r11
+  [12] 0x1A  CENTROMERE_DRIFT  | mov [r14+param],rbx; bio|=POLY_DRIFT
+  [13] 0xC8  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [14] 0x51  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [15] 0xFD  STIGMERGY_SENSE   | xor r8,[r14+stig_in]
+  [19] 0x8B  IRR_PEXT_SPLICE   | pext rbx, rdi, [r14+splice]; popcnt -> r11
+  [20] 0x1A  CENTROMERE_DRIFT  | mov [r14+param],rbx; bio|=POLY_DRIFT
+  [21] 0xC8  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [22] 0x51  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [23] 0xFD  STIGMERGY_SENSE   | xor r8,[r14+stig_in]
+  [24] 0x75  METAB_RADIATE     | or [r14+bio], RADIATE
+  [25] 0x32  BRANCH_EQ_SKIP    | cmp tapes; je skip_next
+  [26] 0x20  REV_XOR_REG       | xor rsi, rdi
+  [27] 0x8B  IRR_PEXT_SPLICE   | pext rbx, rdi, [r14+splice]; popcnt -> r11
+  [28] 0x1A  CENTROMERE_DRIFT  | mov [r14+param],rbx; bio|=POLY_DRIFT
+  [29] 0xC8  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [30] 0x51  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [31] 0xFD  STIGMERGY_SENSE   | xor r8,[r14+stig_in]
+  [32] 0xD4  METAB_HARVEST     | xor rdi,[r14+env]; bio|=HARVEST
+  [33] 0xEB  IRR_PEXT_SPLICE   | pext r8, rsi, [r14+splice]; popcnt -> r11
+  [34] 0x71  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [35] 0x73  BRANCH_TZCNT      | tzcnt rax,[r14+clade_xor]; xor r8,rax
+  [36] 0x0A  IRR_CLMUL_SYNTH   | pclmulqdq rbx, rsi, 0x00; popcnt -> r11
+  [37] 0x45  REV_ADD_SUB       | add rdi, r8
+  [38] 0x58  RETRO_TRANSCRIBE  | mov [r14+param],rdi; bio|=RETRO_M_INV
+  [39] 0xEC  IRR_PDEP_SCATTER  | pdep r8, rsi, [r14+splice]; popcnt -> r11
+  [44] 0x0A  IRR_CLMUL_SYNTH   | pclmulqdq rbx, rsi, 0x00; popcnt -> r11
+  [45] 0x45  REV_ADD_SUB       | add rdi, r8
+  [48] 0xD4  METAB_HARVEST     | xor rdi,[r14+env]; bio|=HARVEST
+  [49] 0xEB  IRR_PEXT_SPLICE   | pext r8, rsi, [r14+splice]; popcnt -> r11
+  [50] 0x71  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [51] 0x73  BRANCH_TZCNT      | tzcnt rax,[r14+clade_xor]; xor r8,rax
+  [52] 0x0A  IRR_CLMUL_SYNTH   | pclmulqdq rbx, rsi, 0x00; popcnt -> r11
+  [53] 0x45  REV_ADD_SUB       | add rdi, r8
+  [54] 0x58  RETRO_TRANSCRIBE  | mov [r14+param],rdi; bio|=RETRO_M_INV
+  [57] 0xEB  IRR_PEXT_SPLICE   | pext r8, rsi, [r14+splice]; popcnt -> r11
+  [61] 0x45  REV_ADD_SUB       | add rdi, r8
+  [62] 0x58  RETRO_TRANSCRIBE  | mov [r14+param],rdi; bio|=RETRO_M_INV
+  [63] 0x62  REV_SWAP_TAPE     | xchg byte [r12+rbp], [r13+r9]
+; Raw x86-64 RWX machine bytes [0..64 of 1296]: 53 55 56 57 41 54 41 55 41 56 41 57 49 89 CC 49 89 D5 4D 89 C6 49 8B 5E 00 49 8B 76 08 49 8B 7E 10 4D 8B 46 18 45 8B 7E 60 45 8B 5E 64 45 8B 56 68 41 8B 6E 78 40 83 E5 7F 45 8B 4E 7C 41 83 E1 
+

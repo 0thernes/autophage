@@ -1,0 +1,6 @@
+=== AUTOPHAGE VIVISECTION, PLANARIAN EXCISION, 90% EXTINCTION & TRANSPLANT ===
+[PRE_SHOCK ] ep=180 alive=1024 rep=1017 lin=64 ribo=42(inv=23) irred=492 holo=720(max=451) spores=97 abst=113 | OVI=79.43(S5) G=1.00 Th=1.00 A=17.0 Leff=47.8 R50=0.40 | drift=0.00e+00 2ndV=0 | copy=25157 sex=1414 ref=53373 retro=48721 rmut=5021 | sha=e97988fec2f2
+  Planarian Excision on Evolved Slot #0 (ECC=YES): R25=100.00% | R50=100.00% | R75=100.00% | Live50%=100.00%
+  Cross-Substrate Transplant (32 organisms -> alien seed/wave, 25 ep): Survival=100.0%
+  90% Mass Extinction Executed: killed=916 | post-shock alive=108 | ledger_residual=0 uq (drift=0.00e+00)
+[RECOVERED ] ep=280 alive=1024 rep=1024 lin=33 ribo=6(inv=0) irred=545 holo=522(max=68) spores=25 abst=20 | OVI=73.90(S4) G=1.00 Th=1.00 A=20.0 Leff=45.8 R50=0.25 | drift=0.00e+00 2ndV=0 | copy=70122 sex=2508 ref=77447 retro=58230 rmut=5051 | sha=59721c8fc134
