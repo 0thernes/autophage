@@ -287,21 +287,17 @@ void gf2_polynomial_crossover(const uint8_t a[64], const uint8_t b[64], uint8_t 
 }
 
 /* ============================================================================
- * PLANARIAN CYCLIC ECC PARITY (Strand beta[0..63] encodes holographic parity
- * of Strand alpha[0..63] so even 50% excision of Strand alpha heals cleanly!)
+ * PLANARIAN 2x2 CAUCHY MDS ECC PARITY OVER GF(2^8)
  *
- * Layout inside Strand beta (64 bytes):
- *   - Bytes 0..31:   GF(2^8) weighted parity of (alpha[i], alpha[i+32])
- *                    P0[i] = alpha[i] ^ gf2_mul_mod8(alpha[i+32], 0x03, poly)
- *   - Bytes 32..63:  Secondary orthogonal parity of (alpha[i], alpha[i+32])
- *                    P1[i] = gf2_mul_mod8(alpha[i], 0x05, poly) ^ alpha[i+32]
- *
- * Wait: if alpha[0..31] is excised (zeroed) while alpha[32..63] survives (50% excision):
- *   alpha[i] = P0[i] ^ gf2_mul_mod8(alpha[i+32], 0x03, poly)! Exact 100% recovery!
- * If alpha[32..63] is excised while alpha[0..31] survives (50% excision):
- *   alpha[i+32] = P1[i] ^ gf2_mul_mod8(alpha[i], 0x05, poly)! Exact 100% recovery!
- * Even if BOTH halves have partial erasures at disjoint positions, P0 and P1
- * independently reconstruct whichever half was zeroed/corrupted!
+ * Exact MDS Recovery Geometry (Proven Universally Across All 30 Fields in Lean 4 T15a/T16):
+ *   The dual-strand genome has 128 bytes = 64B Strand alpha (data) + 64B Strand beta (parity).
+ *   For each index i in [0..31]:
+ *     P0[i] = alpha[i] ^ gf2_mul_mod8(alpha[i+32], 0x03, p)
+ *     P1[i] = gf2_mul_mod8(alpha[i], 0x05, p) ^ alpha[i+32]
+ *   The 2x2 Cauchy matrix [[1, 3], [5, 1]] has det = 1 ^ (3 * 5) = 0x0E != 0 in ALL 30
+ *   irreducible GF(2^8) fields, making Strand beta (64B) an invertible linear code of
+ *   Strand alpha (64B). Whenever Strand beta survives intact, ANY erasure of up to 100%
+ *   of Strand alpha (50% of the full 128-byte dual-strand genome) is reconstructed bit-exact.
  * ============================================================================ */
 
 void gf2_compute_ecc_parity(const uint8_t strand_a[64], uint8_t strand_b_ecc[64], uint8_t poly_low8) {
@@ -312,6 +308,19 @@ void gf2_compute_ecc_parity(const uint8_t strand_a[64], uint8_t strand_b_ecc[64]
         strand_b_ecc[i]      = (uint8_t)(lo ^ gf2_mul_mod8(hi, 0x03u, p));
         strand_b_ecc[i + 32] = (uint8_t)(gf2_mul_mod8(lo, 0x05u, p) ^ hi);
     }
+}
+
+uint32_t gf2_ecc_intact_pairs(const uint8_t strand_a[64], const uint8_t strand_b_ecc[64], uint8_t poly_low8) {
+    uint8_t p = gf2_poly8_is_irreducible(poly_low8) ? poly_low8 : 0x1Bu;
+    uint32_t ok = 0u;
+    for (int i = 0; i < 32; i++) {
+        uint8_t lo = strand_a[i];
+        uint8_t hi = strand_a[i + 32];
+        uint8_t exp_p0 = (uint8_t)(lo ^ gf2_mul_mod8(hi, 0x03u, p));
+        uint8_t exp_p1 = (uint8_t)(gf2_mul_mod8(lo, 0x05u, p) ^ hi);
+        if (exp_p0 == strand_b_ecc[i] && exp_p1 == strand_b_ecc[i + 32]) ok++;
+    }
+    return ok;
 }
 
 uint32_t gf2_heal_from_ecc(uint8_t strand_a[64], const uint8_t strand_b_ecc[64], uint8_t poly_low8) {

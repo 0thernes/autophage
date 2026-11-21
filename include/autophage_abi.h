@@ -3,7 +3,7 @@
 
 /*
  * ============================================================================
- * AUTOPHAGE v1.0 — BARE-METAL POLYMORPHIC x86-64 GALOIS-FIELD GENETIC ENGINE
+ * AUTOPHAGE v1.2.0 — BARE-METAL POLYMORPHIC x86-64 GALOIS-FIELD GENETIC ENGINE
  * Flat C11 Public ABI (Standalone Build + Direct Drop-In for ASMODENSIUS)
  * ============================================================================
  *
@@ -34,7 +34,7 @@ extern "C" {
   #define AUTOPHAGE_API __attribute__((visibility("default")))
 #endif
 
-#define AUTOPHAGE_ABI_VERSION 0x00010000u
+#define AUTOPHAGE_ABI_VERSION 0x00010200u
 
 /* Simulation Operating Regimes */
 typedef enum AutophageRegime {
@@ -222,10 +222,17 @@ typedef struct AutophageSpecimen {
     uint32_t offspring_count;
     uint32_t mate_count;
     uint32_t mate_refusals;
+    uint16_t flags;
+    uint16_t somatic_writes;
+    uint16_t mutations_survived;
+    uint16_t rev_ratio_q16;
+    uint32_t hgt_exchanges;
+    uint32_t last_erased_bits;
     uint64_t last_rdtsc_cycles;
     uint8_t  genome[128];
     uint8_t  expressed_opcodes[64];
-    uint32_t jit_code_len;
+    uint32_t jit_code_total_len;  /* Full emitted native x86-64 byte length */
+    uint32_t jit_code_len;        /* Bytes copied into jit_machine_code[] (<= 512) */
     uint8_t  jit_machine_code[512];
 } AutophageSpecimen;
 

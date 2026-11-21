@@ -1,4 +1,4 @@
-=== AUTOPHAGE v1.0 SILICON HARDWARE PROBE (ABI 0x00010000) ===
+=== AUTOPHAGE v1.2.0 SILICON HARDWARE PROBE (ABI 0x00010200) ===
   Vendor         : GenuineIntel
   Brand          : Intel(R) Core(TM) Ultra 9 275HX
   AVX2           : YES

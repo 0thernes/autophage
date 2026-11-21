@@ -1,67 +1,71 @@
-=== AUTOPHAGE TRACK B (PURE FERAL) vs TRACK A (CONSTITUTIONAL) ===
-[TRACK_B_FERAL] ep=250 alive=1024 rep=978 lin=63 ribo=21(inv=9) irred=135 holo=461(max=324) spores=0 abst=131 | OVI=86.14(S5) G=1.00 Th=1.00 A=24.0 Leff=48.9 R50=0.80 | drift=1.18e-16 2ndV=0 | copy=2664 sex=1440 ref=65542 retro=66083 rmut=6322 | sha=f0840542509a
-  8-Pillar OVBS-52: P1_Autopoiesis=94.5 | P2_OEE=47.6 | P3_Morphogenesis=90.2 | P4_Ecology=100.0 | P5_Autonomy=90.2 | P6_Criticality=100.0 | P7_MetaRibosome=81.3 | P8_Assembly=100.0
-  Metrics: BedauPackard_Anew=0.000 | MarkovBlanket=0.755 | Krakauer_I=6.520 | BranchingSigma=1.001 | Weismann=64.534 | MET=8/8 | CancerDefections=1727
+=== AUTOPHAGE v1.2.0 TRACK B (PURE FERAL) vs TRACK A (CONSTITUTIONAL) ===
+[TRACK_B_FERAL] ep=250 alive=1024 rep=1017 lin=269 ribo=275(inv=338) irred=474 holo=830(max=720) spores=71 abst=63 | OVI=87.55(S5) G=1.00 Th=1.00 A=21.0 Leff=26.7 R50=0.27 | drift=1.18e-16 2ndV=0 | copy=9568 sex=2128 ref=77233 retro=84545 rmut=14744 | sha=3ea08a081512
+  8-Pillar OVBS-52: P1_Autopoiesis=82.0 | P2_OEE=89.3 | P3_Morphogenesis=63.5 | P4_Ecology=100.0 | P5_Autonomy=81.2 | P6_Criticality=99.8 | P7_MetaRibosome=90.0 | P8_Assembly=100.0
+  Metrics: BedauPackard_Anew=62.266 | MarkovBlanket=0.643 | Krakauer_I=6.245 | BranchingSigma=1.003 | Weismann=82.563 | MET=8/8 | CancerDefections=25151
 
 --- TRACK B FERAL APEX x86-64 ORGANISM DISASSEMBLY ---
-; AUTOPHAGE Live Native x86-64 Genome Disassembly (52 active exons / 64, 998 JIT bytes)
+; AUTOPHAGE v1.2.0 Live Native x86-64 Genome Disassembly (56 active exons / 64, 1654 JIT bytes)
 ; Prologue: save rbx..r15, map r12=tape_a, r13=tape_b, r14=ctx, rbp=h0&7F, r9=h1&7F, r11=popcnt
-  [00] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [01] 0x91  LOOP_CLOSE_NZ     | dec r15; jle +skip; test rbx; jnz L_00
-  [02] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [03] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [04] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [05] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [06] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [07] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [08] 0x1A  CENTROMERE_DRIFT  | mov [r14+param],rbx; bio|=POLY_DRIFT
-  [09] 0x40  REV_XOR_REG       | xor rdi, r8
-  [10] 0xF9  RIBOSOME_MUTATE   | mov [r14+param],r8; bio|=RIBO_REWRITE
-  [11] 0x3E  MITOSIS_FORK      | mov [r14+param],rsi; bio|=MITOSIS_SEX
-  [12] 0x45  REV_ADD_SUB       | add rdi, r8
-  [13] 0x70  LOOP_OPEN         | L_13: ; loop anchor
-  [14] 0xBC  STIGMERGY_EMIT    | mov [r14+stig_out],rsi; bio|=EMIT
-  [15] 0x9A  CENTROMERE_DRIFT  | mov [r14+param],rbx; bio|=POLY_DRIFT
-  [17] 0x2D  IRR_AND_MASK      | and rsi, rdi; popcnt(erased) -> r11
-  [19] 0xCC  IRR_PDEP_SCATTER  | pdep rdi, rbx, [r14+splice]; popcnt -> r11
-  [20] 0x56  MEMBRANE_SEAL     | mov [r14+param],rdi; bio|=MEMBRANE_SEAL
-  [21] 0x35  METAB_RADIATE     | or [r14+bio], RADIATE
-  [22] 0x21  REV_ROL_REG       | rol rsi, 7
-  [24] 0xEA  IRR_CLMUL_SYNTH   | pclmulqdq r8, rsi, 0x00; popcnt -> r11
-  [25] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [26] 0x1F  SLEEP_SPORE       | or [r14+bio], SLEEP_SPORE
-  [27] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [28] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [29] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [30] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [31] 0x39  RIBOSOME_MUTATE   | mov [r14+param],rsi; bio|=RIBO_REWRITE
-  [32] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [33] 0xEA  IRR_CLMUL_SYNTH   | pclmulqdq r8, rsi, 0x00; popcnt -> r11
-  [34] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [35] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [36] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [37] 0xEA  IRR_CLMUL_SYNTH   | pclmulqdq r8, rsi, 0x00; popcnt -> r11
-  [38] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [39] 0x9D  STIGMERGY_SENSE   | xor rbx,[r14+stig_in]
-  [42] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [43] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [45] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [46] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [47] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [48] 0xEA  IRR_CLMUL_SYNTH   | pclmulqdq r8, rsi, 0x00; popcnt -> r11
-  [49] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [50] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [51] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [52] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [53] 0xEA  IRR_CLMUL_SYNTH   | pclmulqdq r8, rsi, 0x00; popcnt -> r11
-  [54] 0xE3  REV_TOFFOLI       | mov rax,rsi; and rax,rdi; xor r8,rax
-  [55] 0xEA  IRR_CLMUL_SYNTH   | pclmulqdq r8, rsi, 0x00; popcnt -> r11
-  [59] 0xB2  BRANCH_EQ_SKIP    | cmp regs; je skip_next
-  [60] 0x63  REV_TOFFOLI       | mov rax,rbx; and rax,rsi; xor r8,rax
-; Raw x86-64 RWX machine bytes [0..64 of 998]: 53 55 56 57 41 54 41 55 41 56 41 57 49 89 CC 49 89 D5 4D 89 C6 49 8B 5E 00 49 8B 76 08 49 8B 7E 10 4D 8B 46 18 45 8B 7E 60 45 8B 5E 64 45 8B 56 68 41 8B 6E 78 40 83 E5 7F 45 8B 4E 7C 41 83 E1 
+  [00] 0x95  METAB_RADIATE     | or [r14+bio], RADIATE
+  [01] 0xFE  MITOSIS_FORK      | mov [r14+mito_p],r8; bio|=MITOSIS_SEX
+  [02] 0x08  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [03] 0xCD  IRR_AND_MASK      | and rdi, rbx; popcnt(erased) -> r11
+  [04] 0x6C  IRR_PDEP_SCATTER  | pdep r8, rbx, [r14+splice]; popcnt -> r11
+  [05] 0xDA  CENTROMERE_DRIFT  | mov [r14+centro_p],rdi; bio|=POLY_DRIFT
+  [06] 0x29  IRR_COPY_B_TO_A   | mov [r12+rbp],[r13+r9]; popcnt -> r11; h0++,h1++
+  [07] 0x5B  HOLOBIONT_BOND    | mov [r14+holo_p],rdi; bio|=HOLOBIONT
+  [08] 0x75  METAB_RADIATE     | or [r14+bio], RADIATE
+  [09] 0xF4  METAB_HARVEST     | mov [r14+harvest],r8; add r8,[r14+env]; bio|=HARVEST
+  [10] 0x50  LOOP_OPEN         | L_10: ; loop anchor
+  [11] 0xF5  METAB_RADIATE     | or [r14+bio], RADIATE
+  [12] 0x4C  IRR_PDEP_SCATTER  | pdep rdi, r8, [r14+splice]; popcnt -> r11
+  [13] 0x31  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_10
+  [14] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [15] 0x11  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [16] 0xB1  LOOP_CLOSE_NZ     | dec r15; jle +skip; test rsi; jnz L_00
+  [17] 0x1B  HOLOBIONT_BOND    | mov [r14+holo_p],rbx; bio|=HOLOBIONT
+  [19] 0x55  METAB_RADIATE     | or [r14+bio], RADIATE
+  [20] 0x06  REV_HEAD_STEP     | inc rbp; inc r9; and 0x7F
+  [21] 0x55  METAB_RADIATE     | or [r14+bio], RADIATE
+  [23] 0xD4  METAB_HARVEST     | mov [r14+harvest],rdi; add rdi,[r14+env]; bio|=HARVEST
+  [24] 0x06  REV_HEAD_STEP     | inc rbp; inc r9; and 0x7F
+  [25] 0x55  METAB_RADIATE     | or [r14+bio], RADIATE
+  [26] 0x09  IRR_COPY_B_TO_A   | mov [r12+rbp],[r13+r9]; popcnt -> r11; h0++,h1++
+  [27] 0x14  METAB_HARVEST     | mov [r14+harvest],rbx; add rbx,[r14+env]; bio|=HARVEST
+  [28] 0x09  IRR_COPY_B_TO_A   | mov [r12+rbp],[r13+r9]; popcnt -> r11; h0++,h1++
+  [29] 0xC6  REV_HEAD_STEP     | dec rbp; inc r9; and 0x7F
+  [30] 0xA2  REV_SWAP_TAPE     | xchg byte [r12+rbp], [r13+r9]
+  [31] 0xC6  REV_HEAD_STEP     | dec rbp; inc r9; and 0x7F
+  [32] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [33] 0xFE  MITOSIS_FORK      | mov [r14+mito_p],r8; bio|=MITOSIS_SEX
+  [34] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [35] 0xB4  METAB_HARVEST     | mov [r14+harvest],rsi; add rsi,[r14+env]; bio|=HARVEST
+  [36] 0x43  REV_TOFFOLI       | mov rax,r8; and rax,rbx; xor rdi,rax
+  [37] 0x31  LOOP_CLOSE_NZ     | dec r15; jle +skip; test [r12+rbp]; jnz L_00
+  [38] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [39] 0xDF  SLEEP_SPORE       | or [r14+bio], SLEEP_SPORE
+  [40] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [42] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [43] 0x7E  MITOSIS_FORK      | mov [r14+mito_p],r8; bio|=MITOSIS_SEX
+  [44] 0x8D  IRR_AND_MASK      | and rbx, rdi; popcnt(erased) -> r11
+  [45] 0xB0  LOOP_OPEN         | L_42: ; loop anchor
+  [48] 0xAD  IRR_AND_MASK      | and rsi, r8; popcnt(erased) -> r11
+  [49] 0xE2  REV_SWAP_TAPE     | xchg byte [r12+rbp], [r13+r9]
+  [50] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [51] 0x14  METAB_HARVEST     | mov [r14+harvest],rbx; add rbx,[r14+env]; bio|=HARVEST
+  [52] 0x08  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [53] 0x63  REV_TOFFOLI       | mov rax,rbx; and rax,rsi; xor r8,rax
+  [54] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [55] 0x08  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [56] 0x28  IRR_COPY_A_TO_B   | mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++
+  [57] 0xA7  REV_GFNI_FOLD     | gf2p8affineqb rsi, [r14+ribosome], 0x63 (rank<8->popcnt)
+  [59] 0xC3  REV_TOFFOLI       | mov rax,rbx; and rax,rsi; xor rdi,rax
+  [60] 0x5F  SLEEP_SPORE       | or [r14+bio], SLEEP_SPORE
+  [62] 0x4D  IRR_AND_MASK      | and rdi, r8; popcnt(erased) -> r11
+; Raw x86-64 RWX machine bytes [0..64 of 1654]: 53 55 56 57 41 54 41 55 41 56 41 57 49 89 CC 49 89 D5 4D 89 C6 49 8B 5E 00 49 8B 76 08 49 8B 7E 10 4D 8B 46 18 45 8B 7E 60 45 8B 5E 64 45 8B 56 68 41 8B 6E 78 40 83 E5 7F 45 8B 4E 7C 41 83 E1 
 --- ASMODENSIUS 112-TRAIT PROJECTION SAMPLE ---
-  [energy=0.717 heat=0.016 rev=0.775 riboRank=0.875 irred=1 exonFrac=0.812 mateRate=0.030 abstRate=0.964 asm=0.625 L_eff=0.812 entA=0.423]
+  [energy=0.541 heat=0.054 rev=0.632 riboRank=0.875 irred=0 exonFrac=0.875 mateRate=0.065 abstRate=0.927 asm=0.250 L_eff=0.531 entA=0.852]
 
-[TRACK_A_CONST] ep=250 alive=1024 rep=939 lin=72 ribo=15(inv=4) irred=98 holo=571(max=481) spores=2 abst=158 | OVI=82.25(S5) G=1.00 Th=1.00 A=7.0 Leff=50.5 R50=0.87 | drift=1.18e-16 2ndV=0 | copy=1627 sex=1364 ref=68088 retro=59020 rmut=5761 | sha=b01c792f53e8
-  8-Pillar OVBS-52: P1_Autopoiesis=94.4 | P2_OEE=46.9 | P3_Morphogenesis=93.4 | P4_Ecology=100.0 | P5_Autonomy=90.2 | P6_Criticality=100.0 | P7_MetaRibosome=78.1 | P8_Assembly=62.4
-  Metrics: BedauPackard_Anew=0.000 | MarkovBlanket=0.756 | Krakauer_I=6.260 | BranchingSigma=1.000 | Weismann=57.637 | MET=8/8 | CancerDefections=0
+[TRACK_A_CONST] ep=250 alive=1021 rep=984 lin=482 ribo=118(inv=116) irred=694 holo=630(max=298) spores=135 abst=47 | OVI=89.79(S5) G=1.00 Th=1.00 A=25.0 Leff=20.7 R50=0.41 | drift=1.18e-16 2ndV=0 | copy=2117 sex=2914 ref=64834 retro=68846 rmut=7296 | sha=bb0dba51a047
+  8-Pillar OVBS-52: P1_Autopoiesis=87.7 | P2_OEE=93.6 | P3_Morphogenesis=70.3 | P4_Ecology=100.0 | P5_Autonomy=88.6 | P6_Criticality=99.9 | P7_MetaRibosome=86.7 | P8_Assembly=93.2
+  Metrics: BedauPackard_Anew=70.258 | MarkovBlanket=0.738 | Krakauer_I=6.496 | BranchingSigma=0.998 | Weismann=67.227 | MET=8/8 | CancerDefections=0

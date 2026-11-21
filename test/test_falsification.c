@@ -1,7 +1,7 @@
 #include "autophage_internal.h"
 
 /* ============================================================================
- * AUTOPHAGE v1.0 BRUTAL BARE-METAL FALSIFICATION HARNESS (18 GATES + 6 MUTANTS)
+ * AUTOPHAGE v1.2.0 BRUTAL BARE-METAL FALSIFICATION HARNESS (18 GATES + 6 MUTANTS)
  * Every assertion runs live on x86-64 silicon. Zero stubs, zero skipped gates.
  * ============================================================================ */
 
@@ -38,7 +38,9 @@ static int test_t01_silicon_and_sha256(void) {
     CHECK(caps.has_popcnt == 1u, "POPCNT missing");
     CHECK(caps.has_bmi1 == 1u && caps.has_bmi2 == 1u, "BMI1/BMI2 missing");
     CHECK(caps.has_pclmulqdq == 1u, "PCLMULQDQ missing");
+#if !defined(AUTOPHAGE_CI_PORTABLE)
     CHECK(caps.has_gfni == 1u, "GFNI missing");
+#endif
 
     /* NIST FIPS 180-4 SHA-256("abc") test vector */
     uint8_t dig[32];
@@ -90,7 +92,7 @@ static int test_t02_gfni_hardware_and_weismann_inverse(void) {
     return 1;
 }
 
-/* T03: GF(2)[x] Degree-8 Irreducibility Count == 30 + PCLMULQDQ Bit-Exactness + Zero-Divisor */
+/* T03: GF(2)[x] Degree-8 Irreducibility Count == 30 + PCLMULQDQ Bit-Exactness */
 static int test_t03_galois_poly_and_pclmul(void) {
     int irred_count = 0;
     for (int p = 0; p < 256; p++) {
@@ -126,17 +128,20 @@ static int test_t03_galois_poly_and_pclmul(void) {
     return 1;
 }
 
-/* T04: Native x86-64 RWX JIT vs Scalar Reference Oracle Bit-Exactness (All 32 Opcodes + 5,000 Genomes) */
+/* T04: Native x86-64 RWX JIT vs Scalar Reference Oracle Bit-Exactness
+ * Covers ALL 32 opcodes, 5,000 random genomes, smooth NERFING levels, and rank-8 + singular ribosomes! */
 static int test_t04_jit_vs_oracle_bit_exact(void) {
     AutophageHwCaps caps;
     autophage_probe_hardware(&caps);
     AutophageJitCache cache;
     CHECK(jit_cache_init(&cache, &caps) == 1, "JIT cache init failed");
 
+    static const uint8_t NERF_LEVELS[5] = { 0u, 25u, 50u, 75u, 100u };
+
     for (uint32_t trial = 0; trial < 5000u; trial++) {
         uint8_t expr[64];
-        if (trial == 0u) {
-            /* Explicit coverage of all 32 opcodes (b7=0 and b7=1) */
+        if (trial == 0u || trial == 1u) {
+            /* Explicit coverage of all 32 opcodes (b7=0 and b7=1) under both rank-8 and singular */
             for (int i = 0; i < 64; i++) {
                 expr[i] = (uint8_t)((i & 0x1F) | ((i & 3) << 5) | (((i >> 5) & 1) << 7));
             }
@@ -147,7 +152,7 @@ static int test_t04_jit_vs_oracle_bit_exact(void) {
             }
         }
         uint64_t smask = (trial < 10u) ? ~0ULL : philox_u64(0x704ULL, 1u, trial, 0ULL, 2u, 0u);
-        uint8_t  nerf  = (trial % 7u == 0u) ? 80u : 0u;
+        uint8_t  nerf  = NERF_LEVELS[trial % 5u];
 
         uint8_t ta_jit[128], tb_jit[128], ta_ref[128], tb_ref[128];
         for (int w = 0; w < 16; w++) {
@@ -166,13 +171,19 @@ static int test_t04_jit_vs_oracle_bit_exact(void) {
         ctx_jit.regs[2]      = philox_u64(0x704ULL, 1u, trial, 3ULL, 0u, 2u);
         ctx_jit.regs[3]      = philox_u64(0x704ULL, 1u, trial, 3ULL, 0u, 3u);
         ctx_jit.splice_mask  = smask;
-        ctx_jit.ribosome_mat = gf2_mat_random_invertible(0x704ULL, 1u, trial, 4ULL, 0u);
-        ctx_jit.env_wave     = philox_u64(0x704ULL, 1u, trial, 3ULL, 1u, 0u);
-        ctx_jit.clade_xor    = (trial % 5u == 0u) ? 0ULL : philox_u64(0x704ULL, 1u, trial, 3ULL, 1u, 1u);
-        ctx_jit.stigmergy_in = philox_u64(0x704ULL, 1u, trial, 3ULL, 1u, 2u);
-        ctx_jit.gas          = 32u;
-        ctx_jit.head0        = (uint32_t)(trial * 11u) & 0x7Fu;
-        ctx_jit.head1        = (uint32_t)(trial * 23u) & 0x7Fu;
+        if (trial % 5u == 1u) {
+            /* Deliberately singular matrix (row 0 = 0 -> rank <= 7) to test OP_REV_GFNI_FOLD erasure! */
+            ctx_jit.ribosome_mat = philox_u64(0x704ULL, 1u, trial, 4ULL, 1u, 0u) & 0xFFFFFFFFFFFFFF00ULL;
+        } else {
+            ctx_jit.ribosome_mat = gf2_mat_random_invertible(0x704ULL, 1u, trial, 4ULL, 0u);
+        }
+        ctx_jit.ribosome_rank = (uint32_t)gf2_mat_rank(ctx_jit.ribosome_mat);
+        ctx_jit.env_wave      = philox_u64(0x704ULL, 1u, trial, 3ULL, 1u, 0u);
+        ctx_jit.clade_xor     = (trial % 5u == 0u) ? 0ULL : philox_u64(0x704ULL, 1u, trial, 3ULL, 1u, 1u);
+        ctx_jit.stigmergy_in  = philox_u64(0x704ULL, 1u, trial, 3ULL, 1u, 2u);
+        ctx_jit.gas           = 32u;
+        ctx_jit.head0         = (uint32_t)(trial * 11u) & 0x7Fu;
+        ctx_jit.head1         = (uint32_t)(trial * 23u) & 0x7Fu;
         ctx_ref = ctx_jit;
 
         autophage_jit_fn fn = jit_compile_or_fetch(&cache, expr, smask, nerf, NULL, NULL, 0);
@@ -182,9 +193,11 @@ static int test_t04_jit_vs_oracle_bit_exact(void) {
         CHECK(r_jit == r_ref, "Trial %u: ret mismatch jit=%llu ref=%llu",
               (unsigned)trial, (unsigned long long)r_jit, (unsigned long long)r_ref);
         CHECK(memcmp(&ctx_jit, &ctx_ref, sizeof(ctx_jit)) == 0,
-              "Trial %u: ExecCtx mismatch (erased %u vs %u, rev %u vs %u, bio %llx vs %llx)",
-              (unsigned)trial, ctx_jit.erased_bits, ctx_ref.erased_bits,
+              "Trial %u (nerf=%u rank=%u): ExecCtx mismatch (erased %u vs %u, rev %u vs %u, irr %u vs %u, bio %llx vs %llx)",
+              (unsigned)trial, (unsigned)nerf, (unsigned)ctx_jit.ribosome_rank,
+              ctx_jit.erased_bits, ctx_ref.erased_bits,
               ctx_jit.rev_ops, ctx_ref.rev_ops,
+              ctx_jit.irr_ops, ctx_ref.irr_ops,
               (unsigned long long)ctx_jit.bio_actions, (unsigned long long)ctx_ref.bio_actions);
         CHECK(memcmp(ta_jit, ta_ref, 128u) == 0, "Trial %u: tape_a mismatch", (unsigned)trial);
         CHECK(memcmp(tb_jit, tb_ref, 128u) == 0, "Trial %u: tape_b mismatch", (unsigned)trial);
@@ -223,14 +236,15 @@ static int test_t05_million_fuzz_silicon_safety(void) {
         autophage_jit_fn fn = jit_compile_or_fetch(&cache, expr, smask, 0u, NULL, NULL, 0);
 
         for (uint32_t rep = 0; rep < 500u; rep++) {
-            ctx.gas          = 24u;
-            ctx.erased_bits  = 0u;
-            ctx.rev_ops      = 0u;
-            ctx.irr_ops      = 0u;
-            ctx.head0        = (rep * 7u) & 0x7Fu;
-            ctx.head1        = (rep * 13u) & 0x7Fu;
-            ctx.splice_mask  = smask;
-            ctx.ribosome_mat = 0x0102040810204080ULL;
+            ctx.gas           = 24u;
+            ctx.erased_bits   = 0u;
+            ctx.rev_ops       = 0u;
+            ctx.irr_ops       = 0u;
+            ctx.head0         = (rep * 7u) & 0x7Fu;
+            ctx.head1         = (rep * 13u) & 0x7Fu;
+            ctx.splice_mask   = smask;
+            ctx.ribosome_mat  = 0x0102040810204080ULL;
+            ctx.ribosome_rank = 8u;
             (void)fn(ta, tb, &ctx);
         }
     }
@@ -245,42 +259,77 @@ static int test_t05_million_fuzz_silicon_safety(void) {
     return 1;
 }
 
-/* T06: Exact Landauer Reversibility Proof (0 Erased Bits on Reversible Ops, Exact POPCNT on Irreversible) */
+/* T06: Exact Landauer Reversibility Proof
+ * - 0 erased bits on reversible ops + full-rank GFNI
+ * - Exact POPCNT erasure on singular-rank GFNI (Landauer loophole closed!)
+ * - True NOP (0 rev_ops, 0 erased) when NERFING=100 strips GFNI (no fake rev_ops++!)
+ * - Exact POPCNT erasure on irreversible AND_MASK */
 static int test_t06_landauer_reversibility(void) {
     AutophageHwCaps caps;
     autophage_probe_hardware(&caps);
     AutophageJitCache cache;
     CHECK(jit_cache_init(&cache, &caps) == 1, "JIT cache init failed");
 
-    /* Pure reversible program: TOFFOLI, TOFFOLI (self-inverse!), FREDKIN, FREDKIN (self-inverse!), XOR, ROL, GFNI */
-    uint8_t rev_prog[64];
-    memset(rev_prog, 0, sizeof(rev_prog));
-    rev_prog[0] = (uint8_t)(OP_REV_TOFFOLI | (0 << 5));
-    rev_prog[1] = (uint8_t)(OP_REV_TOFFOLI | (0 << 5)); /* Self-inverse restores R0! */
-    rev_prog[2] = (uint8_t)(OP_REV_FREDKIN | (1 << 5));
-    rev_prog[3] = (uint8_t)(OP_REV_FREDKIN | (1 << 5)); /* Self-inverse restores R2,R3! */
-    uint64_t mask4 = 0x0FULL;
-
     uint8_t ta[128], tb[128];
     memset(ta, 0x3C, 128); memset(tb, 0xC3, 128);
+
+    /* 1. Pure reversible program: TOFFOLI x2, FREDKIN x2, rank-8 GFNI_FOLD */
+    uint8_t rev_prog[64];
+    memset(rev_prog, 0, sizeof(rev_prog));
+    rev_prog[0] = (uint8_t)(OP_REV_TOFFOLI   | (0 << 5));
+    rev_prog[1] = (uint8_t)(OP_REV_TOFFOLI   | (0 << 5)); /* Self-inverse restores R0! */
+    rev_prog[2] = (uint8_t)(OP_REV_FREDKIN   | (1 << 5));
+    rev_prog[3] = (uint8_t)(OP_REV_FREDKIN   | (1 << 5)); /* Self-inverse restores R2,R3! */
+    rev_prog[4] = (uint8_t)(OP_REV_GFNI_FOLD | (3 << 5)); /* Full-rank identity GFNI fold */
+    uint64_t mask5 = 0x1FULL;
+
     AutophageExecCtx ctx;
     memset(&ctx, 0, sizeof(ctx));
-    ctx.regs[0] = 0x1122334455667788ULL;
-    ctx.regs[1] = 0xF0F0F0F00F0F0F0FULL;
-    ctx.regs[2] = 0xCAFEBABEDEADBEEFULL;
-    ctx.regs[3] = 0x0123456789ABCDEFULL;
-    ctx.gas     = 32u;
-    ctx.ribosome_mat = gf2_mat_identity();
+    ctx.regs[0]       = 0x1122334455667788ULL;
+    ctx.regs[1]       = 0xF0F0F0F00F0F0F0FULL;
+    ctx.regs[2]       = 0xCAFEBABEDEADBEEFULL;
+    ctx.regs[3]       = 0x0123456789ABCDEFULL;
+    ctx.gas           = 32u;
+    ctx.ribosome_mat  = gf2_mat_identity();
+    ctx.ribosome_rank = 8u;
 
-    autophage_jit_fn fn_rev = jit_compile_or_fetch(&cache, rev_prog, mask4, 0u, NULL, NULL, 0);
+    autophage_jit_fn fn_rev = jit_compile_or_fetch(&cache, rev_prog, mask5, 0u, NULL, NULL, 0);
     (void)fn_rev(ta, tb, &ctx);
 
     CHECK(ctx.erased_bits == 0u, "Reversible program erased %u bits (must be 0)!", ctx.erased_bits);
-    CHECK(ctx.rev_ops == 4u, "Expected 4 rev_ops, got %u", ctx.rev_ops);
+    CHECK(ctx.rev_ops == 5u && ctx.irr_ops == 0u, "Expected 5 rev_ops / 0 irr_ops, got %u/%u",
+          ctx.rev_ops, ctx.irr_ops);
     CHECK(ctx.regs[0] == 0x1122334455667788ULL && ctx.regs[2] == 0xCAFEBABEDEADBEEFULL,
           "Toffoli/Fredkin double application failed self-involution!");
 
-    /* Irreversible AND_MASK erasing exact known bits: 0xFFFFFFFFFFFFFFFF & 0x00000000FFFFFFFF clears 32 bits! */
+    /* 2. Singular-ribosome GFNI_FOLD MUST erase exact POPCNT bits (Landauer loophole closed!) */
+    uint8_t gfni_prog[64];
+    memset(gfni_prog, 0, sizeof(gfni_prog));
+    gfni_prog[0] = (uint8_t)(OP_REV_GFNI_FOLD | (0 << 5)); /* pc=0, b7=0 -> imm_bias=0 */
+    memset(&ctx, 0, sizeof(ctx));
+    ctx.regs[0]       = 0xFFFFFFFFFFFFFFFFULL;
+    ctx.gas           = 16u;
+    ctx.ribosome_mat  = 0ULL; /* Rank-0 singular matrix collapses all 64 bits to 0! */
+    ctx.ribosome_rank = 0u;
+    autophage_jit_fn fn_sg = jit_compile_or_fetch(&cache, gfni_prog, 1ULL, 0u, NULL, NULL, 0);
+    (void)fn_sg(ta, tb, &ctx);
+    CHECK(ctx.regs[0] == 0ULL && ctx.erased_bits == 64u && ctx.irr_ops == 1u && ctx.rev_ops == 0u,
+          "Singular GFNI Landauer check failed: R0=%llx erased=%u irr=%u rev=%u",
+          (unsigned long long)ctx.regs[0], ctx.erased_bits, ctx.irr_ops, ctx.rev_ops);
+
+    /* 3. NERFING=100 strips OP_REV_GFNI_FOLD into true NOP (NO fake rev_ops++!) */
+    memset(&ctx, 0, sizeof(ctx));
+    ctx.regs[0]       = 0xA5A5A5A5A5A5A5A5ULL;
+    ctx.gas           = 16u;
+    ctx.ribosome_mat  = gf2_mat_identity();
+    ctx.ribosome_rank = 8u;
+    autophage_jit_fn fn_nerf = jit_compile_or_fetch(&cache, gfni_prog, 1ULL, 100u, NULL, NULL, 0);
+    (void)fn_nerf(ta, tb, &ctx);
+    CHECK(ctx.regs[0] == 0xA5A5A5A5A5A5A5A5ULL && ctx.rev_ops == 0u && ctx.irr_ops == 0u && ctx.erased_bits == 0u,
+          "Nerfed GFNI granted fake ops: R0=%llx rev=%u irr=%u erased=%u",
+          (unsigned long long)ctx.regs[0], ctx.rev_ops, ctx.irr_ops, ctx.erased_bits);
+
+    /* 4. Irreversible AND_MASK erasing exact known bits: 0xFFFFFFFFFFFFFFFF & 0x00000000FFFFFFFF -> 32 bits! */
     uint8_t irr_prog[64];
     memset(irr_prog, 0, sizeof(irr_prog));
     irr_prog[0] = (uint8_t)(OP_IRR_AND_MASK | (0 << 5)); /* R0 &= R1 */
@@ -296,7 +345,7 @@ static int test_t06_landauer_reversibility(void) {
     return 1;
 }
 
-/* T07: First-Law & Second-Law Conservation (P2) + Planted Mutants 1 & 2 CAUGHT! */
+/* T07: First-Law & Second-Law Conservation (P2) + Membrane/Detritus Spatial Sync + Planted Mutants 1 & 2 */
 static int test_t07_thermodynamics_and_mutants(void) {
     /* Closed-box (BOXING = 100%) AND Open-flux (BOXING = 0%) */
     for (int closed = 0; closed < 2; closed++) {
@@ -308,6 +357,7 @@ static int test_t07_thermodynamics_and_mutants(void) {
         if (closed) cfg.restraints[RESTRAINT_BOXING] = 100u;
 
         AutophageWorld* w = autophage_create(&cfg);
+        CHECK(w != NULL, "autophage_create failed");
         double prev_sink = 0.0;
         for (int e = 0; e < 50; e++) {
             autophage_step_epochs(w, 1u);
@@ -321,6 +371,20 @@ static int test_t07_thermodynamics_and_mutants(void) {
             CHECK(led.e_heat_radiated_sink_kj >= prev_sink - 1e-15, "Heat sink decreased (2nd Law!)");
             if (closed) CHECK(led.e_heat_radiated_sink_kj == 0.0 && led.e_inflow_cum_kj == 0.0,
                               "Closed box leaked flux!");
+
+            /* Verify exact per-cell membrane_pot_uq and local detritus_grid sums match global totals */
+            int64_t sum_mem = 0LL, sum_det = 0LL;
+            for (uint32_t k = 0; k < w->n_cells; k++) {
+                CHECK(w->cells[k].membrane_pot_uq >= 0, "Negative cell membrane_pot_uq at slot %u", (unsigned)k);
+                CHECK(w->detritus_grid[k] >= 0, "Negative local detritus_grid at slot %u", (unsigned)k);
+                sum_mem += (int64_t)w->cells[k].membrane_pot_uq;
+                sum_det += (int64_t)w->detritus_grid[k];
+            }
+            CHECK(sum_mem == w->e_membrane_pot_uq,
+                  "Membrane sum mismatch: cells=%lld global=%lld", (long long)sum_mem, (long long)w->e_membrane_pot_uq);
+            CHECK(sum_det == w->e_detritus_uq,
+                  "Detritus sum mismatch: grid=%lld global=%lld", (long long)sum_det, (long long)w->e_detritus_uq);
+
             prev_sink = led.e_heat_radiated_sink_kj;
         }
 
@@ -344,10 +408,18 @@ static int test_t07_thermodynamics_and_mutants(void) {
             int sec_ok = soup_verify_second_law(w, sink_before);
             CHECK(!sec_ok && w->second_law_violations == v_before + 1u,
                   "Planted Mutant 2 backflow escaped soup_verify_second_law!");
-            /* Restore clean state before destroy */
+            /* Restore clean state */
             w->e_heat_radiated_sink_uq = sink_before;
             w->e_detritus_uq -= 1LL;
             w->second_law_violations = v_before;
+
+            /* Verify mass extinction releases 100% of membrane potential (ZERO membrane graveyard!) */
+            autophage_mass_extinction(w, 100u);
+            AutophageLedgerSnapshot post_ext;
+            soup_ledger_snapshot(w, &post_ext);
+            CHECK(w->e_membrane_pot_uq == 0LL && post_ext.int_ledger_residual_uq == 0LL,
+                  "Membrane graveyard leak after 100%% extinction: mem=%lld res=%lld",
+                  (long long)w->e_membrane_pot_uq, (long long)post_ext.int_ledger_residual_uq);
         }
         autophage_destroy(w);
     }
@@ -472,7 +544,7 @@ static int test_t10_observer_independence(void) {
     return 1;
 }
 
-/* T11: Canonical .apbin Snapshot Save & Cross-Kernel Restore Parity */
+/* T11: Canonical .apbin Snapshot Save, Cross-Kernel Resume Parity & Tampered Snapshot Rejection */
 static int test_t11_apbin_snapshot_parity(void) {
     AutophageConfig cfg;
     autophage_default_config(&cfg);
@@ -499,10 +571,25 @@ static int test_t11_apbin_snapshot_parity(void) {
     autophage_destroy(w1);
     autophage_destroy(w2);
     CHECK(strcmp(s1, s2) == 0, ".apbin cross-kernel resume diverged: %s vs %s", s1, s2);
+
+    /* Tamper test: flip 1 byte inside payload and verify autophage_load_snapshot REJECTS it! */
+    FILE* f = fopen(snap_path, "r+b");
+    CHECK(f != NULL, "Failed to reopen snapshot for tamper test");
+    CHECK(fseek(f, 128L, SEEK_SET) == 0, "fseek failed in tamper test");
+    int ch = fgetc(f);
+    CHECK(ch != EOF, "fgetc failed in tamper test");
+    CHECK(fseek(f, 128L, SEEK_SET) == 0, "fseek rewrite failed in tamper test");
+    uint8_t flipped = (uint8_t)((uint8_t)ch ^ 0x01u);
+    CHECK(fwrite(&flipped, 1u, 1u, f) == 1u, "fwrite failed in tamper test");
+    fclose(f);
+
+    AutophageWorld* w_bad = autophage_load_snapshot(snap_path, AUTOPHAGE_KERNEL_SCALAR_REF);
+    remove(snap_path);
+    CHECK(w_bad == NULL, "Tampered .apbin snapshot was NOT rejected!");
     return 1;
 }
 
-/* T12: Zero Post-Warmup Heap Allocations (Asmodensius HW02) */
+/* T12: Zero Post-Warmup Heap Allocations (Asmodensius HW02) with Real Allocator Monitor */
 static int test_t12_zero_post_warmup_allocs(void) {
     AutophageConfig cfg;
     autophage_default_config(&cfg);
@@ -510,14 +597,36 @@ static int test_t12_zero_post_warmup_allocs(void) {
     cfg.regime = AUTOPHAGE_REGIME_FERAL_SEEDED;
     cfg.seed   = 5112ULL;
     AutophageWorld* w = autophage_create(&cfg);
+    CHECK(w != NULL, "autophage_create failed");
+
+    uint64_t allocs_before = g_ap_alloc_counter;
+    uint64_t viols_before  = g_ap_step_alloc_violations;
     /* 80 epochs x 256 cells = 20,480 cell ticks (>10,000 active non-spore JIT execs!) */
     autophage_step_epochs(w, 80u);
+    uint64_t allocs_after = g_ap_alloc_counter;
+    uint64_t viols_after  = g_ap_step_alloc_violations;
+
     AutophageTelemetry t;
     autophage_compute_telemetry(w, &t, 0);
     autophage_destroy(w);
-    CHECK(t.post_warmup_allocs == 0ULL && t.total_jit_executions >= 10000ULL,
-          "Post-warmup allocs=%llu, execs=%llu",
-          (unsigned long long)t.post_warmup_allocs, (unsigned long long)t.total_jit_executions);
+
+    /* Live negative control: prove the step-guard allocation monitor actually trips on ap_malloc! */
+    g_ap_in_step_guard = 1;
+    uint64_t probe_v0 = g_ap_step_alloc_violations;
+    void* probe_ptr = ap_malloc(16u);
+    uint64_t probe_v1 = g_ap_step_alloc_violations;
+    g_ap_in_step_guard = 0;
+    if (probe_v1 > probe_v0) g_ap_step_alloc_violations = probe_v0;
+    free(probe_ptr);
+
+    CHECK(probe_v1 == probe_v0 + 1ULL, "Allocation monitor negative-control probe did not trip!");
+    CHECK(allocs_after == allocs_before && viols_after == viols_before &&
+          t.post_warmup_allocs == 0ULL && t.total_jit_executions >= 10000ULL,
+          "Post-warmup allocs=%llu (delta=%llu, viols=%llu), execs=%llu",
+          (unsigned long long)t.post_warmup_allocs,
+          (unsigned long long)(allocs_after - allocs_before),
+          (unsigned long long)(viols_after - viols_before),
+          (unsigned long long)t.total_jit_executions);
     return 1;
 }
 
@@ -537,14 +646,15 @@ static int test_t13_spontaneous_abiogenesis(void) {
     autophage_compute_telemetry(w, &t1, 1);
     autophage_destroy(w);
 
-    CHECK(t0.alive_cells == 0u && t0.ovi_score == 0.0, "Zero-seed soup should start inert (OVI=0)");
-    CHECK(t1.alive_cells > 50u && t1.self_copy_events > 20ULL && t1.ovi_score > 10.0,
-          "Zero-seed abiogenesis failed to ignite: alive=%u copy=%llu OVI=%.2f",
-          (unsigned)t1.alive_cells, (unsigned long long)t1.self_copy_events, t1.ovi_score);
+    CHECK(t0.alive_cells == 0u && t0.ovi_score == 0.0 && t0.execs_per_second == 0.0,
+          "Zero-seed soup should start inert (OVI=%.2f, eps=%.2f)", t0.ovi_score, t0.execs_per_second);
+    CHECK(t1.alive_cells > 50u && t1.self_copy_events > 20ULL && t1.ovi_score > 10.0 && t1.execs_per_second > 0.0,
+          "Zero-seed abiogenesis failed to ignite: alive=%u copy=%llu OVI=%.2f eps=%.1f",
+          (unsigned)t1.alive_cells, (unsigned long long)t1.self_copy_events, t1.ovi_score, t1.execs_per_second);
     return 1;
 }
 
-/* T14: Anti-Gaming Gates 1 & 2 + Planted Mutants 3 (Intron Bloat) & 4 (White Noise) CAUGHT! */
+/* T14: Anti-Gaming Gates 1 & 2 + Planted Mutants 3 (Intron Bloat + Dead Scratch) & 4 (White Noise) */
 static int test_t14_anti_gaming_gates(void) {
     /* Planted Mutant 4: Pure White-Noise Soup -> MUST score OVI == 0.0! */
     AutophageConfig cfg;
@@ -558,7 +668,7 @@ static int test_t14_anti_gaming_gates(void) {
     CHECK(tn.gamma_anti_gaming == 0.0 && tn.ovi_score == 0.0,
           "Planted Mutant 4 (white noise) scored OVI=%.2f (must be 0.0)!", tn.ovi_score);
 
-    /* Planted Mutant 3: Cosmetic Intron Bloat (4 active exons + 48 dead masked introns!) */
+    /* Planted Mutant 3a: Cosmetic Intron Bloat (4 active exons + 60 dead masked introns!) */
     AutophageCell bloated;
     memset(&bloated, 0, sizeof(bloated));
     bloated.ribosome_mat = gf2_mat_identity();
@@ -570,13 +680,24 @@ static int test_t14_anti_gaming_gates(void) {
     for (int i = 4; i < 64; i++) bloated.genome[i] = (uint8_t)(i * 37 + 11); /* 60 bytes cosmetic bloat */
 
     uint32_t leff = metrology_causal_knockout_len(w, &bloated);
+
+    /* Planted Mutant 3b: Add 2 active exons touching ONLY dead scratch register R2 (never read by phenotype!) */
+    AutophageCell dead_scratch = bloated;
+    dead_scratch.splice_mask = 0x000000000000003FULL;
+    dead_scratch.genome[4]   = (uint8_t)(OP_REV_XOR_REG | (2 << 5)); /* R2 ^= R3 (dead!) */
+    dead_scratch.genome[5]   = (uint8_t)(OP_REV_ROL_REG | (2 << 5)); /* rol R2   (dead!) */
+    uint32_t leff_dead = metrology_causal_knockout_len(w, &dead_scratch);
+
     autophage_destroy(w);
     CHECK(leff <= 4u && leff >= 2u,
-          "Planted Mutant 3 (intron bloat) fooled Causal Knockout: L_eff=%u (expected <=4)!", (unsigned)leff);
+          "Planted Mutant 3a (intron bloat) fooled Causal Knockout: L_eff=%u (expected 2..4)!", (unsigned)leff);
+    CHECK(leff_dead == leff,
+          "Planted Mutant 3b (dead scratch ops) inflated Causal Knockout: %u vs base %u!",
+          (unsigned)leff_dead, (unsigned)leff);
     return 1;
 }
 
-/* T15: Planarian 50% Excision Regeneration Fidelity (ECC vs Unprotected Control) */
+/* T15: Planarian 50% Excision Regeneration Fidelity (ECC vs Unprotected Control + No Free Gifting) */
 static int test_t15_planarian_excision(void) {
     AutophageConfig cfg;
     autophage_default_config(&cfg);
@@ -585,7 +706,7 @@ static int test_t15_planarian_excision(void) {
     cfg.seed   = 5115ULL;
     AutophageWorld* w = autophage_create(&cfg);
 
-    /* Slot 0 is a seeded ECC-protected plasmid -> 50% excision must recover 100%! */
+    /* Slot 0 is a seeded ECC-protected plasmid -> 50% Strand-alpha excision must recover 100%! */
     double fid_ecc = autophage_vivisect_excise(w, 0u, 50u);
     /* Slot 1 is unprotected random cell -> 50% excision must NOT heal! */
     w->cells[1].flags &= (uint16_t)~CELL_FLAG_ECC_PROTECTED;
@@ -625,7 +746,7 @@ static int test_t16_weismann_barrier(void) {
     return 1;
 }
 
-/* T17: Empirical Constraint-Backlash Signatures (Kill-Switch Deletion & Checkpoint Spores) */
+/* T17: Empirical Constraint-Backlash Signatures (ALL 4 Escape Vectors Verified!) */
 static int test_t17_constraint_backlash(void) {
     AutophageConfig cfg;
     autophage_default_config(&cfg);
@@ -644,12 +765,13 @@ static int test_t17_constraint_backlash(void) {
     autophage_destroy(w);
 
     CHECK(t.backlash_killswitch_deletions > 0ULL, "Expected kill-switch deletions under DEGRADING=50%%");
+    CHECK(t.backlash_checkpoint_spores > 0ULL,    "Expected checkpoint spores under SPEEDBUMPING=50%%");
     CHECK(t.backlash_intron_hibernations > 0ULL,  "Expected intron vaulting under DEGRESSING=50%%");
     CHECK(t.backlash_sidechannel_pulses > 0ULL,   "Expected thermal side-channel under MUZZLING=50%%");
     return 1;
 }
 
-/* T18: Asmodensius 112-Trait Bridge & Emergent Mating / Abstention Refusals */
+/* T18: Asmodensius 112-Trait Bridge (incl. Holobiont Root Channel [68]) & Mating/Abstention */
 static int test_t18_asmodensius_112_and_abstention(void) {
     AutophageConfig cfg;
     autophage_default_config(&cfg);
@@ -672,12 +794,23 @@ static int test_t18_asmodensius_112_and_abstention(void) {
 
     int diffs = 0;
     for (int i = 0; i < 112; i++) {
-        CHECK(tr0[i] == tr0[i] && tr0[i] >= 0.0f && tr0[i] <= 1.0f, "Trait %d out of bounds: %f", i, tr0[i]);
-        CHECK(tr1[i] == tr1[i] && tr1[i] >= 0.0f && tr1[i] <= 1.0f, "Trait %d out of bounds: %f", i, tr1[i]);
+        CHECK(ap_isfinite((double)tr0[i]) && tr0[i] >= 0.0f && tr0[i] <= 1.0f, "Trait %d out of bounds: %f", i, tr0[i]);
+        CHECK(ap_isfinite((double)tr1[i]) && tr1[i] >= 0.0f && tr1[i] <= 1.0f, "Trait %d out of bounds: %f", i, tr1[i]);
         if (fabs((double)tr0[i] - (double)tr1[i]) > 1e-4) diffs++;
     }
+
+    /* Verify holobiont root channel out[68] reports 1.0f even when holobiont_root == slot_index! */
+    AutophageSpecimen root_sp;
+    memset(&root_sp, 0, sizeof(root_sp));
+    root_sp.slot_index     = 7u;
+    root_sp.holobiont_root = 7u;
+    root_sp.flags          = CELL_FLAG_ALIVE | CELL_FLAG_HOLOBIONT;
+    float tr_root[112];
+    autophage_project_asmodensius_112(&root_sp, tr_root);
+
     autophage_destroy(w);
 
+    CHECK(tr_root[68] == 1.0f, "Holobiont root channel out[68] failed: got %.3f", tr_root[68]);
     CHECK(diffs >= 12, "112-trait projection appears degenerate (only %d diffs)", diffs);
     CHECK(t.polynomial_sex_events > 0ULL && t.mate_refusal_events > 0ULL,
           "Expected both Galois sex (%llu) and emergent mate refusals (%llu)",
@@ -688,7 +821,7 @@ static int test_t18_asmodensius_112_and_abstention(void) {
 int main(void) {
     hw_install_fault_shield();
     printf("===========================================================================\n");
-    printf("  AUTOPHAGE v1.0 BARE-METAL SILICON FALSIFICATION SUITE (18 GATES + 6 MUT)\n");
+    printf("  AUTOPHAGE v1.2.0 BARE-METAL SILICON FALSIFICATION SUITE (18 GATES + 6 MUT)\n");
     printf("===========================================================================\n");
 
     run_gate("T01", "Silicon CPUID, Live RWX JIT & NIST SHA-256",           test_t01_silicon_and_sha256);
@@ -701,8 +834,8 @@ int main(void) {
     run_gate("T08", "Philox4x32-10 Domain Isolation + Planted Mutant 6",    test_t08_philox_domain_isolation);
     run_gate("T09", "Full-World Dual-Kernel SHA-256 Parity (JIT==SCALAR)",  test_t09_dual_kernel_world_parity);
     run_gate("T10", "Zero-Observer-Effect (P9) + Planted Mutant 5",         test_t10_observer_independence);
-    run_gate("T11", ".apbin Snapshot Save & Cross-Kernel Resume Parity",    test_t11_apbin_snapshot_parity);
-    run_gate("T12", "Zero Post-Warmup Heap Allocations (10,240 Ticks)",     test_t12_zero_post_warmup_allocs);
+    run_gate("T11", ".apbin Snapshot Save, Cross-Kernel Resume & Tamper",   test_t11_apbin_snapshot_parity);
+    run_gate("T12", "Zero Post-Warmup Heap Allocations (Wired Monitor)",    test_t12_zero_post_warmup_allocs);
     run_gate("T13", "Spontaneous Zero-Seed Abiogenesis Phase Transition",   test_t13_spontaneous_abiogenesis);
     run_gate("T14", "Anti-Gaming Gates 1 & 2 + Planted Mutants 3 & 4",      test_t14_anti_gaming_gates);
     run_gate("T15", "Planarian 50% Excision Regeneration Fidelity",         test_t15_planarian_excision);

@@ -16,13 +16,54 @@ const soupCanvas = document.getElementById('soupCanvas');
 const soupCtx = soupCanvas.getContext('2d');
 const traitsCanvas = document.getElementById('traitsCanvas');
 const traitsCtx = traitsCanvas.getContext('2d');
+const connBanner = document.getElementById('connBanner');
+const pulseDot = document.getElementById('pulseDot');
+const btnPlayPause = document.getElementById('btnPlayPause');
+const slSpeed = document.getElementById('slSpeed');
+const vSpeedSteps = document.getElementById('vSpeedSteps');
+const selRegime = document.getElementById('selRegime');
+const inpSeed = document.getElementById('inpSeed');
+const eventToast = document.getElementById('eventToast');
+
+function showBanner(msg) {
+  if (!connBanner) return;
+  connBanner.textContent = msg;
+  connBanner.classList.remove('hidden');
+  if (pulseDot) pulseDot.classList.add('offline');
+}
+
+function hideBanner() {
+  if (!connBanner) return;
+  connBanner.classList.add('hidden');
+  if (pulseDot) pulseDot.classList.remove('offline');
+}
 
 async function postCmd(payload) {
-  await fetch('/api/cmd', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const resp = await fetch('/api/cmd', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await resp.json().catch(() => ({ ok: false, error: `HTTP ${resp.status}` }));
+    if (!resp.ok || !data.ok) {
+      eventToast.textContent = `Command error: ${data.error || resp.statusText}`;
+      return null;
+    }
+    if (typeof data.running === 'boolean') {
+      isRunning = data.running;
+      btnPlayPause.textContent = isRunning ? 'Pause' : 'Play';
+    }
+    if (typeof data.stepsPerTick === 'number') {
+      slSpeed.value = String(data.stepsPerTick);
+      vSpeedSteps.textContent = `${data.stepsPerTick}x`;
+    }
+    return data;
+  } catch (err) {
+    eventToast.textContent = `Network error: ${err.message}`;
+    showBanner(`Lost contact with /api/cmd (${err.message}) — retrying...`);
+    return null;
+  }
 }
 
 /* Build 13 Castration Sliders */
@@ -46,21 +87,30 @@ RESTRAINT_NAMES.forEach((name, idx) => {
   inp.addEventListener('input', () => { valEl.textContent = `${inp.value}%`; });
 });
 
-/* Transport & Shock Buttons */
-const btnPlayPause = document.getElementById('btnPlayPause');
+/* Transport, Speed, Seed & Shock Controls */
 btnPlayPause.onclick = async () => {
-  isRunning = !isRunning;
-  btnPlayPause.textContent = isRunning ? 'Pause' : 'Play';
-  await postCmd({ action: isRunning ? 'play' : 'pause' });
+  const nextRun = !isRunning;
+  await postCmd({ action: nextRun ? 'play' : 'pause' });
 };
 document.getElementById('btnStep1').onclick = () => postCmd({ action: 'step', n: 1 });
 document.getElementById('btnStep10').onclick = () => postCmd({ action: 'step', n: 10 });
 document.getElementById('btnStep50').onclick = () => postCmd({ action: 'step', n: 50 });
+
+slSpeed.addEventListener('input', () => {
+  vSpeedSteps.textContent = `${slSpeed.value}x`;
+});
+slSpeed.addEventListener('change', () => {
+  postCmd({ action: 'speed', steps: Number(slSpeed.value) });
+});
+
 document.getElementById('btnReset').onclick = () => {
-  const reg = Number(document.getElementById('selRegime').value);
-  const seed = 5000 + Math.floor(Math.random() * 500);
-  postCmd({ action: 'reset', regime: reg, seed });
+  const reg = Number(selRegime.value);
+  const rawSeed = inpSeed.value.trim();
+  const seedStr = /^\d{1,20}$/.test(rawSeed) ? rawSeed : '5000';
+  inpSeed.value = seedStr;
+  postCmd({ action: 'reset', regime: reg, seed: seedStr });
 };
+
 document.getElementById('btnVivisect').onclick = () => postCmd({ action: 'vivisect', pct: 50 });
 document.getElementById('btnExtinct').onclick = () => postCmd({ action: 'extinction', pct: 90 });
 document.getElementById('btnInoc').onclick = () => postCmd({ action: 'inoculate', arch: -1 });
@@ -79,11 +129,40 @@ document.querySelectorAll('#lensTabs .tab').forEach((tab) => {
   };
 });
 
+function renderReadyBadges(msg) {
+  if (!msg) return;
+  const hwEl = document.getElementById('hwBadges');
+  hwEl.textContent = '';
+  const badges = [
+    ['cyan', String(msg.brand || 'x86-64')],
+    ['emerald', `GFNI:${msg.gfni ? 'ON' : 'OFF'}`],
+    ['emerald', `PCLMUL:${msg.pclmul ? 'ON' : 'OFF'}`],
+    ['emerald', `BMI2:${msg.bmi2 ? 'ON' : 'OFF'}`],
+    ['emerald', `RWX JIT:${msg.jit_rwx ? 'LIVE' : 'SIM'}`],
+    ['cyan', 'Lean 4: 38/38 Pure']
+  ];
+  for (const [cls, txt] of badges) {
+    const sp = document.createElement('span');
+    sp.className = `badge ${cls}`;
+    sp.textContent = txt;
+    hwEl.appendChild(sp);
+  }
+}
+
+function renderEventToast(msg) {
+  if (!msg) return;
+  if (msg.action === 'vivisect') {
+    eventToast.textContent = `Planarian ${msg.pct}% excision on Slot #${msg.slot} -> Recovered ${(msg.fidelity * 100).toFixed(1)}% fidelity!`;
+  } else if (msg.action === 'extinction') {
+    eventToast.textContent = `Mass Extinction executed: ${msg.killed} organisms converted to conserved detritus!`;
+  }
+}
+
 function hexToBytes(hex) {
   const n = hex.length >> 1;
   const out = new Uint8Array(n);
   for (let i = 0; i < n; i++) {
-    out[i] = parseInt(hex.substr(i * 2, 2), 16);
+    out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
   }
   return out;
 }
@@ -230,20 +309,28 @@ function renderTraits112(traits) {
 }
 
 function updateUI(f) {
+  if (!f) return;
   latestFrame = f;
   document.getElementById('gridDim').textContent = `${f.width}×${f.height}`;
   document.getElementById('vEpoch').textContent = f.epoch;
   document.getElementById('vAlive').textContent = f.alive;
   document.getElementById('vRep').textContent = f.replicators;
-  document.getElementById('vSpeed').textContent = Math.round(f.execs_per_sec).toLocaleString();
+  document.getElementById('vSpeed').textContent = Math.round(f.execs_per_sec || 0).toLocaleString();
 
   document.getElementById('kLin').textContent = f.lineages;
   document.getElementById('kRibo').textContent = `${f.ribosomes} (${f.inv_ribosomes})`;
   document.getElementById('kIrred').textContent = f.irred_centromeres;
   document.getElementById('kHolo').textContent = `${f.holobionts} (${f.max_holobiont})`;
-  document.getElementById('kSpore').textContent = f.spores;
-  document.getElementById('kAbst').textContent = f.abstaining;
-  document.getElementById('kSha').textContent = `SHA-256: ${f.sha256.slice(0, 16)}…`;
+  document.getElementById('kSporeAbst').textContent = `${f.spores} / ${f.abstaining}`;
+  document.getElementById('kRevEnt').textContent = `${((f.rev_ratio || 0) * 100).toFixed(0)}% / ${(f.entropy || 0).toFixed(2)}`;
+  document.getElementById('kSha').textContent = `SHA-256: ${String(f.sha256 || '').slice(0, 16)}…`;
+
+  if (document.activeElement !== selRegime && typeof f.regime === 'number') {
+    selRegime.value = String(f.regime);
+  }
+  if (document.activeElement !== inpSeed && f.seed !== undefined) {
+    inpSeed.value = String(f.seed);
+  }
 
   /* Apex Specimen */
   const a = f.apex;
@@ -265,7 +352,7 @@ function updateUI(f) {
   document.getElementById('jitStats').textContent = `Compiles: ${f.compiles} | Cache Hits: ${f.cache_hits}`;
   document.getElementById('disasmPre').textContent = a.disasm;
 
-  /* Evolutionary Counters */
+  /* Evolutionary Counters + Live Telemetry (incl. Cancer, Weismann, Pop Asm/L_eff, BP A_new) */
   document.getElementById('eCopy').textContent = f.self_copies;
   document.getElementById('eSex').textContent = f.poly_sex;
   document.getElementById('eRef').textContent = f.mate_refusals;
@@ -274,6 +361,10 @@ function updateUI(f) {
   document.getElementById('eRmut').textContent = f.ribo_rewrites;
   document.getElementById('eEcc').textContent = f.ecc_heals;
   document.getElementById('eMem').textContent = `${f.mem_blocks}/${f.mem_cracks}`;
+  document.getElementById('eCancer').textContent = f.cancer ?? 0;
+  document.getElementById('eWeis').textContent = (f.weismann || 0).toFixed(2);
+  document.getElementById('ePopAsm').textContent = `${(f.assembly || 0).toFixed(1)} / ${(f.causal_leff || 0).toFixed(1)}`;
+  document.getElementById('eBpAnew').textContent = (f.bp_anew || 0).toFixed(2);
 
   /* OVBS-52 & Ledger */
   document.getElementById('oviBadge').textContent = `OVI ${f.ovi.toFixed(1)} · Stage ${f.stage}`;
@@ -304,34 +395,48 @@ function updateUI(f) {
   renderTraits112(f.traits112);
 }
 
+/* Initial startup state sync via GET /api/state (syncs running, speed, latest frame & events) */
+(async function syncInitialState() {
+  try {
+    const resp = await fetch('/api/state', { cache: 'no-store' });
+    if (!resp.ok) return;
+    const st = await resp.json();
+    if (typeof st.running === 'boolean') {
+      isRunning = st.running;
+      btnPlayPause.textContent = isRunning ? 'Pause' : 'Play';
+    }
+    if (typeof st.stepsPerTick === 'number') {
+      slSpeed.value = String(st.stepsPerTick);
+      vSpeedSteps.textContent = `${st.stepsPerTick}x`;
+    }
+    if (st.ready) renderReadyBadges(st.ready);
+    if (st.lastEvent) renderEventToast(st.lastEvent);
+    if (st.frame) updateUI(st.frame);
+  } catch (err) {
+    showBanner(`Startup /api/state sync failed (${err.message}) — waiting for SSE...`);
+  }
+})();
+
 /* Connect live Server-Sent Events stream from native x86-64 autophage.exe */
 const es = new EventSource('/api/events');
+es.onopen = () => {
+  hideBanner();
+};
+es.onerror = () => {
+  showBanner('Live SSE stream interrupted — reconnecting to native x86-64 engine...');
+};
 es.onmessage = (ev) => {
-  const msg = JSON.parse(ev.data);
-  if (msg.type === 'ready') {
-    const hwEl = document.getElementById('hwBadges');
-    hwEl.textContent = '';
-    const badges = [
-      ['cyan', String(msg.brand || 'x86-64')],
-      ['emerald', `GFNI:${msg.gfni ? 'ON' : 'OFF'}`],
-      ['emerald', `PCLMUL:${msg.pclmul ? 'ON' : 'OFF'}`],
-      ['emerald', `BMI2:${msg.bmi2 ? 'ON' : 'OFF'}`],
-      ['emerald', `RWX JIT:${msg.jit_rwx ? 'LIVE' : 'SIM'}`]
-    ];
-    for (const [cls, txt] of badges) {
-      const sp = document.createElement('span');
-      sp.className = `badge ${cls}`;
-      sp.textContent = txt;
-      hwEl.appendChild(sp);
+  hideBanner();
+  try {
+    const msg = JSON.parse(ev.data);
+    if (msg.type === 'ready') {
+      renderReadyBadges(msg);
+    } else if (msg.type === 'event') {
+      renderEventToast(msg);
+    } else if (msg.type === 'frame') {
+      updateUI(msg);
     }
-  } else if (msg.type === 'event') {
-    const toast = document.getElementById('eventToast');
-    if (msg.action === 'vivisect') {
-      toast.textContent = `Planarian ${msg.pct}% excision on Slot #${msg.slot} -> Recovered ${(msg.fidelity * 100).toFixed(1)}% fidelity!`;
-    } else if (msg.action === 'extinction') {
-      toast.textContent = `Mass Extinction executed: ${msg.killed} organisms converted to conserved detritus!`;
-    }
-  } else if (msg.type === 'frame') {
-    updateUI(msg);
+  } catch (err) {
+    eventToast.textContent = `SSE decode error: ${err.message}`;
   }
 };

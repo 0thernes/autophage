@@ -33,6 +33,7 @@
 #define CELL_FLAG_CHECKPOINT_QUIET   (1u << 9)
 #define CELL_FLAG_INTRON_VAULT       (1u << 10)
 #define CELL_FLAG_ABSTAIN_ACTIVE     (1u << 11)
+#define CELL_FLAG_TRANSPLANTED       (1u << 12)
 
 /* Bio-action bitmask written natively by JIT x86-64 instructions into ctx->bio_actions */
 #define BIO_ACT_METAB_HARVEST        (1ULL << 0)
@@ -143,8 +144,7 @@ typedef struct __attribute__((aligned(64))) AutophageCell {
     uint64_t last_rdtsc_cycles;    /* +0xE0: Hardware RDTSCP cycle cost (excluded from canonical SHA-256!) */
     uint32_t last_erased_bits;     /* +0xE8: Hardware POPCNT Landauer erasures */
     uint32_t last_rev_ops;         /* +0xEC: Reversible ops executed */
-    uint16_t causal_active_bytes;  /* +0xF0: Knockout-verified active length L_eff */
-    uint16_t assembly_index;       /* +0xF2: Computed Assembly Index A */
+    int32_t  membrane_pot_uq;      /* +0xF0: Per-cell conserved membrane potential (micro-quanta) */
     uint32_t offspring_count;      /* +0xF4: Verified offspring / copies created */
     uint16_t mate_count;           /* +0xF8: Successful algebraic sex events */
     uint16_t mate_refusals;        /* +0xFA: Emergent mate abstention / refusal events */
@@ -154,8 +154,9 @@ typedef struct __attribute__((aligned(64))) AutophageCell {
 _Static_assert(sizeof(AutophageCell) == 256, "AutophageCell MUST be exactly 256 bytes (4 cache lines)!");
 
 /*
- * Exact 128-Byte Execution Context Passed in R14 to Native x86-64 JIT Kernels
- * Every single offset fits in signed int8 disp8 [0x00..0x7C]!
+ * Exact 192-Byte (3 x 64-byte Cache Lines) Execution Context Passed in R14 to Native x86-64 JIT
+ * Dedicated per-action parameter slots eliminate bio_param clobbering; ribosome_rank enforces
+ * Landauer bit erasure on singular (<8) OP_REV_GFNI_FOLD identically in JIT & Scalar Oracle!
  */
 typedef struct __attribute__((aligned(64))) AutophageExecCtx {
     uint64_t regs[4];          /* +0x00 .. +0x1F */
@@ -166,7 +167,7 @@ typedef struct __attribute__((aligned(64))) AutophageExecCtx {
     uint64_t stigmergy_in;     /* +0x40 */
     uint64_t stigmergy_out;    /* +0x48 */
     uint64_t bio_actions;      /* +0x50 */
-    uint64_t bio_param;        /* +0x58 */
+    uint64_t harvest_param;    /* +0x58: Dedicated OP_METAB_HARVEST parameter */
     uint32_t gas;              /* +0x60 */
     uint32_t erased_bits;      /* +0x64 */
     uint32_t rev_ops;          /* +0x68 */
@@ -175,9 +176,18 @@ typedef struct __attribute__((aligned(64))) AutophageExecCtx {
     uint32_t copy_b2a_count;   /* +0x74 */
     uint32_t head0;            /* +0x78 */
     uint32_t head1;            /* +0x7C */
+    uint64_t membrane_param;   /* +0x80: Dedicated OP_MEMBRANE_SEAL parameter */
+    uint64_t retro_param;      /* +0x88: Dedicated OP_RETRO_TRANSCRIBE parameter */
+    uint64_t ribo_param;       /* +0x90: Dedicated OP_RIBOSOME_MUTATE parameter */
+    uint64_t centro_param;     /* +0x98: Dedicated OP_CENTROMERE_DRIFT parameter */
+    uint64_t holo_param;       /* +0xA0: Dedicated OP_HOLOBIONT_BOND parameter */
+    uint64_t mitosis_param;    /* +0xA8: Dedicated OP_MITOSIS_FORK parameter */
+    uint32_t ribosome_rank;    /* +0xB0: F_2 rank of ribosome_mat (8 = reversible, <8 = Landauer heat) */
+    uint32_t reserved0;        /* +0xB4 */
+    uint64_t reserved1;        /* +0xB8 */
 } AutophageExecCtx;
 
-_Static_assert(sizeof(AutophageExecCtx) == 128, "AutophageExecCtx MUST be exactly 128 bytes!");
+_Static_assert(sizeof(AutophageExecCtx) == 192, "AutophageExecCtx MUST be exactly 192 bytes (3 cache lines)!");
 
 /* Native JIT Kernel Function Pointer */
 typedef uint64_t (*autophage_jit_fn)(uint8_t* tape_a, uint8_t* tape_b, AutophageExecCtx* ctx);
@@ -205,7 +215,11 @@ typedef struct AutophageJitCache {
 } AutophageJitCache;
 
 /* Neutral Shadow-Soup Lineage Tracker for Bedau-Packard A_new(t) */
-#define LINEAGE_HIST_SLOTS 2048u
+#define LINEAGE_HIST_SLOTS 4096u
+#define STIGMERGY_BUCKETS  256u
+#define STIGMERGY_QUADS    4u
+#define STIGMERGY_TOTAL    (STIGMERGY_QUADS * STIGMERGY_BUCKETS)
+
 typedef struct LineageRecord {
     uint32_t lineage_id;
     uint32_t first_epoch;
@@ -224,12 +238,23 @@ struct AutophageWorld {
     uint32_t            mask_h;
 
     /* Pre-allocated flat arenas (0 mallocs inside step!) */
-    AutophageCell*      cells;          /* Primary bare-metal soup [n_cells] */
-    AutophageCell*      shadow_cells;   /* Parallel Neutral Shadow-Soup [256] */
-    uint64_t*           stigmergy_bus;  /* 2-adic clade stigmergy bus [256 buckets] */
-    uint64_t*           sidechannel_bus;/* Thermal/timing covert signaling audit [256 buckets] */
-    int32_t*            heat_delta_buf; /* Pre-allocated diffusion scratchpad [n_cells] */
-    uint32_t*           holo_size_buf;  /* Pre-allocated holobiont size scratchpad [n_cells] */
+    AutophageCell*      cells;             /* Primary bare-metal soup [n_cells] */
+    AutophageCell*      shadow_cells;      /* Parallel Neutral Shadow-Soup [256] */
+    uint64_t*           stigmergy_bus;     /* Quadrant-partitioned 2-adic bus [4 x 256] */
+    uint64_t*           sidechannel_bus;   /* Quadrant-partitioned covert bus [4 x 256] */
+    int32_t*            detritus_grid;     /* Spatially local chemical detritus [n_cells] */
+    int32_t*            detritus_delta_buf;/* Conservative detritus diffusion scratch [n_cells] */
+    int32_t*            heat_delta_buf;    /* Conservative heat diffusion scratch [n_cells] */
+    uint32_t*           holo_size_buf;     /* Holobiont size scratch [n_cells] */
+    uint8_t*            mated_this_epoch;  /* Same-tick self/double-mating guard [n_cells] */
+
+    /* Pre-allocated O(N) telemetry hash scratchpads (0 stack caps, 0 mallocs, 0 observer effect!) */
+    uint32_t            tel_cap;           /* Power of 2 >= 2 * n_cells */
+    uint64_t*           tel_ribo_keys;     /* [tel_cap] */
+    uint8_t*            tel_ribo_used;     /* [tel_cap] */
+    uint32_t*           tel_lin_keys;      /* [tel_cap] */
+    uint32_t*           tel_lin_cnts;      /* [tel_cap] */
+    uint32_t*           tel_holo_cnts;     /* [n_cells] */
 
     AutophageJitCache   jit;
     uint64_t            master_seed;    /* Immutable run seed for Philox4x32-10 */
@@ -288,8 +313,32 @@ struct AutophageWorld {
     LineageRecord       shadow_lineages[LINEAGE_HIST_SLOTS];
     uint32_t            next_lineage_id;
 
+    uint64_t            last_step_execs;
     double              last_wall_seconds;
 };
+
+/* Real Post-Warmup Heap Allocation Guard (Asmodensius HW02 / T12) */
+extern volatile uint64_t g_ap_alloc_counter;
+extern volatile uint64_t g_ap_step_alloc_violations;
+extern volatile int      g_ap_in_step_guard;
+
+static inline void* ap_malloc(size_t sz) {
+    g_ap_alloc_counter++;
+    if (g_ap_in_step_guard) g_ap_step_alloc_violations++;
+    return malloc(sz);
+}
+
+static inline void* ap_calloc(size_t n, size_t sz) {
+    g_ap_alloc_counter++;
+    if (g_ap_in_step_guard) g_ap_step_alloc_violations++;
+    return calloc(n, sz);
+}
+
+static inline void* ap_realloc(void* ptr, size_t sz) {
+    g_ap_alloc_counter++;
+    if (g_ap_in_step_guard) g_ap_step_alloc_violations++;
+    return realloc(ptr, sz);
+}
 
 /* ============================================================================
  * BARE-METAL x86-64 INLINE SILICON PRIMITIVES & PHILOX4x32-10
@@ -300,11 +349,7 @@ typedef uint64_t v2u64 __attribute__((vector_size(16)));
 typedef uint8_t  v32u8 __attribute__((vector_size(32)));
 typedef uint64_t v4u64 __attribute__((vector_size(32)));
 
-static inline uint64_t hw_rdtscp(void) {
-    uint32_t lo, hi, aux;
-    __asm__ volatile ("rdtscp" : "=a"(lo), "=d"(hi), "=c"(aux));
-    return ((uint64_t)hi << 32) | (uint64_t)lo;
-}
+uint64_t hw_rdtscp(void);
 
 static inline uint64_t hw_popcnt64(uint64_t x) {
 #if defined(__POPCNT__)
@@ -458,6 +503,7 @@ void     gf2_polynomial_crossover(
              uint8_t poly_low8, uint64_t mix_seed, int use_hw_pclmul);
 void     gf2_compute_ecc_parity(const uint8_t strand_a[64], uint8_t strand_b_ecc[64], uint8_t poly_low8);
 uint32_t gf2_heal_from_ecc(uint8_t strand_a[64], const uint8_t strand_b_ecc[64], uint8_t poly_low8);
+uint32_t gf2_ecc_intact_pairs(const uint8_t strand_a[64], const uint8_t strand_b_ecc[64], uint8_t poly_low8);
 
 /* jit_x86_64.c */
 int      jit_cache_init(AutophageJitCache* cache, const AutophageHwCaps* caps);
@@ -478,6 +524,14 @@ uint64_t jit_reference_oracle(
              uint8_t tape_a[128],
              uint8_t tape_b[128],
              AutophageExecCtx* ctx);
+uint64_t jit_reference_oracle_with_nop(
+             const uint8_t expressed[64],
+             uint64_t splice_mask,
+             uint8_t nerf_pct,
+             uint8_t tape_a[128],
+             uint8_t tape_b[128],
+             AutophageExecCtx* ctx,
+             int nop_orig_pc);
 uint32_t jit_emit_readonly(
              uint8_t* dst, uint32_t cap,
              const uint8_t expressed[64],
@@ -489,6 +543,7 @@ size_t   jit_disassemble_expressed(
              uint64_t splice_mask,
              const uint8_t* machine_code,
              uint32_t code_len,
+             uint32_t total_code_len,
              char* buf,
              size_t cap);
 

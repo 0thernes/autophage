@@ -27,13 +27,20 @@ extern int    __cdecl printf(const char* fmt, ...);
 extern int    __cdecl fprintf(FILE* stream, const char* fmt, ...);
 extern int    __cdecl snprintf(char* buf, size_t n, const char* fmt, ...);
 extern int    __cdecl putchar(int c);
+extern int    __cdecl fgetc(FILE* stream);
 extern int    __cdecl fflush(FILE* stream);
 extern FILE*  __cdecl fopen(const char* filename, const char* mode);
 extern size_t __cdecl fwrite(const void* ptr, size_t size, size_t count, FILE* stream);
 extern size_t __cdecl fread(void* ptr, size_t size, size_t count, FILE* stream);
 extern char*  __cdecl fgets(char* str, int num, FILE* stream);
 extern int    __cdecl fclose(FILE* stream);
+extern int    __cdecl fseek(FILE* stream, long offset, int origin);
+extern int    __cdecl remove(const char* filename);
 extern int    __cdecl setvbuf(FILE* stream, char* buf, int mode, size_t size);
+#define EOF      (-1)
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
 #define _IONBF 0x0004
 #define _IOLBF 0x0040
 
@@ -44,6 +51,7 @@ extern void   __cdecl free(void* ptr);
 extern void   __cdecl exit(int status);
 extern int    __cdecl atoi(const char* str);
 extern long   __cdecl strtol(const char* str, char** endptr, int base);
+extern unsigned long __cdecl strtoul(const char* str, char** endptr, int base);
 extern unsigned long long __cdecl strtoull(const char* str, char** endptr, int base);
 extern double __cdecl strtod(const char* str, char** endptr);
 
@@ -132,5 +140,10 @@ __declspec(dllimport) BOOL   __stdcall PeekNamedPipe(HANDLE hNamedPipe, void* lp
 #endif
 
 #endif
+
+/* Portable finite-FP64 check (works identically under bare Win64 & standard libc) */
+static inline int ap_isfinite(double x) {
+    return (x == x) && ((x - x) == 0.0);
+}
 
 #endif /* AUTOPHAGE_BARE_CRT_H */

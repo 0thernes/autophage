@@ -75,10 +75,43 @@ if (-not $SkipTests) {
 }
 
 if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`nVerifying 31 Formal Lean 4 Mathematical Proofs..."
-    & $lean "$proj\lean\AutophageProofs.lean"
-    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-    Write-Host "Lean 4 Formal Verification PASSED (31 theorems, 0 sorryAx)!"
+    Write-Host "`nVerifying 38 Pure-Kernel Lean 4 Mathematical Proofs (strict axiom allowlist)..."
+    $leanOut = & $lean "$proj\lean\AutophageProofs.lean" 2>&1
+    $leanRc = $LASTEXITCODE
+    foreach ($line in $leanOut) { Write-Host $line }
+    if ($leanRc -ne 0) {
+        throw "Lean 4 verification failed with exit code $leanRc"
+    }
+
+    $allowed = @("propext", "Classical.choice", "Quot.sound")
+    $audited = 0
+    foreach ($raw in $leanOut) {
+        $line = "$raw".Trim()
+        if ($line -eq "") { continue }
+        if ($line -match "(?i)\b(warning|error)\b|sorryAx|declaration uses 'sorry'|bv_decide|native_decide|ofReduceBool|trustCompiler") {
+            throw "Lean 4 kernel integrity violation detected: $line"
+        }
+        if ($line -match "^'([^']+)' does not depend on any axioms$") {
+            $audited++
+            continue
+        }
+        if ($line -match "^'([^']+)' depends on axioms: \[([^\]]*)\]$") {
+            $thm = $Matches[1]
+            $axList = $Matches[2].Split(",") | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne "" }
+            foreach ($ax in $axList) {
+                if ($allowed -notcontains $ax) {
+                    throw "Forbidden axiom '$ax' on theorem '$thm'! Allowed: {propext, Classical.choice, Quot.sound}"
+                }
+            }
+            $audited++
+            continue
+        }
+        throw "Unexpected Lean 4 output line: $line"
+    }
+    if ($audited -lt 38) {
+        throw "Expected >= 38 audited Lean 4 theorems, found only $audited"
+    }
+    Write-Host "Lean 4 Formal Verification PASSED ($audited pure-kernel theorems, strict allowlist {propext, Classical.choice, Quot.sound}, 0 warnings)!"
 }
 
-Write-Host "`nAUTOPHAGE v1.1 BUILD & VERIFICATION COMPLETE."
+Write-Host "`nAUTOPHAGE v1.2.0 BUILD & VERIFICATION COMPLETE."

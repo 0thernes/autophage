@@ -1,8 +1,8 @@
-=== AUTOPHAGE SILICON THROUGHPUT & DUAL-KERNEL BIT-EXACT PARITY BENCHMARK ===
-  Grid=32x32 (1024 cells) | Epochs=200 | Total Organism Execs=175469
-  NATIVE x86-64 JIT : 1.0792 s | 0.163 M execs/s | 6150.7 ns/exec | 1024.9 RDTSC cyc/exec | CacheHit=13.81% (151242 compiles)
-  SCALAR REF ORACLE : 1.2663 s | 0.139 M execs/s | 7216.8 ns/exec
-  JIT Speedup       : 1.17x over scalar reference
-  SHA-256 (JIT)     : 28fcbf73824326b95ce0f5c54c633d53c2b9f18ab41963c58dcef6d00316b7f5
-  SHA-256 (SCALAR)  : 28fcbf73824326b95ce0f5c54c633d53c2b9f18ab41963c58dcef6d00316b7f5
+=== AUTOPHAGE v1.2.0 SILICON THROUGHPUT & DUAL-KERNEL BIT-EXACT PARITY BENCHMARK ===
+  Grid=32x32 (1024 cells) | Epochs=200 | Total Organism Execs=173484
+  NATIVE x86-64 JIT : 0.9306 s | 0.186 M execs/s | 5364.4 ns/exec | 1476.4 RDTSC cyc/exec | CacheHit=27.35% (126031 compiles)
+  SCALAR REF ORACLE : 1.2067 s | 0.144 M execs/s | 6955.9 ns/exec
+  JIT Speedup       : 1.30x over scalar reference
+  SHA-256 (JIT)     : 4bd29f39e96270cfbc659e1970e1ab875c4c0e807d93e48ef05b45e373c20612
+  SHA-256 (SCALAR)  : 4bd29f39e96270cfbc659e1970e1ab875c4c0e807d93e48ef05b45e373c20612
   BIT-EXACT PARITY  : PASS (0-BIT DIFF!)

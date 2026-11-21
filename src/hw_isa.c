@@ -4,6 +4,14 @@
  * CPUID SILICON DISCOVERY, HARDWARE ENTROPY, RWX ALLOCATOR & FIPS 180-4 SHA256
  * ============================================================================ */
 
+static int      g_hw_caps_cached  = 0;
+static uint32_t g_hw_has_rdtscp   = 0;
+static uint32_t g_hw_has_rdseed   = 0;
+static uint32_t g_hw_has_rdrand   = 0;
+static uint32_t g_hw_has_pclmul   = 0;
+static uint32_t g_hw_has_gfni     = 0;
+static uint32_t g_hw_has_avx2     = 0;
+
 static void cpuid_ex(uint32_t leaf, uint32_t subleaf,
                      uint32_t* eax, uint32_t* ebx, uint32_t* ecx, uint32_t* edx) {
     uint32_t a, b, c, d;
@@ -13,6 +21,42 @@ static void cpuid_ex(uint32_t leaf, uint32_t subleaf,
         : "a"(leaf), "c"(subleaf)
     );
     *eax = a; *ebx = b; *ecx = c; *edx = d;
+}
+
+static void hw_ensure_runtime_caps(void) {
+    if (g_hw_caps_cached) return;
+    uint32_t a = 0, b = 0, c = 0, d = 0;
+    cpuid_ex(0, 0, &a, &b, &c, &d);
+    uint32_t max_leaf = a;
+    if (max_leaf >= 1u) {
+        cpuid_ex(1, 0, &a, &b, &c, &d);
+        g_hw_has_pclmul = (c >> 1) & 1u;
+        g_hw_has_rdrand = (c >> 30) & 1u;
+    }
+    if (max_leaf >= 7u) {
+        cpuid_ex(7, 0, &a, &b, &c, &d);
+        g_hw_has_avx2   = (b >> 5) & 1u;
+        g_hw_has_rdseed = (b >> 18) & 1u;
+        g_hw_has_gfni   = (c >> 8) & 1u;
+    }
+    cpuid_ex(0x80000000u, 0, &a, &b, &c, &d);
+    if (a >= 0x80000001u) {
+        cpuid_ex(0x80000001u, 0, &a, &b, &c, &d);
+        g_hw_has_rdtscp = (d >> 27) & 1u;
+    }
+    g_hw_caps_cached = 1;
+}
+
+uint64_t hw_rdtscp(void) {
+    hw_ensure_runtime_caps();
+    uint32_t lo = 0, hi = 0;
+    if (g_hw_has_rdtscp) {
+        uint32_t aux = 0;
+        __asm__ volatile ("rdtscp" : "=a"(lo), "=d"(hi), "=c"(aux));
+    } else {
+        __asm__ volatile ("rdtsc" : "=a"(lo), "=d"(hi));
+    }
+    return ((uint64_t)hi << 32) | (uint64_t)lo;
 }
 
 void hw_detect_caps(AutophageHwCaps* caps) {
@@ -46,7 +90,7 @@ void hw_detect_caps(AutophageHwCaps* caps) {
         caps->has_vpclmulqdq= (c >> 10) & 1u;
     }
 
-    /* Extended leaves: RDTSCP + Processor Brand String */
+    /* Extended leaves: RDTSCP + Processor Brand String (strict-aliasing clean!) */
     cpuid_ex(0x80000000u, 0, &a, &b, &c, &d);
     uint32_t max_ext = a;
     if (max_ext >= 0x80000001u) {
@@ -54,13 +98,10 @@ void hw_detect_caps(AutophageHwCaps* caps) {
         caps->has_rdtscp = (d >> 27) & 1u;
     }
     if (max_ext >= 0x80000004u) {
-        uint32_t* brand_u32 = (uint32_t*)caps->brand;
         for (uint32_t i = 0; i < 3; i++) {
-            cpuid_ex(0x80000002u + i, 0,
-                     &brand_u32[i * 4 + 0],
-                     &brand_u32[i * 4 + 1],
-                     &brand_u32[i * 4 + 2],
-                     &brand_u32[i * 4 + 3]);
+            uint32_t regs[4];
+            cpuid_ex(0x80000002u + i, 0, &regs[0], &regs[1], &regs[2], &regs[3]);
+            memcpy(caps->brand + i * 16u, regs, sizeof(regs));
         }
         caps->brand[48] = '\0';
         /* Trim leading spaces */
@@ -71,6 +112,15 @@ void hw_detect_caps(AutophageHwCaps* caps) {
             memmove(caps->brand, p, len + 1);
         }
     }
+
+    /* Sync runtime dispatch flags */
+    g_hw_has_rdtscp  = caps->has_rdtscp;
+    g_hw_has_rdseed  = caps->has_rdseed;
+    g_hw_has_rdrand  = caps->has_rdrand;
+    g_hw_has_pclmul  = caps->has_pclmulqdq;
+    g_hw_has_gfni    = caps->has_gfni;
+    g_hw_has_avx2    = caps->has_avx2;
+    g_hw_caps_cached = 1;
 
     /* Verify live RWX JIT code page execution on silicon */
     uint8_t* stub = (uint8_t*)hw_alloc_rwx(4096);
@@ -89,21 +139,27 @@ void hw_detect_caps(AutophageHwCaps* caps) {
 }
 
 uint64_t hw_entropy_seed64(void) {
+    hw_ensure_runtime_caps();
     uint64_t val = 0;
     unsigned char ok = 0;
 #if defined(__RDSEED__)
-    for (int i = 0; i < 32; i++) {
-        __asm__ volatile ("rdseed %0; setc %1" : "=r"(val), "=qm"(ok));
-        if (ok && val != 0) return val;
+    if (g_hw_has_rdseed) {
+        for (int i = 0; i < 32; i++) {
+            __asm__ volatile ("rdseed %0; setc %1" : "=r"(val), "=qm"(ok));
+            if (ok && val != 0) return val;
+        }
     }
 #endif
 #if defined(__RDRND__)
-    for (int i = 0; i < 32; i++) {
-        __asm__ volatile ("rdrand %0; setc %1" : "=r"(val), "=qm"(ok));
-        if (ok && val != 0) return val;
+    if (g_hw_has_rdrand) {
+        for (int i = 0; i < 32; i++) {
+            __asm__ volatile ("rdrand %0; setc %1" : "=r"(val), "=qm"(ok));
+            if (ok && val != 0) return val;
+        }
     }
 #endif
-    /* Fallback: RDTSCP mixed with stack address via SplitMix64 */
+    (void)ok;
+    /* Fallback: RDTSCP/RDTSC mixed with stack address via SplitMix64 */
     uint64_t t = hw_rdtscp() ^ (uint64_t)(uintptr_t)&val;
     t += 0x9E3779B97F4A7C15ULL;
     t = (t ^ (t >> 30)) * 0xBF58476D1CE4E5B9ULL;
@@ -162,44 +218,50 @@ double hw_wall_seconds(void) {
  * ============================================================================ */
 
 uint64_t hw_pclmul64_lo(uint64_t a, uint64_t b) {
+    hw_ensure_runtime_caps();
 #if defined(__PCLMUL__)
-    uint64_t lo = 0;
-    __asm__ (
-        "movq %1, %%xmm0\n\t"
-        "movq %2, %%xmm1\n\t"
-        "pclmulqdq $0x00, %%xmm1, %%xmm0\n\t"
-        "movq %%xmm0, %0\n\t"
-        : "=r"(lo)
-        : "r"(a), "r"(b)
-        : "xmm0", "xmm1"
-    );
-    return lo;
-#else
+    if (g_hw_has_pclmul) {
+        uint64_t lo = 0;
+        __asm__ (
+            "movq %1, %%xmm0\n\t"
+            "movq %2, %%xmm1\n\t"
+            "pclmulqdq $0x00, %%xmm1, %%xmm0\n\t"
+            "movq %%xmm0, %0\n\t"
+            : "=r"(lo)
+            : "r"(a), "r"(b)
+            : "xmm0", "xmm1"
+        );
+        return lo;
+    }
+#endif
     uint64_t lo = 0;
     for (int i = 0; i < 64; i++) {
         if ((b >> i) & 1ULL) lo ^= (a << i);
     }
     return lo;
-#endif
 }
 
 void hw_pclmul64_full(uint64_t a, uint64_t b, uint64_t* out_lo, uint64_t* out_hi) {
+    hw_ensure_runtime_caps();
 #if defined(__PCLMUL__)
-    uint64_t lo = 0, hi = 0;
-    __asm__ (
-        "movq %2, %%xmm0\n\t"
-        "movq %3, %%xmm1\n\t"
-        "pclmulqdq $0x00, %%xmm1, %%xmm0\n\t"
-        "movq %%xmm0, %0\n\t"
-        "psrldq $8, %%xmm0\n\t"
-        "movq %%xmm0, %1\n\t"
-        : "=r"(lo), "=r"(hi)
-        : "r"(a), "r"(b)
-        : "xmm0", "xmm1"
-    );
-    *out_lo = lo;
-    *out_hi = hi;
-#else
+    if (g_hw_has_pclmul) {
+        uint64_t lo = 0, hi = 0;
+        __asm__ (
+            "movq %2, %%xmm0\n\t"
+            "movq %3, %%xmm1\n\t"
+            "pclmulqdq $0x00, %%xmm1, %%xmm0\n\t"
+            "movq %%xmm0, %0\n\t"
+            "psrldq $8, %%xmm0\n\t"
+            "movq %%xmm0, %1\n\t"
+            : "=r"(lo), "=r"(hi)
+            : "r"(a), "r"(b)
+            : "xmm0", "xmm1"
+        );
+        *out_lo = lo;
+        *out_hi = hi;
+        return;
+    }
+#endif
     uint64_t lo = 0, hi = 0;
     for (int i = 0; i < 64; i++) {
         if ((b >> i) & 1ULL) {
@@ -209,13 +271,13 @@ void hw_pclmul64_full(uint64_t a, uint64_t b, uint64_t* out_lo, uint64_t* out_hi
     }
     *out_lo = lo;
     *out_hi = hi;
-#endif
 }
 
 void hw_gfni_affine_64bytes(const uint8_t in[64], uint8_t out[64],
                             uint64_t mat, uint8_t bias, int use_hw_gfni) {
+    hw_ensure_runtime_caps();
 #if defined(__GFNI__) && defined(__AVX2__)
-    if (use_hw_gfni) {
+    if (use_hw_gfni && g_hw_has_gfni && g_hw_has_avx2) {
         uint64_t bias_q = (uint64_t)bias * 0x0101010101010101ULL;
         __asm__ volatile (
             "vpbroadcastq %2, %%ymm2\n\t"

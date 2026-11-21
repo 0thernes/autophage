@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AUTOPHAGE v1.0 — Bare-Metal Polymorphic x86-64 Silicon Observatory</title>
+  <title>AUTOPHAGE v1.2.0 — Bare-Metal Polymorphic x86-64 Silicon Observatory</title>
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
   <header class="topbar">
     <div class="brand">
-      <div class="pulse-dot"></div>
+      <div class="pulse-dot" id="pulseDot"></div>
       <div>
-        <h1>AUTOPHAGE <span class="ver">v1.0</span></h1>
-        <p class="subtitle">Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine · Live Silicon Stream</p>
+        <h1>AUTOPHAGE <span class="ver">v1.2.0</span></h1>
+        <p class="subtitle">Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine · 38 Pure Lean 4 Proofs · Live Silicon Stream</p>
       </div>
     </div>
     <div class="hw-badges" id="hwBadges">
@@ -23,15 +23,28 @@
       <button id="btnStep1" class="btn">+1 ep</button>
       <button id="btnStep10" class="btn">+10 ep</button>
       <button id="btnStep50" class="btn">+50 ep</button>
+      <label class="ctrl-inline" title="Epochs per 220ms tick">
+        <span>Speed</span>
+        <input id="slSpeed" type="range" min="1" max="50" value="2" />
+        <strong id="vSpeedSteps" class="mono">2x</strong>
+      </label>
       <select id="selRegime" class="sel">
         <option value="0">Track B: Zero-Seed Abiogenesis</option>
         <option value="1" selected>Track B: Feral Seeded</option>
         <option value="2">Track A: Constitutional</option>
         <option value="3">Castration Lab</option>
       </select>
+      <label class="ctrl-inline" title="Deterministic 64-bit Philox Seed">
+        <span>Seed</span>
+        <input id="inpSeed" class="seed-inp mono" type="text" value="5000" inputmode="numeric" />
+      </label>
       <button id="btnReset" class="btn">Reset</button>
     </div>
   </header>
+
+  <div id="connBanner" class="conn-banner hidden" role="status">
+    SSE stream disconnected — attempting automatic reconnect to native x86-64 engine...
+  </div>
 
   <main class="grid-layout">
     <!-- LEFT COLUMN: Live Torus Soup + Interventions + 112-Trait Strip -->
@@ -68,8 +81,8 @@
         <div class="kpi"><span>Ribosomes (det=1)</span><strong id="kRibo">0</strong></div>
         <div class="kpi"><span>Irred GF(2⁸)</span><strong id="kIrred">0</strong></div>
         <div class="kpi"><span>Holobionts (Max)</span><strong id="kHolo">0</strong></div>
-        <div class="kpi"><span>Spores</span><strong id="kSpore">0</strong></div>
-        <div class="kpi"><span>Abstaining</span><strong id="kAbst">0</strong></div>
+        <div class="kpi"><span>Spores / Abstain</span><strong id="kSporeAbst">0 / 0</strong></div>
+        <div class="kpi"><span>Rev / Entropy</span><strong id="kRevEnt">0% / 0.00</strong></div>
       </div>
 
       <div class="sub-box">
@@ -125,7 +138,11 @@
         <div class="ev"><span>Weismann M⁻¹</span><strong id="eRetro">0</strong></div>
         <div class="ev"><span>Ribo Rewrites</span><strong id="eRmut">0</strong></div>
         <div class="ev"><span>ECC Heals</span><strong id="eEcc">0</strong></div>
-        <div class="ev"><span>Mem Blocks/Cracks</span><strong id="eMem">0/0</strong></div>
+        <div class="ev"><span>Mem Blk/Crk</span><strong id="eMem">0/0</strong></div>
+        <div class="ev"><span>Cancer Defects</span><strong id="eCancer">0</strong></div>
+        <div class="ev"><span>Weismann Gain</span><strong id="eWeis">0.00</strong></div>
+        <div class="ev"><span>Pop Asm / L_eff</span><strong id="ePopAsm">0 / 0</strong></div>
+        <div class="ev"><span>BP A_new</span><strong id="eBpAnew">0.00</strong></div>
       </div>
     </section>
 
@@ -145,7 +162,7 @@
           <div class="stat-row"><span>2nd-Law Violations</span><strong id="lSec" class="mono ok-txt">0</strong></div>
           <div class="stat-row"><span>Post-Warmup Allocs</span><strong id="lAlloc" class="mono ok-txt">0</strong></div>
           <div class="stat-row"><span>Gates (Γ / Θ)</span><strong id="lGates" class="mono">0.00 / 0.00</strong></div>
-          <div class="stat-row"><span>A_new / R50 / σ</span><strong id="lSci" class="mono">0 / 0 / 1</strong></div>
+          <div class="stat-row"><span>A_new / R50 / σ</span><strong id="lSci" class="mono">0 / 0% / 1</strong></div>
           <div class="stat-row"><span>MET Crossed</span><strong id="lMet" class="mono">0 / 8</strong></div>
         </div>
       </div>

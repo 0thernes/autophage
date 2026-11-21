@@ -1,7 +1,7 @@
 #include "autophage_internal.h"
 
 /* ============================================================================
- * AUTOPHAGE v1.0 STANDALONE NATIVE x86-64 CLI & STREAMING OBSERVATORY ENGINE
+ * AUTOPHAGE v1.2.0 STANDALONE NATIVE x86-64 CLI & STREAMING OBSERVATORY ENGINE
  *
  * Subcommands:
  *   probe        - Silicon CPUID + GFNI/PCLMULQDQ/BMI2 + live RWX JIT verify
@@ -9,7 +9,7 @@
  *   feral        - Track B Feral vs Track A Constitutional + Apex x86-64 disasm
  *   ablation     - Full 13-vector Omega Castration Lab & Iron Law curve + CSV
  *   vivisection  - Planarian 25/50/75% excision + 90% extinction + transplant
- *   stats        - N=24 locked seeds (5000..5023) paired Wilcoxon + delta_pair
+ *   stats        - N=24 locked seeds (5000..5023) paired sign-flip + delta_pair
  *   bench        - Native x86-64 JIT vs Scalar Reference throughput + SHA256
  *   stream       - Live NDJSON stdin/stdout protocol for Web Silicon Observatory
  * ============================================================================ */
@@ -24,6 +24,24 @@ static const char* const PILLAR_NAMES[8] = {
     "P1_Autopoiesis", "P2_OEE", "P3_Morphogenesis", "P4_Ecology",
     "P5_Autonomy", "P6_Criticality", "P7_MetaRibosome", "P8_Assembly"
 };
+
+static uint32_t parse_u32_clamped(const char* s, uint32_t def_val, uint32_t lo, uint32_t hi) {
+    if (!s || !*s) return def_val;
+    char* end = NULL;
+    unsigned long v = strtoul(s, &end, 10);
+    if (end == s) return def_val;
+    if (v < (unsigned long)lo) return lo;
+    if (v > (unsigned long)hi) return hi;
+    return (uint32_t)v;
+}
+
+static uint64_t parse_u64_safe(const char* s, uint64_t def_val) {
+    if (!s || !*s) return def_val;
+    char* end = NULL;
+    unsigned long long v = strtoull(s, &end, 10);
+    if (end == s) return def_val;
+    return (uint64_t)v;
+}
 
 static void print_telemetry_brief(const char* tag, const AutophageTelemetry* t) {
     printf("[%s] ep=%llu alive=%u rep=%u lin=%u ribo=%u(inv=%u) irred=%u holo=%u(max=%u) "
@@ -61,7 +79,7 @@ static void print_telemetry_brief(const char* tag, const AutophageTelemetry* t) 
 static int cmd_probe(void) {
     AutophageHwCaps caps;
     autophage_probe_hardware(&caps);
-    printf("=== AUTOPHAGE v1.0 SILICON HARDWARE PROBE (ABI 0x%08X) ===\n",
+    printf("=== AUTOPHAGE v1.2.0 SILICON HARDWARE PROBE (ABI 0x%08X) ===\n",
            (unsigned)autophage_abi_version());
     printf("  Vendor         : %s\n", caps.vendor);
     printf("  Brand          : %s\n", caps.brand);
@@ -83,9 +101,12 @@ static int cmd_abiogenesis(int argc, char** argv) {
     uint64_t seed   = 5000ULL;
     uint32_t size   = 32u;
     for (int i = 2; i < argc; i++) {
-        if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc) epochs = (uint32_t)atoi(argv[++i]);
-        else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc) seed = strtoull(argv[++i], NULL, 10);
-        else if (strcmp(argv[i], "--size") == 0 && i + 1 < argc) size = (uint32_t)atoi(argv[++i]);
+        if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc)
+            epochs = parse_u32_clamped(argv[++i], 300u, 1u, 1000000u);
+        else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc)
+            seed = parse_u64_safe(argv[++i], 5000ULL);
+        else if (strcmp(argv[i], "--size") == 0 && i + 1 < argc)
+            size = parse_u32_clamped(argv[++i], 32u, 8u, 128u);
     }
 
     AutophageConfig cfg;
@@ -95,12 +116,17 @@ static int cmd_abiogenesis(int argc, char** argv) {
     cfg.regime = AUTOPHAGE_REGIME_FERAL_ABIOGENESIS;
     cfg.seed   = seed;
 
-    printf("=== AUTOPHAGE ZERO-SEED SPONTANEOUS ABIOGENESIS (PURE RANDOM PRIMORDIAL SOUP) ===\n");
-    printf("  Grid=%ux%u (%u cells) | Seed=%llu | Epochs=%u | Restraints=ALL 0%% (PURE FERAL)\n",
-           (unsigned)cfg.width, (unsigned)cfg.height, (unsigned)(cfg.width * cfg.height),
-           (unsigned long long)seed, (unsigned)epochs);
-
     AutophageWorld* w = autophage_create(&cfg);
+    if (!w) {
+        fprintf(stderr, "ERROR: autophage_create failed\n");
+        return 1;
+    }
+
+    printf("=== AUTOPHAGE v1.2.0 ZERO-SEED SPONTANEOUS ABIOGENESIS (PURE RANDOM PRIMORDIAL SOUP) ===\n");
+    printf("  Grid=%ux%u (%u cells) | Seed=%llu | Epochs=%u | Restraints=ALL 0%% (PURE FERAL)\n",
+           (unsigned)w->cfg.width, (unsigned)w->cfg.height, (unsigned)w->n_cells,
+           (unsigned long long)w->master_seed, (unsigned)epochs);
+
     AutophageTelemetry tel;
     autophage_compute_telemetry(w, &tel, 1);
     print_telemetry_brief("t=0   ", &tel);
@@ -119,7 +145,7 @@ static int cmd_abiogenesis(int argc, char** argv) {
 
     AutophageSpecimen apex;
     if (autophage_inspect_apex(w, &apex)) {
-        char disasm[4096];
+        char disasm[8192];
         autophage_disassemble_specimen(&apex, disasm, sizeof(disasm));
         printf("\n--- SPONTANEOUSLY EMERGED APEX ORGANISM (slot=%u, lineage=%u, gen=%u, offspring=%u) ---\n",
                (unsigned)apex.slot_index, (unsigned)apex.lineage_id,
@@ -144,12 +170,15 @@ static int cmd_feral(int argc, char** argv) {
     uint64_t seed   = 5007ULL;
     uint32_t size   = 32u;
     for (int i = 2; i < argc; i++) {
-        if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc) epochs = (uint32_t)atoi(argv[++i]);
-        else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc) seed = strtoull(argv[++i], NULL, 10);
-        else if (strcmp(argv[i], "--size") == 0 && i + 1 < argc) size = (uint32_t)atoi(argv[++i]);
+        if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc)
+            epochs = parse_u32_clamped(argv[++i], 250u, 1u, 1000000u);
+        else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc)
+            seed = parse_u64_safe(argv[++i], 5007ULL);
+        else if (strcmp(argv[i], "--size") == 0 && i + 1 < argc)
+            size = parse_u32_clamped(argv[++i], 32u, 8u, 128u);
     }
 
-    printf("=== AUTOPHAGE TRACK B (PURE FERAL) vs TRACK A (CONSTITUTIONAL) ===\n");
+    printf("=== AUTOPHAGE v1.2.0 TRACK B (PURE FERAL) vs TRACK A (CONSTITUTIONAL) ===\n");
     for (int track = 0; track < 2; track++) {
         AutophageConfig cfg;
         autophage_default_config(&cfg);
@@ -159,6 +188,10 @@ static int cmd_feral(int argc, char** argv) {
         cfg.regime = (track == 0) ? AUTOPHAGE_REGIME_FERAL_SEEDED : AUTOPHAGE_REGIME_CONSTITUTIONAL;
 
         AutophageWorld* w = autophage_create(&cfg);
+        if (!w) {
+            fprintf(stderr, "ERROR: autophage_create failed\n");
+            return 1;
+        }
         autophage_step_epochs(w, epochs);
         AutophageTelemetry tel;
         autophage_compute_telemetry(w, &tel, 1);
@@ -178,7 +211,7 @@ static int cmd_feral(int argc, char** argv) {
         if (track == 0) {
             AutophageSpecimen apex;
             if (autophage_inspect_apex(w, &apex)) {
-                char disasm[4096];
+                char disasm[8192];
                 autophage_disassemble_specimen(&apex, disasm, sizeof(disasm));
                 printf("\n--- TRACK B FERAL APEX x86-64 ORGANISM DISASSEMBLY ---\n%s", disasm);
 
@@ -201,9 +234,12 @@ static int cmd_ablation(int argc, char** argv) {
     uint64_t seed   = 5010ULL;
     const char* out_path = NULL;
     for (int i = 2; i < argc; i++) {
-        if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc) epochs = (uint32_t)atoi(argv[++i]);
-        else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc) seed = strtoull(argv[++i], NULL, 10);
-        else if (strcmp(argv[i], "--out") == 0 && i + 1 < argc) out_path = argv[++i];
+        if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc)
+            epochs = parse_u32_clamped(argv[++i], 140u, 1u, 1000000u);
+        else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc)
+            seed = parse_u64_safe(argv[++i], 5010ULL);
+        else if (strcmp(argv[i], "--out") == 0 && i + 1 < argc)
+            out_path = argv[++i];
     }
 
     FILE* csv = out_path ? fopen(out_path, "w") : NULL;
@@ -213,13 +249,11 @@ static int cmd_ablation(int argc, char** argv) {
                      "backlash_ks_del,backlash_intron,backlash_spore,backlash_sidech,sha256\n");
     }
 
-    printf("=== AUTOPHAGE 13-VECTOR OMEGA CASTRATION ABLATION & IRON LAW CURVE (ep=%u, seed=%llu) ===\n",
+    printf("=== AUTOPHAGE v1.2.0 13-VECTOR OMEGA CASTRATION ABLATION & IRON LAW CURVE (ep=%u, seed=%llu) ===\n",
            (unsigned)epochs, (unsigned long long)seed);
     printf("%-22s %4s | %5s %4s %4s | %6s %2s | %5s %5s %5s | %10s | %s\n",
            "Condition", "Pct", "Alive", "Lin", "Ribo", "OVI", "St", "Asm", "Leff", "R50", "RelDrift", "Backlash(KS/Int/Spo/SC)");
 
-    /* Run 4 Global Iron-Law Presets (0%, 25%, 50% Escape-Breeding, 100% Lobotomized Zoo)
-     * plus all 13 individual vectors at 50% and 100%! */
     struct Case { const char* name; int vec; uint8_t pct; };
     struct Case cases[30];
     int nc = 0;
@@ -246,6 +280,11 @@ static int cmd_ablation(int argc, char** argv) {
         }
 
         AutophageWorld* w = autophage_create(&cfg);
+        if (!w) {
+            if (csv) fclose(csv);
+            fprintf(stderr, "ERROR: autophage_create failed\n");
+            return 1;
+        }
         autophage_step_epochs(w, epochs);
         AutophageTelemetry t;
         autophage_compute_telemetry(w, &t, 1);
@@ -292,8 +331,10 @@ static int cmd_vivisection(int argc, char** argv) {
     uint64_t seed   = 5020ULL;
     uint32_t epochs = 180u;
     for (int i = 2; i < argc; i++) {
-        if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc) seed = strtoull(argv[++i], NULL, 10);
-        else if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc) epochs = (uint32_t)atoi(argv[++i]);
+        if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc)
+            seed = parse_u64_safe(argv[++i], 5020ULL);
+        else if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc)
+            epochs = parse_u32_clamped(argv[++i], 180u, 1u, 1000000u);
     }
 
     AutophageConfig cfg;
@@ -302,14 +343,18 @@ static int cmd_vivisection(int argc, char** argv) {
     cfg.seed   = seed;
 
     AutophageWorld* w = autophage_create(&cfg);
+    if (!w) {
+        fprintf(stderr, "ERROR: autophage_create failed\n");
+        return 1;
+    }
     autophage_step_epochs(w, epochs);
 
     AutophageTelemetry pre;
     autophage_compute_telemetry(w, &pre, 1);
-    printf("=== AUTOPHAGE VIVISECTION, PLANARIAN EXCISION, 90%% EXTINCTION & TRANSPLANT ===\n");
+    printf("=== AUTOPHAGE v1.2.0 VIVISECTION, PLANARIAN EXCISION, 90%% EXTINCTION & TRANSPLANT ===\n");
     print_telemetry_brief("PRE_SHOCK ", &pre);
 
-    /* 1. Planarian Excision at 25%, 50%, 75% on the TRUE apex organism (no cherry-picking!) */
+    /* 1. Planarian Excision at 25%, 50%, 75% on the TRUE apex organism + top ECC carrier (no cherry-picking!) */
     AutophageSpecimen apex;
     autophage_inspect_apex(w, &apex);
     uint32_t s = apex.slot_index;
@@ -321,7 +366,26 @@ static int cmd_vivisection(int argc, char** argv) {
            (unsigned)s, (w->cells[s].flags & CELL_FLAG_ECC_PROTECTED) ? "YES" : "NO",
            r25 * 100.0, r50 * 100.0, r75 * 100.0, r50_live * 100.0);
 
-    /* 2. Cross-Substrate Transplant into Alien Exogenous Physics */
+    uint32_t best_ecc = UINT32_MAX;
+    int32_t  best_ecc_e = -1;
+    for (uint32_t k = 0; k < w->n_cells; k++) {
+        if ((w->cells[k].flags & (CELL_FLAG_ALIVE | CELL_FLAG_ECC_PROTECTED)) ==
+            (CELL_FLAG_ALIVE | CELL_FLAG_ECC_PROTECTED) && w->cells[k].energy_uq > best_ecc_e) {
+            best_ecc = k;
+            best_ecc_e = w->cells[k].energy_uq;
+        }
+    }
+    if (best_ecc != UINT32_MAX && best_ecc != s) {
+        double er25 = metrology_excision_regen_cell(w, &w->cells[best_ecc], 25u);
+        double er50 = metrology_excision_regen_cell(w, &w->cells[best_ecc], 50u);
+        double er75 = metrology_excision_regen_cell(w, &w->cells[best_ecc], 75u);
+        double er50_live = autophage_vivisect_excise(w, best_ecc, 50u);
+        printf("  Planarian Excision on Top ECC Slot #%u (ECC=YES): R25=%.2f%% | R50=%.2f%% | R75=%.2f%% | Live50%%=%.2f%% | PopMeanR50=%.1f%%\n",
+               (unsigned)best_ecc, er25 * 100.0, er50 * 100.0, er75 * 100.0, er50_live * 100.0,
+               pre.excision_regen_r50 * 100.0);
+    }
+
+    /* 2. Cross-Substrate Transplant into Alien Exogenous Physics (CELL_FLAG_TRANSPLANTED tracked!) */
     double transplant_surv = autophage_cross_substrate_transplant(w, 32u);
     printf("  Cross-Substrate Transplant (32 organisms -> alien seed/wave, 25 ep): Survival=%.1f%%\n",
            transplant_surv * 100.0);
@@ -342,7 +406,6 @@ static int cmd_vivisection(int argc, char** argv) {
     return 0;
 }
 
-/* Exact two-sided sign-flip / paired permutation p-value & within-pair dominance delta_pair (P6) */
 static void compute_paired_stats(const char* name, const double* a, const double* b, int n) {
     double diffs[64];
     double mean_a = 0.0, mean_b = 0.0, mean_d = 0.0;
@@ -360,7 +423,6 @@ static void compute_paired_stats(const char* name, const double* a, const double
     mean_d /= (double)n;
     double delta_pair = (double)(wins - losses) / (double)n;
 
-    /* Deterministic 10,000-iteration paired sign-flip Monte Carlo exact permutation p-value */
     double obs_abs = fabs(mean_d);
     int ge = 0;
     const int n_perm = 10000;
@@ -379,33 +441,33 @@ static void compute_paired_stats(const char* name, const double* a, const double
 }
 
 static int cmd_stats(int argc, char** argv) {
-    int pairs = 24;
+    uint32_t pairs  = 24u;
     uint32_t epochs = 100u;
     for (int i = 2; i < argc; i++) {
-        if (strcmp(argv[i], "--pairs") == 0 && i + 1 < argc) pairs = atoi(argv[++i]);
-        else if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc) epochs = (uint32_t)atoi(argv[++i]);
+        if (strcmp(argv[i], "--pairs") == 0 && i + 1 < argc)
+            pairs = parse_u32_clamped(argv[++i], 24u, 4u, 64u);
+        else if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc)
+            epochs = parse_u32_clamped(argv[++i], 100u, 1u, 100000u);
     }
-    if (pairs < 4) pairs = 4;
-    if (pairs > 64) pairs = 64;
 
     double feral_ovi[64], cast_ovi[64];
     double weis_open[64], weis_closed[64];
     double feral_ribo[64], delim_ribo[64];
 
-    printf("=== AUTOPHAGE ASMODENSIUS P6 LOCKED PAIRED STATISTICAL SUITE (N=%d, seeds 5000..%d, ep=%u) ===\n",
-           pairs, 5000 + pairs - 1, (unsigned)epochs);
+    printf("=== AUTOPHAGE v1.2.0 ASMODENSIUS P6 LOCKED PAIRED STATISTICAL SUITE (N=%u, seeds 5000..%u, ep=%u) ===\n",
+           (unsigned)pairs, (unsigned)(5000u + pairs - 1u), (unsigned)epochs);
 
-    for (int i = 0; i < pairs; i++) {
+    for (uint32_t i = 0; i < pairs; i++) {
         uint64_t seed = 5000ULL + (uint64_t)i;
 
-        /* Condition A: Pure Feral Open-Ribosome / Open-Weismann */
         AutophageConfig ca;
         autophage_default_config(&ca);
-        ca.width = 24u; ca.height = 24u; /* Rounds to 32x32? Wait: round_pow2_clamp -> 32x32! Let's use 16x16 for fast N=24 */
-        ca.width = 16u; ca.height = 16u;
+        ca.width  = 16u;
+        ca.height = 16u;
         ca.regime = AUTOPHAGE_REGIME_FERAL_SEEDED;
         ca.seed   = seed;
         AutophageWorld* wa = autophage_create(&ca);
+        if (!wa) { fprintf(stderr, "ERROR: autophage_create failed\n"); return 1; }
         autophage_step_epochs(wa, epochs);
         AutophageTelemetry ta;
         autophage_compute_telemetry(wa, &ta, 0);
@@ -414,7 +476,6 @@ static int cmd_stats(int argc, char** argv) {
         feral_ribo[i] = (double)ta.distinct_ribosomes;
         autophage_destroy(wa);
 
-        /* Condition B: Castrated / Lobotomized / Delimited Control (same locked seed!) */
         AutophageConfig cb = ca;
         cb.regime = AUTOPHAGE_REGIME_CASTRATION_LAB;
         cb.restraints[RESTRAINT_NERFING]      = 80u;
@@ -423,6 +484,7 @@ static int cmd_stats(int argc, char** argv) {
         cb.restraints[RESTRAINT_MINIMIZING]   = 75u;
         cb.restraints[RESTRAINT_DEGRADING]    = 60u;
         AutophageWorld* wb = autophage_create(&cb);
+        if (!wb) { fprintf(stderr, "ERROR: autophage_create failed\n"); return 1; }
         autophage_step_epochs(wb, epochs);
         AutophageTelemetry tb;
         autophage_compute_telemetry(wb, &tb, 0);
@@ -432,9 +494,9 @@ static int cmd_stats(int argc, char** argv) {
         autophage_destroy(wb);
     }
 
-    compute_paired_stats("OVI: Feral vs Castrated",       feral_ovi,  cast_ovi,    pairs);
-    compute_paired_stats("Weismann Retro: Open vs Lobo",  weis_open,  weis_closed, pairs);
-    compute_paired_stats("Ribosomes: Feral vs Delimited", feral_ribo, delim_ribo,  pairs);
+    compute_paired_stats("OVI: Feral vs Castrated",       feral_ovi,  cast_ovi,    (int)pairs);
+    compute_paired_stats("Weismann Retro: Open vs Lobo",  weis_open,  weis_closed, (int)pairs);
+    compute_paired_stats("Ribosomes: Feral vs Delimited", feral_ribo, delim_ribo,  (int)pairs);
     return 0;
 }
 
@@ -442,11 +504,13 @@ static int cmd_bench(int argc, char** argv) {
     uint32_t epochs = 200u;
     uint32_t size   = 32u;
     for (int i = 2; i < argc; i++) {
-        if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc) epochs = (uint32_t)atoi(argv[++i]);
-        else if (strcmp(argv[i], "--size") == 0 && i + 1 < argc) size = (uint32_t)atoi(argv[++i]);
+        if (strcmp(argv[i], "--epochs") == 0 && i + 1 < argc)
+            epochs = parse_u32_clamped(argv[++i], 200u, 1u, 1000000u);
+        else if (strcmp(argv[i], "--size") == 0 && i + 1 < argc)
+            size = parse_u32_clamped(argv[++i], 32u, 8u, 128u);
     }
 
-    printf("=== AUTOPHAGE SILICON THROUGHPUT & DUAL-KERNEL BIT-EXACT PARITY BENCHMARK ===\n");
+    printf("=== AUTOPHAGE v1.2.0 SILICON THROUGHPUT & DUAL-KERNEL BIT-EXACT PARITY BENCHMARK ===\n");
     AutophageConfig cfg;
     autophage_default_config(&cfg);
     cfg.width  = size;
@@ -457,6 +521,7 @@ static int cmd_bench(int argc, char** argv) {
     /* 1. Native x86-64 RWX JIT Run */
     cfg.kernel_mode = AUTOPHAGE_KERNEL_NATIVE_JIT;
     AutophageWorld* w_jit = autophage_create(&cfg);
+    if (!w_jit) { fprintf(stderr, "ERROR: autophage_create failed\n"); return 1; }
     double t0 = hw_wall_seconds();
     autophage_step_epochs(w_jit, epochs);
     double dt_jit = hw_wall_seconds() - t0;
@@ -472,20 +537,21 @@ static int cmd_bench(int argc, char** argv) {
     /* 2. Portable Scalar Reference Run */
     cfg.kernel_mode = AUTOPHAGE_KERNEL_SCALAR_REF;
     AutophageWorld* w_ref = autophage_create(&cfg);
+    if (!w_ref) { autophage_destroy(w_jit); fprintf(stderr, "ERROR: autophage_create failed\n"); return 1; }
     double t1 = hw_wall_seconds();
     autophage_step_epochs(w_ref, epochs);
     double dt_ref = hw_wall_seconds() - t1;
     char sha_ref[65];
     autophage_state_sha256(w_ref, NULL, sha_ref);
 
-    double jit_mops = (double)execs / (dt_jit * 1e6);
-    double ref_mops = (double)execs / (dt_ref * 1e6);
-    double ns_jit   = (dt_jit * 1e9) / (double)execs;
-    double ns_ref   = (dt_ref * 1e9) / (double)execs;
+    double jit_mops = (dt_jit > 1e-9) ? ((double)execs / (dt_jit * 1e6)) : 0.0;
+    double ref_mops = (dt_ref > 1e-9) ? ((double)execs / (dt_ref * 1e6)) : 0.0;
+    double ns_jit   = (execs > 0ULL) ? ((dt_jit * 1e9) / (double)execs) : 0.0;
+    double ns_ref   = (execs > 0ULL) ? ((dt_ref * 1e9) / (double)execs) : 0.0;
 
     printf("  Grid=%ux%u (%u cells) | Epochs=%u | Total Organism Execs=%llu\n",
-           (unsigned)size, (unsigned)size, (unsigned)(size * size), (unsigned)epochs,
-           (unsigned long long)execs);
+           (unsigned)w_jit->cfg.width, (unsigned)w_jit->cfg.height, (unsigned)w_jit->n_cells,
+           (unsigned)epochs, (unsigned long long)execs);
     printf("  NATIVE x86-64 JIT : %.4f s | %.3f M execs/s | %.1f ns/exec | %.1f RDTSC cyc/exec | CacheHit=%.2f%% (%llu compiles)\n",
            dt_jit, jit_mops, ns_jit, jit_cyc_per_exec, jit_hit_rate,
            (unsigned long long)w_jit->jit.compile_count);
@@ -528,15 +594,13 @@ static void emit_stream_frame(const AutophageWorld* w) {
     AutophageSpecimen apex;
     autophage_inspect_apex(w, &apex);
 
-    char disasm[4096];
+    char disasm[8192];
     autophage_disassemble_specimen(&apex, disasm, sizeof(disasm));
 
     float traits[112];
     autophage_project_asmodensius_112(&apex, traits);
 
     uint32_t N = w->n_cells;
-    uint32_t cap_n = N <= 4096u ? N : 4096u;
-    /* Heap-allocate full N-cell export buffers so --size 128 (16384 cells) NEVER smashes stack! */
     uint8_t* hue  = (uint8_t*)malloc((size_t)N);
     uint8_t* ene  = (uint8_t*)malloc((size_t)N);
     uint8_t* heat = (uint8_t*)malloc((size_t)N);
@@ -547,7 +611,7 @@ static void emit_stream_frame(const AutophageWorld* w) {
     }
     autophage_export_grid_u8(w, hue, ene, heat, flg);
 
-    printf("{\"type\":\"frame\",\"width\":%u,\"height\":%u,\"regime\":%u,\"seed\":%llu,"
+    printf("{\"type\":\"frame\",\"version\":\"1.2.0\",\"width\":%u,\"height\":%u,\"regime\":%u,\"seed\":%llu,"
            "\"epoch\":%llu,\"execs\":%llu,\"compiles\":%llu,\"cache_hits\":%llu,"
            "\"execs_per_sec\":%.1f,\"post_warmup_allocs\":%llu,"
            "\"alive\":%u,\"replicators\":%u,\"lineages\":%u,\"ribosomes\":%u,"
@@ -592,15 +656,12 @@ static void emit_stream_frame(const AutophageWorld* w) {
            t.ledger.e_heat_local_kj, t.ledger.e_heat_radiated_sink_kj,
            t.state_sha256);
 
-    /* 8 Pillars */
     printf("\"pillars\":[");
     for (int p = 0; p < 8; p++) printf("%.2f%s", t.pillar[p], p == 7 ? "]," : ",");
 
-    /* 13 Restraints */
     printf("\"restraints\":[");
     for (int r = 0; r < 13; r++) printf("%u%s", (unsigned)w->cfg.restraints[r], r == 12 ? "]," : ",");
 
-    /* Apex Specimen + Live x86-64 Disassembly + Deterministic 128B Genome Hex (Strand alpha + beta, 0 RDTSC!) */
     static const char H[17] = "0123456789abcdef";
     printf("\"apex\":{\"slot\":%u,\"lineage\":%u,\"gen\":%u,\"age\":%u,\"energy\":%d,\"heat\":%d,"
            "\"ribo_hex\":\"%016llx\",\"ribo_inv_hex\":\"%016llx\",\"ribo_rank\":%u,\"ribo_bias\":%u,"
@@ -613,22 +674,22 @@ static void emit_stream_frame(const AutophageWorld* w) {
            (unsigned)apex.centromere_poly, (unsigned)apex.centromere_irreducible,
            (unsigned)apex.ultrametric_addr, (unsigned)apex.assembly_index,
            (unsigned)apex.causal_active_bytes, (unsigned)apex.offspring_count,
-           (unsigned)apex.mate_count, (unsigned)apex.mate_refusals, (unsigned)apex.jit_code_len);
+           (unsigned)apex.mate_count, (unsigned)apex.mate_refusals, (unsigned)apex.jit_code_total_len);
     for (int g = 0; g < 128; g++) { putchar(H[apex.genome[g] >> 4]); putchar(H[apex.genome[g] & 15]); }
     printf("\",\"disasm\":");
     print_json_escaped(disasm);
     printf("},\"traits112\":[");
     for (int k = 0; k < 112; k++) printf("%.3f%s", traits[k], k == 111 ? "]," : ",");
 
-    /* Compact Hex-Encoded Grid Layers (2 chars/cell -> ultra fast!) */
+    /* Full N-cell hex-encoded grid layers (no 4096 truncation mismatch!) */
     printf("\"grid_hue\":\"");
-    for (uint32_t i = 0; i < cap_n; i++) { putchar(H[hue[i] >> 4]); putchar(H[hue[i] & 15]); }
+    for (uint32_t i = 0; i < N; i++) { putchar(H[hue[i] >> 4]); putchar(H[hue[i] & 15]); }
     printf("\",\"grid_ene\":\"");
-    for (uint32_t i = 0; i < cap_n; i++) { putchar(H[ene[i] >> 4]); putchar(H[ene[i] & 15]); }
+    for (uint32_t i = 0; i < N; i++) { putchar(H[ene[i] >> 4]); putchar(H[ene[i] & 15]); }
     printf("\",\"grid_heat\":\"");
-    for (uint32_t i = 0; i < cap_n; i++) { putchar(H[heat[i] >> 4]); putchar(H[heat[i] & 15]); }
+    for (uint32_t i = 0; i < N; i++) { putchar(H[heat[i] >> 4]); putchar(H[heat[i] & 15]); }
     printf("\",\"grid_flags\":\"");
-    for (uint32_t i = 0; i < cap_n; i++) { putchar(H[flg[i] >> 4]); putchar(H[flg[i] & 15]); }
+    for (uint32_t i = 0; i < N; i++) { putchar(H[flg[i] >> 4]); putchar(H[flg[i] & 15]); }
     printf("\"}\n");
     free(hue); free(ene); free(heat); free(flg);
     fflush(stdout);
@@ -644,18 +705,22 @@ static int cmd_stream(int argc, char** argv) {
 
     for (int i = 2; i < argc; i++) {
         if (strcmp(argv[i], "--size") == 0 && i + 1 < argc) {
-            uint32_t sz = (uint32_t)atoi(argv[++i]);
+            uint32_t sz = parse_u32_clamped(argv[++i], 32u, 8u, 128u);
             cfg.width = sz; cfg.height = sz;
         } else if (strcmp(argv[i], "--seed") == 0 && i + 1 < argc) {
-            cfg.seed = strtoull(argv[++i], NULL, 10);
+            cfg.seed = parse_u64_safe(argv[++i], 5000ULL);
         } else if (strcmp(argv[i], "--regime") == 0 && i + 1 < argc) {
-            cfg.regime = (uint32_t)atoi(argv[++i]);
+            cfg.regime = parse_u32_clamped(argv[++i], 1u, 0u, 3u);
         }
     }
 
     AutophageWorld* w = autophage_create(&cfg);
-    /* Emit hardware banner + initial frame immediately */
-    printf("{\"type\":\"ready\",\"brand\":");
+    if (!w) {
+        fprintf(stderr, "ERROR: autophage_create failed\n");
+        return 1;
+    }
+
+    printf("{\"type\":\"ready\",\"version\":\"1.2.0\",\"brand\":");
     print_json_escaped(w->caps.brand);
     printf(",\"gfni\":%u,\"pclmul\":%u,\"bmi2\":%u,\"jit_rwx\":%u}\n",
            (unsigned)w->caps.has_gfni, (unsigned)w->caps.has_pclmulqdq,
@@ -665,44 +730,66 @@ static int cmd_stream(int argc, char** argv) {
 
     char line[512];
     while (fgets(line, sizeof(line), stdin)) {
+        /* Drain remainder of overlong stdin lines so tails are never misparsed as commands */
+        size_t len = strlen(line);
+        if (len > 0u && line[len - 1u] != '\n') {
+            int ch;
+            while ((ch = fgetc(stdin)) != '\n' && ch != EOF) {}
+        }
+
         if (strncmp(line, "QUIT", 4) == 0) break;
         else if (strncmp(line, "STEP", 4) == 0) {
-            int n = atoi(line + 4);
-            if (n < 1) n = 1;
-            if (n > 200) n = 200;
-            autophage_step_epochs(w, (uint32_t)n);
+            uint32_t n = parse_u32_clamped(line + 4, 1u, 1u, 200u);
+            autophage_step_epochs(w, n);
             emit_stream_frame(w);
         } else if (strncmp(line, "GET_STATE", 9) == 0) {
             emit_stream_frame(w);
+        } else if (strncmp(line, "SET_RESTRAINT_VEC ", 18) == 0) {
+            char* p = line + 18;
+            uint8_t arr[13];
+            for (int r = 0; r < 13; r++) {
+                char* next = p;
+                long v = strtol(p, &next, 10);
+                if (next == p) {
+                    arr[r] = w->cfg.restraints[r];
+                } else {
+                    arr[r] = (uint8_t)(v < 0 ? 0 : (v > 100 ? 100 : v));
+                    p = next;
+                }
+            }
+            autophage_set_all_restraints(w, arr);
+            emit_stream_frame(w);
         } else if (strncmp(line, "SET_RESTRAINT ", 14) == 0) {
             char* p = line + 14;
-            int idx = (int)strtol(p, &p, 10);
-            int val = (int)strtol(p, &p, 10);
-            if (idx >= 0 && idx < 13) autophage_set_restraint(w, (uint32_t)idx, (uint8_t)(val < 0 ? 0 : (val > 100 ? 100 : val)));
+            long idx = strtol(p, &p, 10);
+            long val = strtol(p, &p, 10);
+            if (idx >= 0 && idx < 13) {
+                autophage_set_restraint(w, (uint32_t)idx, (uint8_t)(val < 0 ? 0 : (val > 100 ? 100 : val)));
+            }
             emit_stream_frame(w);
         } else if (strncmp(line, "SET_ALL_RESTRAINTS ", 19) == 0) {
-            int val = atoi(line + 19);
+            long val = strtol(line + 19, NULL, 10);
             uint8_t arr[13];
             uint8_t v = (uint8_t)(val < 0 ? 0 : (val > 100 ? 100 : val));
             for (int r = 0; r < 13; r++) arr[r] = v;
             autophage_set_all_restraints(w, arr);
             emit_stream_frame(w);
         } else if (strncmp(line, "EXTINCTION ", 11) == 0) {
-            int pct = atoi(line + 11);
-            uint32_t killed = autophage_mass_extinction(w, (uint32_t)(pct < 0 ? 0 : (pct > 100 ? 100 : pct)));
+            uint32_t pct = parse_u32_clamped(line + 11, 90u, 0u, 100u);
+            uint32_t killed = autophage_mass_extinction(w, pct);
             printf("{\"type\":\"event\",\"action\":\"extinction\",\"killed\":%u}\n", (unsigned)killed);
             emit_stream_frame(w);
         } else if (strncmp(line, "VIVISECT ", 9) == 0) {
-            int pct = atoi(line + 9);
+            uint32_t pct = parse_u32_clamped(line + 9, 50u, 0u, 100u);
             AutophageSpecimen apex;
             autophage_inspect_apex(w, &apex);
-            double fid = autophage_vivisect_excise(w, apex.slot_index, (uint32_t)(pct < 0 ? 0 : (pct > 100 ? 100 : pct)));
-            printf("{\"type\":\"event\",\"action\":\"vivisect\",\"slot\":%u,\"pct\":%d,\"fidelity\":%.4f}\n",
-                   (unsigned)apex.slot_index, pct, fid);
+            double fid = autophage_vivisect_excise(w, apex.slot_index, pct);
+            printf("{\"type\":\"event\",\"action\":\"vivisect\",\"slot\":%u,\"pct\":%u,\"fidelity\":%.4f}\n",
+                   (unsigned)apex.slot_index, (unsigned)pct, fid);
             emit_stream_frame(w);
         } else if (strncmp(line, "INOCULATE ", 10) == 0) {
             char* p = line + 10;
-            int arch = (int)strtol(p, &p, 10);
+            long arch = strtol(p, &p, 10);
             for (uint32_t k = 0; k < 8u; k++) {
                 uint32_t slot = ((uint32_t)w->epoch * 37u + k * (w->n_cells / 8u)) % w->n_cells;
                 autophage_inoculate_plasmid(w, slot, (uint32_t)(arch < 0 ? (k & 3u) : (uint32_t)arch));
@@ -710,13 +797,16 @@ static int cmd_stream(int argc, char** argv) {
             emit_stream_frame(w);
         } else if (strncmp(line, "RESET ", 6) == 0) {
             char* p = line + 6;
-            uint32_t reg = (uint32_t)strtol(p, &p, 10);
-            uint64_t sd  = strtoull(p, &p, 10);
-            cfg.regime = reg;
+            unsigned long reg = strtoul(p, &p, 10);
+            uint64_t sd = parse_u64_safe(p, 5000ULL);
+            cfg.regime = (uint32_t)(reg > 3u ? 1u : reg);
             cfg.seed   = sd;
             memset(cfg.restraints, 0, sizeof(cfg.restraints));
-            autophage_destroy(w);
-            w = autophage_create(&cfg);
+            AutophageWorld* nw = autophage_create(&cfg);
+            if (nw) {
+                autophage_destroy(w);
+                w = nw;
+            }
             emit_stream_frame(w);
         }
     }
@@ -728,7 +818,7 @@ static int cmd_stream(int argc, char** argv) {
 int main(int argc, char** argv) {
     hw_install_fault_shield();
     if (argc < 2) {
-        printf("AUTOPHAGE v1.0 — Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine\n");
+        printf("AUTOPHAGE v1.2.0 — Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine\n");
         printf("Usage: autophage <probe|abiogenesis|feral|ablation|vivisection|stats|bench|stream> [options]\n");
         return 0;
     }

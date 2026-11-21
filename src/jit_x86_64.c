@@ -27,27 +27,50 @@ enum {
 
 static const uint8_t ORG_REG[4] = { X_RBX, X_RSI, X_RDI, X_R8 };
 
-/* AutophageExecCtx field byte offsets (verified <= 0x7C by _Static_assert) */
-#define CTX_OFF_REG0       0x00u
-#define CTX_OFF_REG1       0x08u
-#define CTX_OFF_REG2       0x10u
-#define CTX_OFF_REG3       0x18u
-#define CTX_OFF_SPLICE     0x20u
-#define CTX_OFF_RIBOMAT    0x28u
-#define CTX_OFF_ENVWAVE    0x30u
-#define CTX_OFF_CLADEXOR   0x38u
-#define CTX_OFF_STIG_IN    0x40u
-#define CTX_OFF_STIG_OUT   0x48u
-#define CTX_OFF_BIO_ACT    0x50u
-#define CTX_OFF_BIO_PARAM  0x58u
-#define CTX_OFF_GAS        0x60u
-#define CTX_OFF_ERASED     0x64u
-#define CTX_OFF_REVOPS     0x68u
-#define CTX_OFF_IRROPS     0x6Cu
-#define CTX_OFF_COPY_A2B   0x70u
-#define CTX_OFF_COPY_B2A   0x74u
-#define CTX_OFF_HEAD0      0x78u
-#define CTX_OFF_HEAD1      0x7Cu
+/* AutophageExecCtx field byte offsets (verified identically by _Static_assert!) */
+#define CTX_OFF_REG0           0x00u
+#define CTX_OFF_REG1           0x08u
+#define CTX_OFF_REG2           0x10u
+#define CTX_OFF_REG3           0x18u
+#define CTX_OFF_SPLICE         0x20u
+#define CTX_OFF_RIBOMAT        0x28u
+#define CTX_OFF_ENVWAVE        0x30u
+#define CTX_OFF_CLADEXOR       0x38u
+#define CTX_OFF_STIG_IN        0x40u
+#define CTX_OFF_STIG_OUT       0x48u
+#define CTX_OFF_BIO_ACT        0x50u
+#define CTX_OFF_HARVEST_PARAM  0x58u
+#define CTX_OFF_GAS            0x60u
+#define CTX_OFF_ERASED         0x64u
+#define CTX_OFF_REVOPS         0x68u
+#define CTX_OFF_IRROPS         0x6Cu
+#define CTX_OFF_COPY_A2B       0x70u
+#define CTX_OFF_COPY_B2A       0x74u
+#define CTX_OFF_HEAD0          0x78u
+#define CTX_OFF_HEAD1          0x7Cu
+#define CTX_OFF_MEMBRANE_PARAM 0x80u
+#define CTX_OFF_RETRO_PARAM    0x88u
+#define CTX_OFF_RIBO_PARAM     0x90u
+#define CTX_OFF_CENTRO_PARAM   0x98u
+#define CTX_OFF_HOLO_PARAM     0xA0u
+#define CTX_OFF_MITOSIS_PARAM  0xA8u
+#define CTX_OFF_RIBO_RANK      0xB0u
+
+_Static_assert(offsetof(AutophageExecCtx, harvest_param)  == CTX_OFF_HARVEST_PARAM,  "harvest_param offset mismatch");
+_Static_assert(offsetof(AutophageExecCtx, membrane_param) == CTX_OFF_MEMBRANE_PARAM, "membrane_param offset mismatch");
+_Static_assert(offsetof(AutophageExecCtx, retro_param)    == CTX_OFF_RETRO_PARAM,    "retro_param offset mismatch");
+_Static_assert(offsetof(AutophageExecCtx, ribo_param)     == CTX_OFF_RIBO_PARAM,     "ribo_param offset mismatch");
+_Static_assert(offsetof(AutophageExecCtx, centro_param)   == CTX_OFF_CENTRO_PARAM,   "centro_param offset mismatch");
+_Static_assert(offsetof(AutophageExecCtx, holo_param)     == CTX_OFF_HOLO_PARAM,     "holo_param offset mismatch");
+_Static_assert(offsetof(AutophageExecCtx, mitosis_param)  == CTX_OFF_MITOSIS_PARAM,  "mitosis_param offset mismatch");
+_Static_assert(offsetof(AutophageExecCtx, ribosome_rank)  == CTX_OFF_RIBO_RANK,      "ribosome_rank offset mismatch");
+
+/* Smooth deterministic per-locus NERFING gate (0% = all active, 100% = all stripped, no binary cliff!) */
+static inline int hw_ext_allowed(uint8_t orig_pc, uint8_t op, uint8_t nerf_pct) {
+    if (nerf_pct == 0u) return 1;
+    if (nerf_pct >= 100u) return 0;
+    return (((uint32_t)orig_pc * 37u + (uint32_t)op * 13u) % 100u) >= (uint32_t)nerf_pct;
+}
 
 typedef struct JitBuf {
     uint8_t* ptr;
@@ -66,7 +89,18 @@ static inline void e32(JitBuf* b, uint32_t v) {
     eb(b, (uint8_t)((v >> 24) & 0xFFu));
 }
 
+static inline void e64(JitBuf* b, uint64_t v) {
+    e32(b, (uint32_t)(v & 0xFFFFFFFFULL));
+    e32(b, (uint32_t)(v >> 32));
+}
+
+static uint64_t scalar_pext64(uint64_t src, uint64_t mask);
+static uint64_t scalar_pdep64(uint64_t src, uint64_t mask);
+static uint64_t scalar_pclmul64_lo(uint64_t a, uint64_t b);
+static uint64_t scalar_gf2p8affine_u64(uint64_t x, uint64_t mat, uint8_t bias);
+
 static inline void patch32(JitBuf* b, uint32_t at, int32_t rel) {
+    if (at + 4u > b->cap) return;
     uint32_t u = (uint32_t)rel;
     b->ptr[at + 0] = (uint8_t)(u & 0xFFu);
     b->ptr[at + 1] = (uint8_t)((u >> 8) & 0xFFu);
@@ -129,32 +163,52 @@ static inline void emit_and_r32_imm8(JitBuf* b, uint8_t dst, uint8_t imm7) {
     eb(b, imm7);
 }
 
-static inline void emit_load_ctx64(JitBuf* b, uint8_t dst, uint8_t off) {
+static inline void emit_load_ctx64(JitBuf* b, uint8_t dst, uint32_t off) {
     eb(b, mk_rex(1, dst, 0, X_R14));
     eb(b, 0x8B);
-    eb(b, mk_modrm(1, dst, X_R14));
-    eb(b, off);
+    if (off < 0x80u) {
+        eb(b, mk_modrm(1, dst, X_R14));
+        eb(b, (uint8_t)off);
+    } else {
+        eb(b, mk_modrm(2, dst, X_R14));
+        e32(b, off);
+    }
 }
 
-static inline void emit_store_ctx64(JitBuf* b, uint8_t off, uint8_t src) {
+static inline void emit_store_ctx64(JitBuf* b, uint32_t off, uint8_t src) {
     eb(b, mk_rex(1, src, 0, X_R14));
     eb(b, 0x89);
-    eb(b, mk_modrm(1, src, X_R14));
-    eb(b, off);
+    if (off < 0x80u) {
+        eb(b, mk_modrm(1, src, X_R14));
+        eb(b, (uint8_t)off);
+    } else {
+        eb(b, mk_modrm(2, src, X_R14));
+        e32(b, off);
+    }
 }
 
-static inline void emit_load_ctx32(JitBuf* b, uint8_t dst, uint8_t off) {
+static inline void emit_load_ctx32(JitBuf* b, uint8_t dst, uint32_t off) {
     eb(b, mk_rex(0, dst, 0, X_R14));
     eb(b, 0x8B);
-    eb(b, mk_modrm(1, dst, X_R14));
-    eb(b, off);
+    if (off < 0x80u) {
+        eb(b, mk_modrm(1, dst, X_R14));
+        eb(b, (uint8_t)off);
+    } else {
+        eb(b, mk_modrm(2, dst, X_R14));
+        e32(b, off);
+    }
 }
 
-static inline void emit_store_ctx32(JitBuf* b, uint8_t off, uint8_t src) {
+static inline void emit_store_ctx32(JitBuf* b, uint32_t off, uint8_t src) {
     eb(b, mk_rex(0, src, 0, X_R14));
     eb(b, 0x89);
-    eb(b, mk_modrm(1, src, X_R14));
-    eb(b, off);
+    if (off < 0x80u) {
+        eb(b, mk_modrm(1, src, X_R14));
+        eb(b, (uint8_t)off);
+    } else {
+        eb(b, mk_modrm(2, src, X_R14));
+        e32(b, off);
+    }
 }
 
 static inline void emit_inc_ctx32(JitBuf* b, uint8_t off) {
@@ -255,7 +309,8 @@ typedef struct CompiledPlan {
     int     n_active;
 } CompiledPlan;
 
-static void build_compiled_plan(const uint8_t expressed[64], uint64_t splice_mask, CompiledPlan* plan) {
+static void build_compiled_plan_ko(const uint8_t expressed[64], uint64_t splice_mask,
+                                   int nop_orig_pc, CompiledPlan* plan) {
     plan->n_active = 0;
     for (int pc = 0; pc < 64; pc++) {
         if ((splice_mask >> pc) & 1ULL) {
@@ -269,6 +324,7 @@ static void build_compiled_plan(const uint8_t expressed[64], uint64_t splice_mas
     int8_t stack[64];
     int sp = 0;
     for (int i = 0; i < plan->n_active; i++) {
+        if ((int)plan->orig_pc[i] == nop_orig_pc) continue;
         uint8_t op = (uint8_t)(plan->codons[i] & 0x1Fu);
         if (op == OP_LOOP_OPEN) {
             if (sp < 64) stack[sp++] = (int8_t)i;
@@ -282,13 +338,52 @@ static void build_compiled_plan(const uint8_t expressed[64], uint64_t splice_mas
     }
 }
 
+static void build_compiled_plan(const uint8_t expressed[64], uint64_t splice_mask, CompiledPlan* plan) {
+    build_compiled_plan_ko(expressed, splice_mask, -1, plan);
+}
+
 /* ============================================================================
  * JIT COMPILATION ENGINE (EMITS REAL NATIVE x86-64 SILICON BYTES)
  * ============================================================================ */
 
+/* Portable C-helper trampoline used ONLY when CPU lacks GFNI/PCLMUL/BMI2 silicon extensions */
+static void emit_call_helper3(JitBuf* b, uintptr_t fn_addr) {
+    /* Inputs: RAX=arg0, RCX=arg1, RDX=arg2. Output: RAX.
+     * Prologue pushed 8 regs (+8B retaddr = 72B). 7 pushes here = 128B (exact 16B alignment!). */
+    eb(b, 0x56);               /* push rsi */
+    eb(b, 0x57);               /* push rdi */
+    eb(b, 0x41); eb(b, 0x50);  /* push r8  */
+    eb(b, 0x41); eb(b, 0x51);  /* push r9  */
+    eb(b, 0x41); eb(b, 0x52);  /* push r10 */
+    eb(b, 0x41); eb(b, 0x53);  /* push r11 */
+    eb(b, 0x53);               /* push rbx */
+#if defined(_WIN32)
+    eb(b, 0x48); eb(b, 0x83); eb(b, 0xEC); eb(b, 0x20); /* sub rsp, 32 (shadow space) */
+    emit_mov_rr(b, X_R8,  X_RDX);
+    emit_mov_rr(b, X_RDX, X_RCX);
+    emit_mov_rr(b, X_RCX, X_RAX);
+#else
+    emit_mov_rr(b, X_RDI, X_RAX);
+    emit_mov_rr(b, X_RSI, X_RCX);
+#endif
+    eb(b, 0x48); eb(b, 0xB8); e64(b, (uint64_t)fn_addr); /* movabs rax, fn_addr */
+    eb(b, 0xFF); eb(b, 0xD0);                            /* call rax */
+#if defined(_WIN32)
+    eb(b, 0x48); eb(b, 0x83); eb(b, 0xC4); eb(b, 0x20); /* add rsp, 32 */
+#endif
+    eb(b, 0x5B);               /* pop rbx */
+    eb(b, 0x41); eb(b, 0x5B);  /* pop r11 */
+    eb(b, 0x41); eb(b, 0x5A);  /* pop r10 */
+    eb(b, 0x41); eb(b, 0x59);  /* pop r9  */
+    eb(b, 0x41); eb(b, 0x58);  /* pop r8  */
+    eb(b, 0x5F);               /* pop rdi */
+    eb(b, 0x5E);               /* pop rsi */
+}
+
 static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
                                  const uint8_t expressed[64], uint64_t splice_mask,
-                                 uint8_t nerf_pct) {
+                                 uint8_t nerf_pct,
+                                 int use_gfni, int use_pclmul, int use_bmi2) {
     CompiledPlan plan;
     build_compiled_plan(expressed, splice_mask, &plan);
 
@@ -337,11 +432,9 @@ static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
     int      skip_target_idx[64];
     int      n_skips = 0;
 
-    int allow_hw_ext = (nerf_pct < 50u) ? 1 : 0;
-
     for (int i = 0; i < plan.n_active; i++) {
         insn_off[i] = b.len;
-        if (b.len + 128u > b.cap) {
+        if (b.len + 224u > b.cap) {
             /* Safety guard: cleanly terminate remaining slots if ever close to 4KiB page cap */
             for (int k = i; k <= plan.n_active; k++) insn_off[k] = b.len;
             break;
@@ -418,17 +511,44 @@ static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
             break;
 
         case OP_REV_GFNI_FOLD:
-            if (allow_hw_ext) {
+            if (hw_ext_allowed(plan.orig_pc[i], op, nerf_pct)) {
                 uint8_t imm_bias = (uint8_t)(plan.orig_pc[i] ^ (b7 ? 0x5Au : 0x00u));
-                /* movq xmm0, rd ; movq xmm1, [r14+CTX_OFF_RIBOMAT] ; gf2p8affineqb xmm0, xmm1, imm ; movq rd, xmm0 */
-                emit_mov_rr(&b, X_RAX, rd);
-                eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x6E); eb(&b, 0xC0); /* movq xmm0, rax */
-                eb(&b, 0xF3); eb(&b, 0x41); eb(&b, 0x0F); eb(&b, 0x7E); eb(&b, 0x4E); eb(&b, CTX_OFF_RIBOMAT); /* movq xmm1, [r14+0x28] */
-                eb(&b, 0x66); eb(&b, 0x0F); eb(&b, 0x3A); eb(&b, 0xCE); eb(&b, 0xC1); eb(&b, imm_bias); /* gf2p8affineqb xmm0, xmm1, imm */
-                eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x7E); eb(&b, 0xC0); /* movq rax, xmm0 */
-                emit_mov_rr(&b, rd, X_RAX);
+                if (use_gfni) {
+                    /* Save old rd in rdx; run native GF2P8AFFINEQB into rax -> rd */
+                    emit_mov_rr(&b, X_RAX, rd);
+                    emit_mov_rr(&b, X_RDX, rd);
+                    eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x6E); eb(&b, 0xC0); /* movq xmm0, rax */
+                    eb(&b, 0xF3); eb(&b, 0x41); eb(&b, 0x0F); eb(&b, 0x7E); eb(&b, 0x4E); eb(&b, (uint8_t)CTX_OFF_RIBOMAT); /* movq xmm1, [r14+0x28] */
+                    eb(&b, 0x66); eb(&b, 0x0F); eb(&b, 0x3A); eb(&b, 0xCE); eb(&b, 0xC1); eb(&b, imm_bias); /* gf2p8affineqb xmm0, xmm1, imm */
+                    eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x7E); eb(&b, 0xC0); /* movq rax, xmm0 */
+                    emit_mov_rr(&b, rd, X_RAX);
+                } else {
+                    emit_mov_rr(&b, X_RAX, rd);
+                    emit_load_ctx64(&b, X_RCX, CTX_OFF_RIBOMAT);
+                    eb(&b, 0xBA); e32(&b, (uint32_t)imm_bias); /* mov edx, imm_bias */
+                    emit_call_helper3(&b, (uintptr_t)&scalar_gf2p8affine_u64);
+                    emit_mov_rr(&b, X_RDX, rd);
+                    emit_mov_rr(&b, rd, X_RAX);
+                }
+                /* Landauer check: reversible iff ctx->ribosome_rank == 8; else charge popcnt(old^new)! */
+                emit_load_ctx32(&b, X_RCX, CTX_OFF_RIBO_RANK);
+                eb(&b, 0x83); eb(&b, 0xF9); eb(&b, 0x08); /* cmp ecx, 8 */
+                eb(&b, 0x74); /* je +rel8 -> rev_branch */
+                uint32_t je_patch = b.len;
+                eb(&b, 0);
+                /* Singular ribosome (rank < 8): irreversible bit erasure + irr_ops++ */
+                emit_xor_rr(&b, X_RAX, X_RDX);
+                emit_popcnt_rax_add_r11(&b);
+                emit_inc_ctx32(&b, CTX_OFF_IRROPS);
+                eb(&b, 0xEB); /* jmp +rel8 -> end */
+                uint32_t jmp_patch = b.len;
+                eb(&b, 0);
+                /* Full-rank ribosome (rank == 8): strictly reversible rev_ops++ */
+                if (je_patch < b.cap) b.ptr[je_patch] = (uint8_t)(b.len - (je_patch + 1u));
+                emit_inc_r64(&b, X_R10);
+                if (jmp_patch < b.cap) b.ptr[jmp_patch] = (uint8_t)(b.len - (jmp_patch + 1u));
             }
-            emit_inc_r64(&b, X_R10);
+            /* When nerfed: true NOP — do NOT credit fake rev_ops++! */
             break;
 
         /* === GROUP B: IRREVERSIBLE DISSIPATIVE OPS (Exact POPCNT Landauer Erasure!) === */
@@ -461,52 +581,65 @@ static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
             break;
 
         case OP_IRR_CLMUL_SYNTH:
-            if (allow_hw_ext) {
-                emit_mov_rr(&b, X_RAX, rd);
-                emit_mov_rr(&b, X_RDX, rs);
-                eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x6E); eb(&b, 0xC0); /* movq xmm0, rax */
-                eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x6E); eb(&b, 0xCA); /* movq xmm1, rdx */
-                eb(&b, 0x66); eb(&b, 0x0F); eb(&b, 0x3A); eb(&b, 0x44); eb(&b, 0xC1); eb(&b, 0x00); /* pclmulqdq xmm0, xmm1, 0 */
-                eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x7E); eb(&b, 0xC0); /* movq rax, xmm0 */
+            if (hw_ext_allowed(plan.orig_pc[i], op, nerf_pct)) {
+                if (use_pclmul) {
+                    emit_mov_rr(&b, X_RAX, rd);
+                    emit_mov_rr(&b, X_RDX, rs);
+                    eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x6E); eb(&b, 0xC0); /* movq xmm0, rax */
+                    eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x6E); eb(&b, 0xCA); /* movq xmm1, rdx */
+                    eb(&b, 0x66); eb(&b, 0x0F); eb(&b, 0x3A); eb(&b, 0x44); eb(&b, 0xC1); eb(&b, 0x00); /* pclmulqdq xmm0, xmm1, 0 */
+                    eb(&b, 0x66); eb(&b, 0x48); eb(&b, 0x0F); eb(&b, 0x7E); eb(&b, 0xC0); /* movq rax, xmm0 */
+                } else {
+                    emit_mov_rr(&b, X_RAX, rd);
+                    emit_mov_rr(&b, X_RCX, rs);
+                    emit_call_helper3(&b, (uintptr_t)&scalar_pclmul64_lo);
+                }
                 emit_mov_rr(&b, X_RDX, rd);  /* save old */
                 emit_mov_rr(&b, rd, X_RAX);  /* R[d] = res */
                 emit_xor_rr(&b, X_RAX, X_RDX);
                 emit_popcnt_rax_add_r11(&b);
                 emit_inc_ctx32(&b, CTX_OFF_IRROPS);
-            } else {
-                emit_inc_r64(&b, X_R10);
             }
+            /* When nerfed: true NOP (no fake rev_ops++) */
             break;
 
         case OP_IRR_PEXT_SPLICE:
-            if (allow_hw_ext) {
-                emit_mov_rr(&b, X_RDX, rs);
-                emit_load_ctx64(&b, X_RCX, CTX_OFF_SPLICE);
-                /* pext rax, rdx, rcx */
-                eb(&b, 0xC4); eb(&b, 0xE2); eb(&b, 0xEA); eb(&b, 0xF5); eb(&b, 0xC1);
+            if (hw_ext_allowed(plan.orig_pc[i], op, nerf_pct)) {
+                if (use_bmi2) {
+                    emit_mov_rr(&b, X_RDX, rs);
+                    emit_load_ctx64(&b, X_RCX, CTX_OFF_SPLICE);
+                    /* pext rax, rdx, rcx */
+                    eb(&b, 0xC4); eb(&b, 0xE2); eb(&b, 0xEA); eb(&b, 0xF5); eb(&b, 0xC1);
+                } else {
+                    emit_mov_rr(&b, X_RAX, rs);
+                    emit_load_ctx64(&b, X_RCX, CTX_OFF_SPLICE);
+                    emit_call_helper3(&b, (uintptr_t)&scalar_pext64);
+                }
                 emit_mov_rr(&b, X_RDX, rd);
                 emit_mov_rr(&b, rd, X_RAX);
                 emit_xor_rr(&b, X_RAX, X_RDX);
                 emit_popcnt_rax_add_r11(&b);
                 emit_inc_ctx32(&b, CTX_OFF_IRROPS);
-            } else {
-                emit_inc_r64(&b, X_R10);
             }
             break;
 
         case OP_IRR_PDEP_SCATTER:
-            if (allow_hw_ext) {
-                emit_mov_rr(&b, X_RDX, rs);
-                emit_load_ctx64(&b, X_RCX, CTX_OFF_SPLICE);
-                /* pdep rax, rdx, rcx */
-                eb(&b, 0xC4); eb(&b, 0xE2); eb(&b, 0xEB); eb(&b, 0xF5); eb(&b, 0xC1);
+            if (hw_ext_allowed(plan.orig_pc[i], op, nerf_pct)) {
+                if (use_bmi2) {
+                    emit_mov_rr(&b, X_RDX, rs);
+                    emit_load_ctx64(&b, X_RCX, CTX_OFF_SPLICE);
+                    /* pdep rax, rdx, rcx */
+                    eb(&b, 0xC4); eb(&b, 0xE2); eb(&b, 0xEB); eb(&b, 0xF5); eb(&b, 0xC1);
+                } else {
+                    emit_mov_rr(&b, X_RAX, rs);
+                    emit_load_ctx64(&b, X_RCX, CTX_OFF_SPLICE);
+                    emit_call_helper3(&b, (uintptr_t)&scalar_pdep64);
+                }
                 emit_mov_rr(&b, X_RDX, rd);
                 emit_mov_rr(&b, rd, X_RAX);
                 emit_xor_rr(&b, X_RAX, X_RDX);
                 emit_popcnt_rax_add_r11(&b);
                 emit_inc_ctx32(&b, CTX_OFF_IRROPS);
-            } else {
-                emit_inc_r64(&b, X_R10);
             }
             break;
 
@@ -607,9 +740,10 @@ static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
 
         /* === GROUP D: BIOLOGICAL / META-GENETIC SILICON TRAPS === */
         case OP_METAB_HARVEST:
+            /* Store internal prediction R[d] BEFORE reversible env_wave sensing (no double-XOR cancellation!) */
+            emit_store_ctx64(&b, CTX_OFF_HARVEST_PARAM, rd);
             emit_load_ctx64(&b, X_RAX, CTX_OFF_ENVWAVE);
-            emit_xor_rr(&b, rd, X_RAX);
-            emit_store_ctx64(&b, CTX_OFF_BIO_PARAM, rd);
+            emit_add_rr(&b, rd, X_RAX);
             emit_or_ctx_bio(&b, (uint32_t)BIO_ACT_METAB_HARVEST);
             emit_inc_r64(&b, X_R10);
             break;
@@ -620,7 +754,7 @@ static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
             break;
 
         case OP_MEMBRANE_SEAL:
-            emit_store_ctx64(&b, CTX_OFF_BIO_PARAM, rd);
+            emit_store_ctx64(&b, CTX_OFF_MEMBRANE_PARAM, rd);
             emit_or_ctx_bio(&b, (uint32_t)BIO_ACT_MEMBRANE_SEAL);
             emit_inc_r64(&b, X_R10);
             break;
@@ -631,25 +765,25 @@ static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
             break;
 
         case OP_RETRO_TRANSCRIBE:
-            emit_store_ctx64(&b, CTX_OFF_BIO_PARAM, rd);
+            emit_store_ctx64(&b, CTX_OFF_RETRO_PARAM, rd);
             emit_or_ctx_bio(&b, (uint32_t)BIO_ACT_RETRO_TRANSCRIBE);
             emit_inc_r64(&b, X_R10);
             break;
 
         case OP_RIBOSOME_MUTATE:
-            emit_store_ctx64(&b, CTX_OFF_BIO_PARAM, rd);
+            emit_store_ctx64(&b, CTX_OFF_RIBO_PARAM, rd);
             emit_or_ctx_bio(&b, (uint32_t)BIO_ACT_RIBOSOME_MUTATE);
             emit_inc_r64(&b, X_R10);
             break;
 
         case OP_CENTROMERE_DRIFT:
-            emit_store_ctx64(&b, CTX_OFF_BIO_PARAM, rd);
+            emit_store_ctx64(&b, CTX_OFF_CENTRO_PARAM, rd);
             emit_or_ctx_bio(&b, (uint32_t)BIO_ACT_CENTROMERE_DRIFT);
             emit_inc_r64(&b, X_R10);
             break;
 
         case OP_HOLOBIONT_BOND:
-            emit_store_ctx64(&b, CTX_OFF_BIO_PARAM, rd);
+            emit_store_ctx64(&b, CTX_OFF_HOLO_PARAM, rd);
             emit_or_ctx_bio(&b, (uint32_t)BIO_ACT_HOLOBIONT_BOND);
             emit_inc_r64(&b, X_R10);
             break;
@@ -667,7 +801,7 @@ static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
             break;
 
         case OP_MITOSIS_FORK:
-            emit_store_ctx64(&b, CTX_OFF_BIO_PARAM, rd);
+            emit_store_ctx64(&b, CTX_OFF_MITOSIS_PARAM, rd);
             emit_or_ctx_bio(&b, (uint32_t)BIO_ACT_MITOSIS_FORK);
             emit_inc_r64(&b, X_R10);
             break;
@@ -720,7 +854,7 @@ static uint32_t jit_emit_program(uint8_t* dst, uint32_t cap,
 uint32_t jit_emit_readonly(uint8_t* dst, uint32_t cap,
                            const uint8_t expressed[64], uint64_t splice_mask,
                            uint8_t nerf_pct) {
-    return jit_emit_program(dst, cap, expressed, splice_mask, nerf_pct);
+    return jit_emit_program(dst, cap, expressed, splice_mask, nerf_pct, 1, 1, 1);
 }
 
 /* ============================================================================
@@ -781,12 +915,12 @@ static uint64_t scalar_gf2p8affine_u64(uint64_t x, uint64_t mat, uint8_t bias) {
     return out;
 }
 
-uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
-                              uint8_t nerf_pct,
-                              uint8_t tape_a[128], uint8_t tape_b[128],
-                              AutophageExecCtx* ctx) {
+uint64_t jit_reference_oracle_with_nop(const uint8_t expressed[64], uint64_t splice_mask,
+                                       uint8_t nerf_pct,
+                                       uint8_t tape_a[128], uint8_t tape_b[128],
+                                       AutophageExecCtx* ctx, int nop_orig_pc) {
     CompiledPlan plan;
-    build_compiled_plan(expressed, splice_mask, &plan);
+    build_compiled_plan_ko(expressed, splice_mask, nop_orig_pc, &plan);
 
     uint64_t R[4] = { ctx->regs[0], ctx->regs[1], ctx->regs[2], ctx->regs[3] };
     int64_t  gas  = (int64_t)(uint64_t)ctx->gas;
@@ -794,10 +928,13 @@ uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
     uint64_t rev    = (uint64_t)ctx->rev_ops;
     uint32_t head0  = ctx->head0 & 0x7Fu;
     uint32_t head1  = ctx->head1 & 0x7Fu;
-    int allow_hw_ext = (nerf_pct < 50u) ? 1 : 0;
 
     int i = 0;
     while (i < plan.n_active) {
+        if ((int)plan.orig_pc[i] == nop_orig_pc) {
+            i++;
+            continue;
+        }
         uint8_t c  = plan.codons[i];
         uint8_t op = (uint8_t)(c & 0x1Fu);
         uint8_t d  = (uint8_t)((c >> 5) & 3u);
@@ -856,11 +993,18 @@ uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
             break;
 
         case OP_REV_GFNI_FOLD:
-            if (allow_hw_ext) {
+            if (hw_ext_allowed(plan.orig_pc[i], op, nerf_pct)) {
                 uint8_t imm_bias = (uint8_t)(plan.orig_pc[i] ^ (b7 ? 0x5Au : 0x00u));
-                R[d] = scalar_gf2p8affine_u64(R[d], ctx->ribosome_mat, imm_bias);
+                uint64_t old = R[d];
+                uint64_t nw  = scalar_gf2p8affine_u64(old, ctx->ribosome_mat, imm_bias);
+                R[d] = nw;
+                if (ctx->ribosome_rank == 8u) {
+                    rev++;
+                } else {
+                    erased += scalar_popcnt64(old ^ nw);
+                    ctx->irr_ops++;
+                }
             }
-            rev++;
             break;
 
         case OP_IRR_COPY_A_TO_B: {
@@ -888,38 +1032,32 @@ uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
         }
 
         case OP_IRR_CLMUL_SYNTH:
-            if (allow_hw_ext) {
+            if (hw_ext_allowed(plan.orig_pc[i], op, nerf_pct)) {
                 uint64_t old = R[d];
                 uint64_t res = scalar_pclmul64_lo(R[d], R[s]);
                 R[d] = res;
                 erased += scalar_popcnt64(old ^ res);
                 ctx->irr_ops++;
-            } else {
-                rev++;
             }
             break;
 
         case OP_IRR_PEXT_SPLICE:
-            if (allow_hw_ext) {
+            if (hw_ext_allowed(plan.orig_pc[i], op, nerf_pct)) {
                 uint64_t old = R[d];
                 uint64_t res = scalar_pext64(R[s], ctx->splice_mask);
                 R[d] = res;
                 erased += scalar_popcnt64(old ^ res);
                 ctx->irr_ops++;
-            } else {
-                rev++;
             }
             break;
 
         case OP_IRR_PDEP_SCATTER:
-            if (allow_hw_ext) {
+            if (hw_ext_allowed(plan.orig_pc[i], op, nerf_pct)) {
                 uint64_t old = R[d];
                 uint64_t res = scalar_pdep64(R[s], ctx->splice_mask);
                 R[d] = res;
                 erased += scalar_popcnt64(old ^ res);
                 ctx->irr_ops++;
-            } else {
-                rev++;
             }
             break;
 
@@ -991,8 +1129,8 @@ uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
         }
 
         case OP_METAB_HARVEST:
-            R[d] ^= ctx->env_wave;
-            ctx->bio_param = R[d];
+            ctx->harvest_param = R[d];
+            R[d] += ctx->env_wave;
             ctx->bio_actions |= BIO_ACT_METAB_HARVEST;
             rev++;
             break;
@@ -1003,7 +1141,7 @@ uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
             break;
 
         case OP_MEMBRANE_SEAL:
-            ctx->bio_param = R[d];
+            ctx->membrane_param = R[d];
             ctx->bio_actions |= BIO_ACT_MEMBRANE_SEAL;
             rev++;
             break;
@@ -1014,25 +1152,25 @@ uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
             break;
 
         case OP_RETRO_TRANSCRIBE:
-            ctx->bio_param = R[d];
+            ctx->retro_param = R[d];
             ctx->bio_actions |= BIO_ACT_RETRO_TRANSCRIBE;
             rev++;
             break;
 
         case OP_RIBOSOME_MUTATE:
-            ctx->bio_param = R[d];
+            ctx->ribo_param = R[d];
             ctx->bio_actions |= BIO_ACT_RIBOSOME_MUTATE;
             rev++;
             break;
 
         case OP_CENTROMERE_DRIFT:
-            ctx->bio_param = R[d];
+            ctx->centro_param = R[d];
             ctx->bio_actions |= BIO_ACT_CENTROMERE_DRIFT;
             rev++;
             break;
 
         case OP_HOLOBIONT_BOND:
-            ctx->bio_param = R[d];
+            ctx->holo_param = R[d];
             ctx->bio_actions |= BIO_ACT_HOLOBIONT_BOND;
             rev++;
             break;
@@ -1049,7 +1187,7 @@ uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
             break;
 
         case OP_MITOSIS_FORK:
-            ctx->bio_param = R[d];
+            ctx->mitosis_param = R[d];
             ctx->bio_actions |= BIO_ACT_MITOSIS_FORK;
             rev++;
             break;
@@ -1072,6 +1210,13 @@ uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
     ctx->head0       = head0;
     ctx->head1       = head1;
     return (rev + erased);
+}
+
+uint64_t jit_reference_oracle(const uint8_t expressed[64], uint64_t splice_mask,
+                              uint8_t nerf_pct,
+                              uint8_t tape_a[128], uint8_t tape_b[128],
+                              AutophageExecCtx* ctx) {
+    return jit_reference_oracle_with_nop(expressed, splice_mask, nerf_pct, tape_a, tape_b, ctx, -1);
 }
 
 /* ============================================================================
@@ -1102,7 +1247,7 @@ void jit_cache_destroy(AutophageJitCache* cache) {
 }
 
 uint64_t jit_genome_key(const uint8_t expressed[64], uint64_t splice_mask, uint8_t nerf_pct) {
-    uint64_t h = 0xCBF29CE484222325ULL ^ splice_mask ^ ((uint64_t)(nerf_pct >= 50u ? 1u : 0u) << 63);
+    uint64_t h = 0xCBF29CE484222325ULL ^ splice_mask ^ ((uint64_t)nerf_pct << 56) ^ (uint64_t)nerf_pct;
     for (int i = 0; i < 8; i++) {
         uint64_t w = 0;
         memcpy(&w, expressed + i * 8, 8);
@@ -1132,7 +1277,8 @@ autophage_jit_fn jit_compile_or_fetch(AutophageJitCache* cache,
         e->use_count++;
     } else {
         uint32_t len = jit_emit_program(e->code_ptr, AUTOPHAGE_JIT_MAX_BYTES,
-                                        expressed, splice_mask, nerf_pct);
+                                        expressed, splice_mask, nerf_pct,
+                                        (int)cache->use_gfni, (int)cache->use_pclmul, (int)cache->use_bmi2);
         hw_flush_icache(e->code_ptr, len);
         e->key_hash    = key;
         e->splice_mask = splice_mask;
@@ -1174,19 +1320,23 @@ const char* opcode_mnemonic(uint8_t op5) {
 
 size_t jit_disassemble_expressed(const uint8_t expressed[64], uint64_t splice_mask,
                                  const uint8_t* machine_code, uint32_t code_len,
+                                 uint32_t total_code_len,
                                  char* buf, size_t cap) {
     if (!buf || cap == 0) return 0;
     CompiledPlan plan;
     build_compiled_plan(expressed, splice_mask, &plan);
 
     size_t pos = 0;
+    uint32_t hdr_len = total_code_len >= code_len ? total_code_len : code_len;
     int n = snprintf(buf + pos, cap - pos,
-                     "; AUTOPHAGE Live Native x86-64 Genome Disassembly (%d active exons / 64, %u JIT bytes)\n"
+                     "; AUTOPHAGE v1.2.0 Live Native x86-64 Genome Disassembly (%d active exons / 64, %u JIT bytes)\n"
                      "; Prologue: save rbx..r15, map r12=tape_a, r13=tape_b, r14=ctx, rbp=h0&7F, r9=h1&7F, r11=popcnt\n",
-                     plan.n_active, (unsigned)code_len);
-    if (n > 0) pos += (size_t)n;
+                     plan.n_active, (unsigned)hdr_len);
+    if (n < 0) { buf[0] = '\0'; return 0; }
+    if ((size_t)n >= cap - pos) { buf[cap - 1u] = '\0'; return cap - 1u; }
+    pos += (size_t)n;
 
-    for (int i = 0; i < plan.n_active && pos + 128 < cap; i++) {
+    for (int i = 0; i < plan.n_active && pos + 4u < cap; i++) {
         uint8_t c  = plan.codons[i];
         uint8_t op = (uint8_t)(c & 0x1Fu);
         uint8_t d  = (uint8_t)((c >> 5) & 3u);
@@ -1194,7 +1344,6 @@ size_t jit_disassemble_expressed(const uint8_t expressed[64], uint64_t splice_ma
         uint8_t s  = (uint8_t)((d + 1u + b7) & 3u);
         uint8_t t  = (uint8_t)((d + 2u + b7) & 3u);
 
-        const char* x86_desc = "";
         char detail[96];
         switch (op) {
         case OP_REV_XOR_REG:      snprintf(detail, sizeof(detail), "xor %s, %s", REG_NAMES[d], REG_NAMES[s]); break;
@@ -1204,7 +1353,7 @@ size_t jit_disassemble_expressed(const uint8_t expressed[64], uint64_t splice_ma
         case OP_REV_FREDKIN:      snprintf(detail, sizeof(detail), "fredkin ctrl=%s swap=(%s,%s)", REG_NAMES[d], REG_NAMES[s], REG_NAMES[t]); break;
         case OP_REV_ADD_SUB:      snprintf(detail, sizeof(detail), "%s %s, %s", b7 ? "sub" : "add", REG_NAMES[d], REG_NAMES[s]); break;
         case OP_REV_HEAD_STEP:    snprintf(detail, sizeof(detail), "%s rbp; inc r9; and 0x7F", b7 ? "dec" : "inc"); break;
-        case OP_REV_GFNI_FOLD:    snprintf(detail, sizeof(detail), "gf2p8affineqb %s, [r14+ribosome], 0x%02X", REG_NAMES[d], (unsigned)(plan.orig_pc[i] ^ (b7 ? 0x5Au : 0))); break;
+        case OP_REV_GFNI_FOLD:    snprintf(detail, sizeof(detail), "gf2p8affineqb %s, [r14+ribosome], 0x%02X (rank<8->popcnt)", REG_NAMES[d], (unsigned)(plan.orig_pc[i] ^ (b7 ? 0x5Au : 0))); break;
         case OP_IRR_COPY_A_TO_B:  snprintf(detail, sizeof(detail), "mov [r13+r9],[r12+rbp]; popcnt -> r11; h0++,h1++"); break;
         case OP_IRR_COPY_B_TO_A:  snprintf(detail, sizeof(detail), "mov [r12+rbp],[r13+r9]; popcnt -> r11; h0++,h1++"); break;
         case OP_IRR_CLMUL_SYNTH:  snprintf(detail, sizeof(detail), "pclmulqdq %s, %s, 0x00; popcnt -> r11", REG_NAMES[d], REG_NAMES[s]); break;
@@ -1217,38 +1366,42 @@ size_t jit_disassemble_expressed(const uint8_t expressed[64], uint64_t splice_ma
         case OP_LOOP_CLOSE_NZ:    snprintf(detail, sizeof(detail), "dec r15; jle +skip; test %s; jnz L_%02d", b7 ? REG_NAMES[d] : "[r12+rbp]", (int)plan.loop_target[i]); break;
         case OP_BRANCH_EQ_SKIP:   snprintf(detail, sizeof(detail), "cmp %s; je skip_next", b7 ? "regs" : "tapes"); break;
         case OP_BRANCH_TZCNT:     snprintf(detail, sizeof(detail), "tzcnt rax,[r14+clade_xor]; xor %s,rax%s", REG_NAMES[d], b7 ? "; jae(8) skip" : ""); break;
-        case OP_METAB_HARVEST:    snprintf(detail, sizeof(detail), "xor %s,[r14+env]; bio|=HARVEST", REG_NAMES[d]); break;
+        case OP_METAB_HARVEST:    snprintf(detail, sizeof(detail), "mov [r14+harvest],%s; add %s,[r14+env]; bio|=HARVEST", REG_NAMES[d], REG_NAMES[d]); break;
         case OP_METAB_RADIATE:    snprintf(detail, sizeof(detail), "or [r14+bio], RADIATE"); break;
-        case OP_MEMBRANE_SEAL:    snprintf(detail, sizeof(detail), "mov [r14+param],%s; bio|=MEMBRANE_SEAL", REG_NAMES[d]); break;
+        case OP_MEMBRANE_SEAL:    snprintf(detail, sizeof(detail), "mov [r14+mem_p],%s; bio|=MEMBRANE_SEAL", REG_NAMES[d]); break;
         case OP_SELF_HEAL_ECC:    snprintf(detail, sizeof(detail), "or [r14+bio], SELF_HEAL_ECC"); break;
-        case OP_RETRO_TRANSCRIBE: snprintf(detail, sizeof(detail), "mov [r14+param],%s; bio|=RETRO_M_INV", REG_NAMES[d]); break;
-        case OP_RIBOSOME_MUTATE:  snprintf(detail, sizeof(detail), "mov [r14+param],%s; bio|=RIBO_REWRITE", REG_NAMES[d]); break;
-        case OP_CENTROMERE_DRIFT: snprintf(detail, sizeof(detail), "mov [r14+param],%s; bio|=POLY_DRIFT", REG_NAMES[d]); break;
-        case OP_HOLOBIONT_BOND:   snprintf(detail, sizeof(detail), "mov [r14+param],%s; bio|=HOLOBIONT", REG_NAMES[d]); break;
+        case OP_RETRO_TRANSCRIBE: snprintf(detail, sizeof(detail), "mov [r14+retro_p],%s; bio|=RETRO_M_INV", REG_NAMES[d]); break;
+        case OP_RIBOSOME_MUTATE:  snprintf(detail, sizeof(detail), "mov [r14+ribo_p],%s; bio|=RIBO_REWRITE", REG_NAMES[d]); break;
+        case OP_CENTROMERE_DRIFT: snprintf(detail, sizeof(detail), "mov [r14+centro_p],%s; bio|=POLY_DRIFT", REG_NAMES[d]); break;
+        case OP_HOLOBIONT_BOND:   snprintf(detail, sizeof(detail), "mov [r14+holo_p],%s; bio|=HOLOBIONT", REG_NAMES[d]); break;
         case OP_STIGMERGY_EMIT:   snprintf(detail, sizeof(detail), "mov [r14+stig_out],%s; bio|=EMIT", REG_NAMES[d]); break;
         case OP_STIGMERGY_SENSE:  snprintf(detail, sizeof(detail), "xor %s,[r14+stig_in]", REG_NAMES[d]); break;
-        case OP_MITOSIS_FORK:     snprintf(detail, sizeof(detail), "mov [r14+param],%s; bio|=MITOSIS_SEX", REG_NAMES[d]); break;
+        case OP_MITOSIS_FORK:     snprintf(detail, sizeof(detail), "mov [r14+mito_p],%s; bio|=MITOSIS_SEX", REG_NAMES[d]); break;
         case OP_SLEEP_SPORE:      snprintf(detail, sizeof(detail), "or [r14+bio], SLEEP_SPORE"); break;
         default:                  snprintf(detail, sizeof(detail), "nop"); break;
         }
-        x86_desc = detail;
 
         n = snprintf(buf + pos, cap - pos, "  [%02u] 0x%02X  %-17s | %s\n",
-                     (unsigned)plan.orig_pc[i], (unsigned)c, OPCODE_NAMES[op], x86_desc);
-        if (n > 0) pos += (size_t)n;
+                     (unsigned)plan.orig_pc[i], (unsigned)c, OPCODE_NAMES[op], detail);
+        if (n < 0) break;
+        if ((size_t)n >= cap - pos) { pos = cap - 1u; break; }
+        pos += (size_t)n;
     }
 
-    if (machine_code && code_len > 0 && pos + 64 < cap) {
+    if (machine_code && code_len > 0 && cap > pos && (cap - pos) >= 64u) {
         uint32_t show = code_len < 64u ? code_len : 64u;
         n = snprintf(buf + pos, cap - pos, "; Raw x86-64 RWX machine bytes [0..%u of %u]: ",
-                     (unsigned)show, (unsigned)code_len);
-        if (n > 0) pos += (size_t)n;
-        for (uint32_t k = 0; k < show && pos + 4 < cap; k++) {
-            n = snprintf(buf + pos, cap - pos, "%02X ", (unsigned)machine_code[k]);
-            if (n > 0) pos += (size_t)n;
+                     (unsigned)show, (unsigned)hdr_len);
+        if (n > 0 && (size_t)n < cap - pos) {
+            pos += (size_t)n;
+            for (uint32_t k = 0; k < show && cap > pos && (cap - pos) >= 4u; k++) {
+                n = snprintf(buf + pos, cap - pos, "%02X ", (unsigned)machine_code[k]);
+                if (n < 0 || (size_t)n >= cap - pos) { pos = cap - 1u; break; }
+                pos += (size_t)n;
+            }
+            if (pos + 2u < cap) buf[pos++] = '\n';
         }
-        if (pos + 2 < cap) buf[pos++] = '\n';
     }
-    buf[pos < cap ? pos : cap - 1] = '\0';
+    buf[pos < cap ? pos : cap - 1u] = '\0';
     return pos;
 }
