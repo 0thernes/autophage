@@ -1,4 +1,4 @@
-name: AUTOPHAGE v1.2.0 Lean 4 & Linux C11 Verification
+name: AUTOPHAGE v1.3.0 Lean 4 & Linux C11 Verification
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
           set -euo pipefail
           curl https://elan.lean-lang.org/elan-init.sh -sSf | sh -s -- -y --default-toolchain leanprover/lean4:v4.35.0
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Verify AutophageProofs.lean (38 pure-kernel theorems, strict axiom allowlist)
+      - name: Verify AutophageProofs.lean (42 pure-kernel theorems, strict axiom allowlist)
         working-directory: lean
         shell: bash
         run: |
@@ -50,8 +50,8 @@ jobs:
                       audited += 1
                       continue
                   sys.exit(f"ERROR: Unexpected Lean output line: {line}")
-          if audited < 38:
-              sys.exit(f"ERROR: Expected >= 38 audited theorems, found {audited}")
+          if audited < 42:
+              sys.exit(f"ERROR: Expected >= 42 audited theorems, found {audited}")
           print(f"PASS: All {audited} AutophageProofs theorems verified strictly within {sorted(allowed)} (0 warnings, 0 sorry, 0 external SAT/compiler axioms).")
           PY
 

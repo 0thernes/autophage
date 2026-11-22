@@ -3,7 +3,7 @@
 
 /*
  * ============================================================================
- * AUTOPHAGE v1.2.0 — BARE-METAL POLYMORPHIC x86-64 GALOIS-FIELD GENETIC ENGINE
+ * AUTOPHAGE v1.3.0 — BARE-METAL POLYMORPHIC x86-64 GALOIS-FIELD GENETIC ENGINE
  * Flat C11 Public ABI (Standalone Build + Direct Drop-In for ASMODENSIUS)
  * ============================================================================
  *
@@ -34,7 +34,7 @@ extern "C" {
   #define AUTOPHAGE_API __attribute__((visibility("default")))
 #endif
 
-#define AUTOPHAGE_ABI_VERSION 0x00010200u
+#define AUTOPHAGE_ABI_VERSION 0x00010300u
 
 /* Simulation Operating Regimes */
 typedef enum AutophageRegime {

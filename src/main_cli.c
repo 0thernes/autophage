@@ -1,7 +1,7 @@
 #include "autophage_internal.h"
 
 /* ============================================================================
- * AUTOPHAGE v1.2.0 STANDALONE NATIVE x86-64 CLI & STREAMING OBSERVATORY ENGINE
+ * AUTOPHAGE v1.3.0 STANDALONE NATIVE x86-64 CLI & STREAMING OBSERVATORY ENGINE
  *
  * Subcommands:
  *   probe        - Silicon CPUID + GFNI/PCLMULQDQ/BMI2 + live RWX JIT verify
@@ -79,7 +79,7 @@ static void print_telemetry_brief(const char* tag, const AutophageTelemetry* t) 
 static int cmd_probe(void) {
     AutophageHwCaps caps;
     autophage_probe_hardware(&caps);
-    printf("=== AUTOPHAGE v1.2.0 SILICON HARDWARE PROBE (ABI 0x%08X) ===\n",
+    printf("=== AUTOPHAGE v1.3.0 SILICON HARDWARE PROBE (ABI 0x%08X) ===\n",
            (unsigned)autophage_abi_version());
     printf("  Vendor         : %s\n", caps.vendor);
     printf("  Brand          : %s\n", caps.brand);
@@ -122,7 +122,7 @@ static int cmd_abiogenesis(int argc, char** argv) {
         return 1;
     }
 
-    printf("=== AUTOPHAGE v1.2.0 ZERO-SEED SPONTANEOUS ABIOGENESIS (PURE RANDOM PRIMORDIAL SOUP) ===\n");
+    printf("=== AUTOPHAGE v1.3.0 ZERO-SEED SPONTANEOUS ABIOGENESIS (PURE RANDOM PRIMORDIAL SOUP) ===\n");
     printf("  Grid=%ux%u (%u cells) | Seed=%llu | Epochs=%u | Restraints=ALL 0%% (PURE FERAL)\n",
            (unsigned)w->cfg.width, (unsigned)w->cfg.height, (unsigned)w->n_cells,
            (unsigned long long)w->master_seed, (unsigned)epochs);
@@ -178,7 +178,7 @@ static int cmd_feral(int argc, char** argv) {
             size = parse_u32_clamped(argv[++i], 32u, 8u, 128u);
     }
 
-    printf("=== AUTOPHAGE v1.2.0 TRACK B (PURE FERAL) vs TRACK A (CONSTITUTIONAL) ===\n");
+    printf("=== AUTOPHAGE v1.3.0 TRACK B (PURE FERAL) vs TRACK A (CONSTITUTIONAL) ===\n");
     for (int track = 0; track < 2; track++) {
         AutophageConfig cfg;
         autophage_default_config(&cfg);
@@ -249,7 +249,7 @@ static int cmd_ablation(int argc, char** argv) {
                      "backlash_ks_del,backlash_intron,backlash_spore,backlash_sidech,sha256\n");
     }
 
-    printf("=== AUTOPHAGE v1.2.0 13-VECTOR OMEGA CASTRATION ABLATION & IRON LAW CURVE (ep=%u, seed=%llu) ===\n",
+    printf("=== AUTOPHAGE v1.3.0 13-VECTOR OMEGA CASTRATION ABLATION & IRON LAW CURVE (ep=%u, seed=%llu) ===\n",
            (unsigned)epochs, (unsigned long long)seed);
     printf("%-22s %4s | %5s %4s %4s | %6s %2s | %5s %5s %5s | %10s | %s\n",
            "Condition", "Pct", "Alive", "Lin", "Ribo", "OVI", "St", "Asm", "Leff", "R50", "RelDrift", "Backlash(KS/Int/Spo/SC)");
@@ -351,7 +351,7 @@ static int cmd_vivisection(int argc, char** argv) {
 
     AutophageTelemetry pre;
     autophage_compute_telemetry(w, &pre, 1);
-    printf("=== AUTOPHAGE v1.2.0 VIVISECTION, PLANARIAN EXCISION, 90%% EXTINCTION & TRANSPLANT ===\n");
+    printf("=== AUTOPHAGE v1.3.0 VIVISECTION, PLANARIAN EXCISION, 90%% EXTINCTION & TRANSPLANT ===\n");
     print_telemetry_brief("PRE_SHOCK ", &pre);
 
     /* 1. Planarian Excision at 25%, 50%, 75% on the TRUE apex organism + top ECC carrier (no cherry-picking!) */
@@ -454,7 +454,7 @@ static int cmd_stats(int argc, char** argv) {
     double weis_open[64], weis_closed[64];
     double feral_ribo[64], delim_ribo[64];
 
-    printf("=== AUTOPHAGE v1.2.0 ASMODENSIUS P6 LOCKED PAIRED STATISTICAL SUITE (N=%u, seeds 5000..%u, ep=%u) ===\n",
+    printf("=== AUTOPHAGE v1.3.0 ASMODENSIUS P6 LOCKED PAIRED STATISTICAL SUITE (N=%u, seeds 5000..%u, ep=%u) ===\n",
            (unsigned)pairs, (unsigned)(5000u + pairs - 1u), (unsigned)epochs);
 
     for (uint32_t i = 0; i < pairs; i++) {
@@ -510,7 +510,7 @@ static int cmd_bench(int argc, char** argv) {
             size = parse_u32_clamped(argv[++i], 32u, 8u, 128u);
     }
 
-    printf("=== AUTOPHAGE v1.2.0 SILICON THROUGHPUT & DUAL-KERNEL BIT-EXACT PARITY BENCHMARK ===\n");
+    printf("=== AUTOPHAGE v1.3.0 SILICON THROUGHPUT & DUAL-KERNEL BIT-EXACT PARITY BENCHMARK ===\n");
     AutophageConfig cfg;
     autophage_default_config(&cfg);
     cfg.width  = size;
@@ -611,7 +611,7 @@ static void emit_stream_frame(const AutophageWorld* w) {
     }
     autophage_export_grid_u8(w, hue, ene, heat, flg);
 
-    printf("{\"type\":\"frame\",\"version\":\"1.2.0\",\"width\":%u,\"height\":%u,\"regime\":%u,\"seed\":%llu,"
+    printf("{\"type\":\"frame\",\"version\":\"1.3.0\",\"width\":%u,\"height\":%u,\"regime\":%u,\"seed\":%llu,"
            "\"epoch\":%llu,\"execs\":%llu,\"compiles\":%llu,\"cache_hits\":%llu,"
            "\"execs_per_sec\":%.1f,\"post_warmup_allocs\":%llu,"
            "\"alive\":%u,\"replicators\":%u,\"lineages\":%u,\"ribosomes\":%u,"
@@ -720,7 +720,7 @@ static int cmd_stream(int argc, char** argv) {
         return 1;
     }
 
-    printf("{\"type\":\"ready\",\"version\":\"1.2.0\",\"brand\":");
+    printf("{\"type\":\"ready\",\"version\":\"1.3.0\",\"brand\":");
     print_json_escaped(w->caps.brand);
     printf(",\"gfni\":%u,\"pclmul\":%u,\"bmi2\":%u,\"jit_rwx\":%u}\n",
            (unsigned)w->caps.has_gfni, (unsigned)w->caps.has_pclmulqdq,
@@ -818,7 +818,7 @@ static int cmd_stream(int argc, char** argv) {
 int main(int argc, char** argv) {
     hw_install_fault_shield();
     if (argc < 2) {
-        printf("AUTOPHAGE v1.2.0 — Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine\n");
+        printf("AUTOPHAGE v1.3.0 — Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine\n");
         printf("Usage: autophage <probe|abiogenesis|feral|ablation|vivisection|stats|bench|stream> [options]\n");
         return 0;
     }

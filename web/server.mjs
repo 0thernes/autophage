@@ -21,7 +21,7 @@ if (!fs.existsSync(BIN_PATH)) {
   process.exit(1);
 }
 
-console.log(`[AUTOPHAGE v1.2.0] Spawning live native x86-64 engine: ${BIN_PATH} stream --size 32 --seed 5000 --regime 1`);
+console.log(`[AUTOPHAGE v1.3.0] Spawning live native x86-64 engine: ${BIN_PATH} stream --size 32 --seed 5000 --regime 1`);
 const engine = spawn(BIN_PATH, ['stream', '--size', '32', '--seed', '5000', '--regime', '1'], {
   stdio: ['pipe', 'pipe', 'pipe']
 });
@@ -230,7 +230,7 @@ const server = http.createServer((req, res) => {
   if (req.method === 'GET' && url.pathname === '/api/state') {
     res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
     res.end(JSON.stringify({
-      version: '1.2.0',
+      version: '1.3.0',
       ready: readyInfo,
       frame: latestFrame,
       running,
@@ -367,7 +367,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`[AUTOPHAGE v1.2.0] Silicon Observatory UI live at http://127.0.0.1:${PORT}`);
+  console.log(`[AUTOPHAGE v1.3.0] Silicon Observatory UI live at http://127.0.0.1:${PORT}`);
 });
 
 function shutdown(exitCode = 0) {

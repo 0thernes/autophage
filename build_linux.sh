@@ -46,7 +46,7 @@ echo "[4/4] Building & running Linux ELF64 18-gate falsification suite ..."
 )
 
 if command -v lean >/dev/null 2>&1; then
-  echo "[5/5] Verifying 38 Pure-Kernel Lean 4 proofs (strict axiom allowlist) ..."
+  echo "[5/5] Verifying 42 Pure-Kernel Lean 4 proofs (strict axiom allowlist) ..."
   LOG="$(mktemp)"
   trap 'rm -f "$LOG"' EXIT
   lean "$PROJ/lean/AutophageProofs.lean" 2>&1 | tee "$LOG"
@@ -75,10 +75,10 @@ with open(sys.argv[1], "r", encoding="utf-8") as f:
             audited += 1
             continue
         sys.exit(f"Unexpected Lean output line: {line}")
-if audited < 38:
-    sys.exit(f"Expected >= 38 audited theorems, found {audited}")
+if audited < 42:
+    sys.exit(f"Expected >= 42 audited theorems, found {audited}")
 print(f"PASS: {audited} pure-kernel Lean 4 theorems verified strictly within {sorted(allowed)}.")
 PY
 fi
 
-echo "AUTOPHAGE v1.2.0 LINUX ELF64 BUILD & VERIFICATION PASSED!"
+echo "AUTOPHAGE v1.3.0 LINUX ELF64 BUILD & VERIFICATION PASSED!"

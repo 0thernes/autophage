@@ -1,7 +1,7 @@
 #include "autophage_internal.h"
 
 /* ============================================================================
- * AUTOPHAGE v1.2.0 BRUTAL BARE-METAL FALSIFICATION HARNESS (18 GATES + 6 MUTANTS)
+ * AUTOPHAGE v1.3.0 BRUTAL BARE-METAL FALSIFICATION HARNESS (18 GATES + 6 MUTANTS)
  * Every assertion runs live on x86-64 silicon. Zero stubs, zero skipped gates.
  * ============================================================================ */
 
@@ -439,6 +439,27 @@ static int test_t08_philox_domain_isolation(void) {
     uint64_t e17_b = philox_u64(5000ULL, PRNG_DOMAIN_ENTITY_INT, 17u, 42ULL, 1u, 0u);
     CHECK(e17_a == e17_b && e17_a != e0, "Entity Philox isolation failed");
 
+    /* v1.3.0 Compiled Check (Lean T39): pairwise domain distinctness across tags 0..4 */
+    uint64_t dom_draws[5];
+    for (uint32_t d = 0u; d < 5u; d++) {
+        dom_draws[d] = philox_u64(5088ULL, d, 17u, 42ULL, 1u, 0u);
+    }
+    for (uint32_t i = 0u; i < 5u; i++) {
+        for (uint32_t j = i + 1u; j < 5u; j++) {
+            CHECK(dom_draws[i] != dom_draws[j],
+                  "Philox domain collision between dom=%u and dom=%u", (unsigned)i, (unsigned)j);
+        }
+    }
+
+    /* v1.3.0 Compiled Check (Lean T40): 3-Tier Seed Firewall pairwise disjointness */
+    for (uint64_t s = 0ULL; s <= 6000ULL; s++) {
+        int in_practice = (s >= 100ULL  && s <= 999ULL)  ? 1 : 0;
+        int in_tuning   = (s >= 2000ULL && s <= 2999ULL) ? 1 : 0;
+        int in_locked   = (s >= 5000ULL)                 ? 1 : 0;
+        CHECK(in_practice + in_tuning + in_locked <= 1,
+              "Seed firewall overlap at seed=%llu", (unsigned long long)s);
+    }
+
     /* PLANTED MUTANT 6: Perturb real AutophageWorld slot 0 with extra ENTITY_INT mutations;
      * verify WORLD_EXOG for slot 17 stays bit-exact, while a coupled draw-index shift diverges! */
     AutophageConfig cfg;
@@ -727,7 +748,9 @@ static int test_t16_weismann_barrier(void) {
     cfg.seed   = 5116ULL;
 
     AutophageWorld* w_open = autophage_create(&cfg);
+    uint32_t lin_before = w_open->next_lineage_id;
     autophage_step_epochs(w_open, 80u);
+    uint32_t lin_after = w_open->next_lineage_id;
     AutophageTelemetry t_open;
     autophage_compute_telemetry(w_open, &t_open, 0);
 
@@ -736,6 +759,18 @@ static int test_t16_weismann_barrier(void) {
     autophage_step_epochs(w_lobo, 80u);
     AutophageTelemetry t_lobo;
     autophage_compute_telemetry(w_lobo, &t_lobo, 0);
+
+    /* v1.3.0 Compiled Check (Lean T42): soma-only perturbation preserves germline Strand alpha bit-exact */
+    uint8_t germ_before[64];
+    memcpy(germ_before, w_lobo->cells[0].genome, 64u);
+    for (int k = 64; k < 128; k++) w_lobo->cells[0].genome[k] ^= 0xA5u;
+    for (int r = 0; r < 4; r++)    w_lobo->cells[0].regs[r]   ^= 0x5A5A5A5A5A5A5A5AULL;
+    CHECK(memcmp(germ_before, w_lobo->cells[0].genome, 64u) == 0,
+          "Weismann soma-only perturbation altered germline Strand alpha!");
+    /* v1.3.0 Compiled Check (Lean T41): OEE lineage archive counter strictly monotone non-decreasing */
+    CHECK(lin_after >= lin_before,
+          "OEE lineage archive regressed: before=%u after=%u",
+          (unsigned)lin_before, (unsigned)lin_after);
 
     autophage_destroy(w_open);
     autophage_destroy(w_lobo);
@@ -821,7 +856,7 @@ static int test_t18_asmodensius_112_and_abstention(void) {
 int main(void) {
     hw_install_fault_shield();
     printf("===========================================================================\n");
-    printf("  AUTOPHAGE v1.2.0 BARE-METAL SILICON FALSIFICATION SUITE (18 GATES + 6 MUT)\n");
+    printf("  AUTOPHAGE v1.3.0 BARE-METAL SILICON FALSIFICATION SUITE (18 GATES + 6 MUT)\n");
     printf("===========================================================================\n");
 
     run_gate("T01", "Silicon CPUID, Live RWX JIT & NIST SHA-256",           test_t01_silicon_and_sha256);

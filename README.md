@@ -1,4 +1,4 @@
-# AUTOPHAGE v1.2.0
+# AUTOPHAGE v1.3.0
 
 **Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine (Pure Lean 4 Kernel + Forensic Hardened)**
 *(Standalone Zero-Dependency Native Build + Flat C11 ABI Drop-In for Cellulogonic Mecha & Asmodensius-Native)*
@@ -28,7 +28,7 @@ AUTOPHAGE is a machine-level artificial-life and open-ended evolutionary engine 
 
 | Verification Gate | Result | Evidence |
 |---|---|---|
-| **Lean 4 v4.35.0 Pure-Kernel Proofs** | **38 / 38 PROVEN (strictly `{propext, Classical.choice, Quot.sound}`, `0 sorry`, `0 bv_decide`, `0 native_decide`, `0 warnings`)** | [`lean/AutophageProofs.lean`](lean/AutophageProofs.lean) |
+| **Lean 4 v4.35.0 Pure-Kernel Proofs** | **42 / 42 PROVEN (strictly `{propext, Classical.choice, Quot.sound}`, `0 sorry`, `0 bv_decide`, `0 native_decide`, `0 warnings`)** | [`lean/AutophageProofs.lean`](lean/AutophageProofs.lean) · [`results/lean4-audit.txt`](results/lean4-audit.txt) |
 | **Win64 PE Falsification Suite (`clang 23.1.0`)** | **18 / 18 PASSED (`0` warnings, `6/6` Mutants + Wired Alloc Monitor + Tampered `.apbin`)** | [`test/test_falsification.c`](test/test_falsification.c) |
 | **Linux ELF64 Falsification Suite (`gcc -Werror`)** | **18 / 18 PASSED (`0` warnings under `-Wall -Wextra -Werror`)** | [`build_linux.sh`](build_linux.sh) |
 | **4-Way Cross-OS / Cross-Kernel SHA-256 Parity** | **0-Bit Diff** (`4bd29f39...3c20612`) | Win64 JIT == Win64 Scalar == Linux JIT == Linux Scalar |
@@ -41,7 +41,7 @@ AUTOPHAGE is a machine-level artificial-life and open-ended evolutionary engine 
 
 ## Quick Start
 
-### 1. Build & Verify Everything (Windows x64 PE + DLL + Static Lib + 18 Gates + 38 Pure Lean 4 Proofs)
+### 1. Build & Verify Everything (Windows x64 PE + DLL + Static Lib + 18 Gates + 42 Pure Lean 4 Proofs)
 ```powershell
 .\build.ps1
 ```
@@ -72,7 +72,7 @@ node web\server.mjs
 
 ## Direct Drop-In Integration into `Asmodensius-Native`
 
-Include [`include/autophage_abi.h`](include/autophage_abi.h) (`AUTOPHAGE_ABI_VERSION 0x00010200u`) and link against `bin/autophage.dll` (`libautophage.dll.a`), `bin/libautophage.a`, or `bin/libautophage.so`:
+Include [`include/autophage_abi.h`](include/autophage_abi.h) (`AUTOPHAGE_ABI_VERSION 0x00010300u`) and link against `bin/autophage.dll` (`libautophage.dll.a`), `bin/libautophage.a`, or `bin/libautophage.so`:
 
 ```c
 #include "autophage_abi.h"

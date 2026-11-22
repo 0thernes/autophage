@@ -75,7 +75,7 @@ if (-not $SkipTests) {
 }
 
 if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`nVerifying 38 Pure-Kernel Lean 4 Mathematical Proofs (strict axiom allowlist)..."
+    Write-Host "`nVerifying 42 Pure-Kernel Lean 4 Mathematical Proofs (strict axiom allowlist)..."
     $leanOut = & $lean "$proj\lean\AutophageProofs.lean" 2>&1
     $leanRc = $LASTEXITCODE
     foreach ($line in $leanOut) { Write-Host $line }
@@ -85,6 +85,7 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
 
     $allowed = @("propext", "Classical.choice", "Quot.sound")
     $audited = 0
+    $cleanAuditLines = @()
     foreach ($raw in $leanOut) {
         $line = "$raw".Trim()
         if ($line -eq "") { continue }
@@ -93,6 +94,7 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         }
         if ($line -match "^'([^']+)' does not depend on any axioms$") {
             $audited++
+            $cleanAuditLines += $line
             continue
         }
         if ($line -match "^'([^']+)' depends on axioms: \[([^\]]*)\]$") {
@@ -104,14 +106,17 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
                 }
             }
             $audited++
+            $cleanAuditLines += $line
             continue
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 38) {
-        throw "Expected >= 38 audited Lean 4 theorems, found only $audited"
+    if ($audited -lt 42) {
+        throw "Expected >= 42 audited Lean 4 theorems, found only $audited"
     }
+    $auditPath = "$proj\results\lean4-audit.txt"
+    [System.IO.File]::WriteAllText($auditPath, ($cleanAuditLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
     Write-Host "Lean 4 Formal Verification PASSED ($audited pure-kernel theorems, strict allowlist {propext, Classical.choice, Quot.sound}, 0 warnings)!"
 }
 
-Write-Host "`nAUTOPHAGE v1.2.0 BUILD & VERIFICATION COMPLETE."
+Write-Host "`nAUTOPHAGE v1.3.0 BUILD & VERIFICATION COMPLETE."

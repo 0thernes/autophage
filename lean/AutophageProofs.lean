@@ -1,5 +1,5 @@
 /-!
-# AUTOPHAGE v1.2.0 — Pure Kernel Formal Lean 4 Verification Suite (38 Theorems, 0 `sorry`, 0 External Axioms)
+# AUTOPHAGE v1.3.0 — Pure Kernel Formal Lean 4 Verification Suite (42 Theorems, 0 `sorry`, 0 External Axioms)
 
 Machine-checked proofs verified strictly inside the pure Lean 4.35.0 kernel
 (no `Std.Tactic.BVDecide`, no `bv_decide`, no `native_decide`, no custom axioms;
@@ -13,6 +13,8 @@ every `#print axioms` audit lies strictly within `{propext, Classical.choice, Qu
              & Landauer Bit Erasure
   Part IV  : 2-Adic Ultrametric Centromere Geometry & Exact `tzcnt32` Strong Triangle Inequality
   Part V   : Native x86-64 JIT Memory Safety, Gas Halting & Multi-Step Conserved Ledger Invariance
+  Part VI  : Domain-Isolated Philox Counter Keys, 3-Tier Seed Firewall, OEE Archive Monotonicity,
+             & Weismann Soma Mutation Isolation (T39–T42)
 -/
 
 namespace Autophage
@@ -1275,9 +1277,123 @@ theorem T30_second_law_monotone_and_noise_gate (sink rad : Nat) (raw_ovi : Nat) 
     sink ≤ sink + rad ∧ 0 * raw_ovi = 0 := by
   omega
 
+/-! ## Part VI: Philox Domain Isolation, 3-Tier Seed Firewall, OEE Archive & Weismann Isolation -/
+
+/-- Canonical 8-tuple counter-based PRNG key `(ver, seed, dom, ent, org, tick, purp, idx)`
+    for domain-isolated Philox4x32-10 streams. -/
+structure PhiloxCounterKey where
+  ver  : Nat
+  seed : Nat
+  dom  : Nat
+  ent  : Nat
+  org  : Nat
+  tick : Nat
+  purp : Nat
+  idx  : Nat
+  deriving DecidableEq
+
+def PHILOX_DOM_WORLD_EXOG : Nat := 0
+def PHILOX_DOM_ENTITY_INT : Nat := 1
+
+/-- T39: Philox Domain Disjointness — distinct domain tags (`dom1 ≠ dom2`), including
+    `WORLD_EXOG = 0` vs `ENTITY_INT = 1`, produce strictly distinct 8-tuple counter keys
+    `(ver, seed, dom, ent, org, tick, purp, idx)`. -/
+theorem T39_philox_domain_disjoint
+    (ver1 seed1 dom1 ent1 org1 tick1 purp1 idx1
+     ver2 seed2 dom2 ent2 org2 tick2 purp2 idx2 : Nat)
+    (hDom : dom1 ≠ dom2) :
+    PhiloxCounterKey.mk ver1 seed1 dom1 ent1 org1 tick1 purp1 idx1 ≠
+    PhiloxCounterKey.mk ver2 seed2 dom2 ent2 org2 tick2 purp2 idx2 ∧
+    PhiloxCounterKey.mk ver1 seed1 PHILOX_DOM_WORLD_EXOG ent1 org1 tick1 purp1 idx1 ≠
+    PhiloxCounterKey.mk ver1 seed1 PHILOX_DOM_ENTITY_INT ent1 org1 tick1 purp1 idx1 := by
+  constructor
+  · intro hEq
+    exact hDom (congrArg PhiloxCounterKey.dom hEq)
+  · intro hEq
+    have h01 : PHILOX_DOM_WORLD_EXOG = PHILOX_DOM_ENTITY_INT :=
+      congrArg PhiloxCounterKey.dom hEq
+    exact Nat.zero_ne_one h01
+
+def isPracticeSeed (s : Nat) : Prop := 100 ≤ s ∧ s ≤ 999
+def isTuningSeed   (s : Nat) : Prop := 2000 ≤ s ∧ s ≤ 2999
+def isLockedSeed   (s : Nat) : Prop := 5000 ≤ s
+
+/-- T40: 3-Tier Seed Firewall Pairwise Disjointness — Practice (`100..999`), Tuning (`2000..2999`),
+    and Locked Held-Out (`≥ 5000`) ranges are strictly pairwise disjoint for every seed `s : Nat`. -/
+theorem T40_seed_firewall_3tier_disjoint (s : Nat) :
+    ¬(isPracticeSeed s ∧ isTuningSeed s) ∧
+    ¬(isPracticeSeed s ∧ isLockedSeed s) ∧
+    ¬(isTuningSeed s ∧ isLockedSeed s) := by
+  unfold isPracticeSeed isTuningSeed isLockedSeed
+  refine ⟨?_, ?_, ?_⟩ <;> intro h <;> omega
+
+/-- Open-Ended Evolution (OEE) Lineage Novelty Archive. -/
+structure OeeArchive where
+  entries    : List Nat
+  cumNovelty : Nat
+
+def OeeArchive.appendNovel (a : OeeArchive) (lineageId : Nat) : OeeArchive :=
+  { entries := lineageId :: a.entries, cumNovelty := a.cumNovelty + 1 }
+
+def OeeArchive.appendNovelBatch (a : OeeArchive) (novelIds : List Nat) : OeeArchive :=
+  novelIds.foldl OeeArchive.appendNovel a
+
+private theorem oeeArchive_batch_monotone (a : OeeArchive) (ids : List Nat) :
+    a.entries.length ≤ (a.appendNovelBatch ids).entries.length ∧
+    a.cumNovelty ≤ (a.appendNovelBatch ids).cumNovelty := by
+  induction ids generalizing a with
+  | nil => exact ⟨Nat.le_refl _, Nat.le_refl _⟩
+  | cons id rest ih =>
+    have hNext := ih (a.appendNovel id)
+    have hLen : a.entries.length ≤ (a.appendNovel id).entries.length := by
+      simp [OeeArchive.appendNovel]
+    have hNov : a.cumNovelty ≤ (a.appendNovel id).cumNovelty := by
+      simp [OeeArchive.appendNovel]
+    exact ⟨Nat.le_trans hLen hNext.1, Nat.le_trans hNov hNext.2⟩
+
+/-- T41: OEE Archive Monotone Growth — appending a novel lineage strictly increases archive size
+    (`n < n + 1`) and never decreases cumulative novelty count (both single-step and arbitrary batches). -/
+theorem T41_oee_archive_monotone_growth
+    (a : OeeArchive) (lineageId : Nat) (batch : List Nat) :
+    let a1 := a.appendNovel lineageId
+    a1.entries.length = a.entries.length + 1 ∧
+    a.entries.length < a1.entries.length ∧
+    a.cumNovelty ≤ a1.cumNovelty ∧
+    a.cumNovelty ≤ (a.appendNovelBatch batch).cumNovelty := by
+  have hBatch := oeeArchive_batch_monotone a batch
+  refine ⟨?_, ?_, ?_, hBatch.2⟩
+  · simp [OeeArchive.appendNovel]
+  · simp [OeeArchive.appendNovel]
+  · simp [OeeArchive.appendNovel]
+
+/-- Separated Germline (Strand alpha) and Somatic (Strand beta / register) BitVec State. -/
+structure WeismannState where
+  germline : BitVec 64
+  soma     : BitVec 64
+
+def perturbSomaOnly (st : WeismannState) (mask : BitVec 64) : WeismannState :=
+  { st with soma := st.soma ^^^ mask }
+
+def perturbSomaTrace (st : WeismannState) (masks : List (BitVec 64)) : WeismannState :=
+  masks.foldl perturbSomaOnly st
+
+/-- T42: Weismann Soma Mutation Isolation — soma-only state perturbation (XOR mask, arbitrary
+    soma map `f`, or finite sequence of somatic perturbations) preserves germline bitvector identically. -/
+theorem T42_weismann_soma_mutation_isolated
+    (st : WeismannState) (mask : BitVec 64) (f : BitVec 64 → BitVec 64)
+    (trace : List (BitVec 64)) :
+    (perturbSomaOnly st mask).germline = st.germline ∧
+    ({ st with soma := f st.soma } : WeismannState).germline = st.germline ∧
+    (perturbSomaTrace st trace).germline = st.germline := by
+  refine ⟨rfl, rfl, ?_⟩
+  induction trace generalizing st with
+  | nil => rfl
+  | cons m rest ih =>
+    simpa [perturbSomaTrace, List.foldl_cons, perturbSomaOnly] using ih (perturbSomaOnly st m)
+
 end Autophage
 
-/-! ## Automated Pure-Kernel Axiom Audit (All 38 Theorems — Strictly {propext, Classical.choice, Quot.sound}) -/
+/-! ## Automated Pure-Kernel Axiom Audit (All 42 Theorems — Strictly {propext, Classical.choice, Quot.sound}) -/
 #print axioms Autophage.T01_gfni_identity_fixes_all
 #print axioms Autophage.T02_gfni_bias_involution
 #print axioms Autophage.T03_parity8_xor_linear
@@ -1316,3 +1432,7 @@ end Autophage
 #print axioms Autophage.T29_first_law_transfer_conservation
 #print axioms Autophage.T29a_first_law_ledger_multistep
 #print axioms Autophage.T30_second_law_monotone_and_noise_gate
+#print axioms Autophage.T39_philox_domain_disjoint
+#print axioms Autophage.T40_seed_firewall_3tier_disjoint
+#print axioms Autophage.T41_oee_archive_monotone_growth
+#print axioms Autophage.T42_weismann_soma_mutation_isolated
