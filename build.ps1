@@ -28,25 +28,27 @@ $core = @(
 
 $cflags = @(
     "-O3", "-Wall", "-Wextra", "-Wno-unused-parameter",
-    "-march=native", "-mgfni", "-mvpclmulqdq", "-mpclmul", "-mbmi", "-mbmi2", "-mpopcnt", "-mavx2",
+    "-march=native", "-mgfni", "-mvpclmulqdq", "-mpclmul", "-mbmi", "-mbmi2", "-mpopcnt", "-mavx2", "-mavxvnni",
+    "-ffp-contract=off",
     "--target=x86_64-w64-windows-gnu",
     "-DAUTOPHAGE_BARE_WIN64",
     "-I$proj\include",
     "-isystem", "$root\include\clang"
 )
+$lto = @("-flto=thin")
 $ldflags = @("-L$root\lib", "-fuse-ld=lld")
 $libs = @("-lkernel32", "-lucrtbase", "-lm", "-lmingw32", "-lmingwex")
 
-Write-Host "[1/4] Building bin\autophage.exe ..."
-& $clang @cflags @core "$proj\src\main_cli.c" -o "$proj\bin\autophage.exe" @ldflags @libs
+Write-Host "[1/4] Building bin\autophage.exe (Win64 AVX2/VNNI/GFNI + ThinLTO) ..."
+& $clang @cflags @lto @core "$proj\src\main_cli.c" -o "$proj\bin\autophage.exe" @ldflags @libs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "[2/4] Building bin\autophage.dll (+ import lib) ..."
-& $clang @cflags -shared -DAUTOPHAGE_BUILD_DLL @core -o "$proj\bin\autophage.dll" "-Wl,--out-implib,$proj\bin\libautophage.dll.a" @ldflags @libs
+Write-Host "[2/4] Building bin\autophage.dll (+ import lib, ThinLTO) ..."
+& $clang @cflags @lto -shared -DAUTOPHAGE_BUILD_DLL @core -o "$proj\bin\autophage.dll" "-Wl,--out-implib,$proj\bin\libautophage.dll.a" @ldflags @libs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "[3/4] Building bin\test_falsification.exe ..."
-& $clang @cflags @core "$proj\test\test_falsification.c" -o "$proj\bin\test_falsification.exe" @ldflags @libs
+Write-Host "[3/4] Building bin\test_falsification.exe (ThinLTO) ..."
+& $clang @cflags @lto @core "$proj\test\test_falsification.c" -o "$proj\bin\test_falsification.exe" @ldflags @libs
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
 if (Test-Path -LiteralPath $ar) {
