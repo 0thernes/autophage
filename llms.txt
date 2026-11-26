@@ -1,0 +1,29 @@
+# AUTOPHAGE v1.4.0
+
+> Bare-metal polymorphic x86-64 Galois-field genetic engine in zero-dependency C11 (`VGF2P8AFFINEQB`, `PCLMULQDQ`, `BMI1/2`, `POPCNT`, live RWX JIT) with 48 Pure Lean 4.35.0 6-kernel Palomar proofs, 18-gate bare-metal falsification suite (+ 6 planted mutants), and companion AMS-LaTeX white paper. Author: Alexander Stephen Donahue (Independent Researcher, Spokane, WA, USA; ORCID 0009-0006-8168-9648). Dual license: Apache-2.0 (code/proofs) / CC-BY-4.0 (docs/paper).
+
+## Canonical Entry Points
+- [README.md](README.md): Overview, quickstart, usage, verbatim Lean 4.35.0 `#print axioms` output, and verified benchmark summary
+- [AGENTS.md](AGENTS.md): Canonical engineering rules, exact commands, and verification checklist
+- [CLAIMS.md](CLAIMS.md): Numbered claims ledger (`C1`–`C10`) with epistemic tiers and explicit refutation conditions
+- [LIMITATIONS.md](LIMITATIONS.md): Real-vs-metaphor boundary, formal proof scope limits, and performance tradeoffs
+- [REPLICATION.md](REPLICATION.md): Clean-clone Windows and Linux replication protocol and dated log
+- [VERIFICATION.md](VERIFICATION.md): Complete empirical and formal verification ledger
+
+## Formal Verification & White Paper
+- [lean/AutophageProofs/Spec.lean](lean/AutophageProofs/Spec.lean): Pure definitions only (zero proofs, zero `sorry`)
+- [lean/AutophageProofs.lean](lean/AutophageProofs.lean): 48 Pure Lean 4.35.0 theorems (`T01`–`T30`, `T39`–`T48`, `0` `sorry`, `0` `native_decide`)
+- [lean/Challenge.lean](lean/Challenge.lean): Isolated statement-only Palomar specification
+- [lean/Solution.lean](lean/Solution.lean): Sorry-free Palomar solution export
+- [lean/formalization.yaml](lean/formalization.yaml): Machine-readable v0.4 formalization metadata
+- [docs/statement-fidelity.md](docs/statement-fidelity.md): Row-by-row Lean-to-C11/paper statement-fidelity matrix
+- [docs/MEGA_ATLAS_CROSSCHECK.md](docs/MEGA_ATLAS_CROSSCHECK.md): Non-retirement cross-check (`0/1,900` overarching problems retired)
+- [paper/main.tex](paper/main.tex): AMS-LaTeX white paper source (`dist/Donahue_2026_autophage.pdf`)
+
+## Source Code & Tests
+- [include/autophage_abi.h](include/autophage_abi.h): Flat C11 public ABI (`0x00010400`)
+- [src/jit_x86_64.c](src/jit_x86_64.c): Dual-ABI Win64/SysV RWX x86-64 JIT + scalar reference oracle
+- [src/galois_math.c](src/galois_math.c): `VGF2P8AFFINEQB` $\mathbb{F}_2^{8\times 8}$ algebra, 30 irreducible degree-8 polynomials, 2×2 Cauchy MDS ECC
+- [src/soup_engine.c](src/soup_engine.c): 5-pool conserved energy ledger, Philox4x32-10 domain isolation, 13-vector Castration Lab
+- [test/test_falsification.c](test/test_falsification.c): 18-gate bare-metal falsification suite + 6 planted negative mutants
+- [test/fuzz_jit_libfuzzer.c](test/fuzz_jit_libfuzzer.c): libFuzzer differential JIT vs. scalar oracle harness

@@ -1,4 +1,4 @@
-=== AUTOPHAGE v1.2.0 ASMODENSIUS P6 LOCKED PAIRED STATISTICAL SUITE (N=24, seeds 5000..5023, ep=100) ===
+=== AUTOPHAGE v1.4.0 ASMODENSIUS P6 LOCKED PAIRED STATISTICAL SUITE (N=24, seeds 5000..5023, ep=100) ===
   OVI: Feral vs Castrated    | N=24 | MeanA= 87.998 vs MeanB= 22.686 | Diff=+65.312 | Wins=24/24 | delta_pair=+1.000 | p_signflip=0.00010
   Weismann Retro: Open vs Lobo | N=24 | MeanA=9920.042 vs MeanB= 95.750 | Diff=+9824.292 | Wins=24/24 | delta_pair=+1.000 | p_signflip=0.00010
   Ribosomes: Feral vs Delimited | N=24 | MeanA=132.958 vs MeanB=  2.625 | Diff=+130.333 | Wins=24/24 | delta_pair=+1.000 | p_signflip=0.00010

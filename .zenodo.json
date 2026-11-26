@@ -1,0 +1,33 @@
+{
+  "title": "AUTOPHAGE v1.4.0: A Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Lean 4.35.0 Verification and 18-Gate Silicon Falsification",
+  "upload_type": "software",
+  "description": "Zero-dependency C11 bare-metal x86-64 Galois-field genetic engine with 48 Pure Lean 4.35.0 machine-checked theorems (6-kernel Palomar Challenge/Solution contract, zero Mathlib, zero sorry, zero native_decide), 18-gate bare-metal silicon falsification suite with 6 planted negative mutants, dual-kernel bit-exact SHA-256 parity across Win64 PE and Linux ELF64, and companion AMS-LaTeX white paper. Dual-licensed Apache-2.0 (code/proofs) and CC-BY-4.0 (white paper/docs). Not externally peer-reviewed.",
+  "creators": [
+    {
+      "name": "Donahue, Alexander Stephen",
+      "affiliation": "Independent Researcher, Spokane, WA, USA",
+      "orcid": "0009-0006-8168-9648"
+    }
+  ],
+  "license": "apache-2.0",
+  "version": "1.4.0",
+  "keywords": [
+    "artificial life",
+    "open-ended evolution",
+    "x86-64 JIT",
+    "Galois field",
+    "GFNI",
+    "reversible computing",
+    "Landauer thermodynamics",
+    "Lean 4",
+    "formal verification",
+    "Cauchy MDS"
+  ],
+  "related_identifiers": [
+    {
+      "identifier": "https://github.com/0thernes/autophage",
+      "relation": "isSupplementTo",
+      "scheme": "url"
+    }
+  ]
+}

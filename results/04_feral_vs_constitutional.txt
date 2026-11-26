@@ -1,10 +1,10 @@
-=== AUTOPHAGE v1.2.0 TRACK B (PURE FERAL) vs TRACK A (CONSTITUTIONAL) ===
-[TRACK_B_FERAL] ep=250 alive=1024 rep=1017 lin=269 ribo=275(inv=338) irred=474 holo=830(max=720) spores=71 abst=63 | OVI=87.55(S5) G=1.00 Th=1.00 A=21.0 Leff=26.7 R50=0.27 | drift=1.18e-16 2ndV=0 | copy=9568 sex=2128 ref=77233 retro=84545 rmut=14744 | sha=3ea08a081512
+=== AUTOPHAGE v1.4.0 TRACK B (PURE FERAL) vs TRACK A (CONSTITUTIONAL) ===
+[TRACK_B_FERAL] ep=250 alive=1024 rep=1017 lin=269 ribo=275(inv=338) irred=474 holo=830(max=720) spores=71 abst=63 | OVI=87.55(S5) G=1.00 Th=1.00 A=21.0 Leff=26.7 R50=0.27 | drift=1.18e-16 2ndV=0 | copy=9568 sex=2128 ref=77233 retro=84545 rmut=14744 | sha=5096fa0a9187
   8-Pillar OVBS-52: P1_Autopoiesis=82.0 | P2_OEE=89.3 | P3_Morphogenesis=63.5 | P4_Ecology=100.0 | P5_Autonomy=81.2 | P6_Criticality=99.8 | P7_MetaRibosome=90.0 | P8_Assembly=100.0
   Metrics: BedauPackard_Anew=62.266 | MarkovBlanket=0.643 | Krakauer_I=6.245 | BranchingSigma=1.003 | Weismann=82.563 | MET=8/8 | CancerDefections=25151
 
 --- TRACK B FERAL APEX x86-64 ORGANISM DISASSEMBLY ---
-; AUTOPHAGE v1.2.0 Live Native x86-64 Genome Disassembly (56 active exons / 64, 1654 JIT bytes)
+; AUTOPHAGE v1.4.0 Live Native x86-64 Genome Disassembly (56 active exons / 64, 1654 JIT bytes)
 ; Prologue: save rbx..r15, map r12=tape_a, r13=tape_b, r14=ctx, rbp=h0&7F, r9=h1&7F, r11=popcnt
   [00] 0x95  METAB_RADIATE     | or [r14+bio], RADIATE
   [01] 0xFE  MITOSIS_FORK      | mov [r14+mito_p],r8; bio|=MITOSIS_SEX
@@ -66,6 +66,6 @@
 --- ASMODENSIUS 112-TRAIT PROJECTION SAMPLE ---
   [energy=0.541 heat=0.054 rev=0.632 riboRank=0.875 irred=0 exonFrac=0.875 mateRate=0.065 abstRate=0.927 asm=0.250 L_eff=0.531 entA=0.852]
 
-[TRACK_A_CONST] ep=250 alive=1021 rep=984 lin=482 ribo=118(inv=116) irred=694 holo=630(max=298) spores=135 abst=47 | OVI=89.79(S5) G=1.00 Th=1.00 A=25.0 Leff=20.7 R50=0.41 | drift=1.18e-16 2ndV=0 | copy=2117 sex=2914 ref=64834 retro=68846 rmut=7296 | sha=bb0dba51a047
+[TRACK_A_CONST] ep=250 alive=1021 rep=984 lin=482 ribo=118(inv=116) irred=694 holo=630(max=298) spores=135 abst=47 | OVI=89.79(S5) G=1.00 Th=1.00 A=25.0 Leff=20.7 R50=0.41 | drift=1.18e-16 2ndV=0 | copy=2117 sex=2914 ref=64834 retro=68846 rmut=7296 | sha=b0fc34caaed7
   8-Pillar OVBS-52: P1_Autopoiesis=87.7 | P2_OEE=93.6 | P3_Morphogenesis=70.3 | P4_Ecology=100.0 | P5_Autonomy=88.6 | P6_Criticality=99.9 | P7_MetaRibosome=86.7 | P8_Assembly=93.2
   Metrics: BedauPackard_Anew=70.258 | MarkovBlanket=0.738 | Krakauer_I=6.496 | BranchingSigma=0.998 | Weismann=67.227 | MET=8/8 | CancerDefections=0

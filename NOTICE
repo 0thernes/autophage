@@ -1,0 +1,11 @@
+AUTOPHAGE
+Copyright 2026 Alexander Stephen Donahue (ORCID: 0009-0006-8168-9648)
+Independent Researcher, Spokane, WA, USA
+https://github.com/0thernes/autophage
+
+This product includes software, Lean 4.35.0 formal proofs, and documentation
+developed by Alexander Stephen Donahue.
+
+Dual-license summary:
+- Code, Lean 4.35.0 formalizations, build scripts, and CI workflows: Apache-2.0 (LICENSE)
+- Papers, PDFs, documentation, figures, and result tables: CC-BY-4.0 (LICENSE-DOCS)

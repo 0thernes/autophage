@@ -6,8 +6,9 @@ param(
 $ErrorActionPreference = "Stop"
 $proj  = Split-Path -Parent $MyInvocation.MyCommand.Path
 $root  = "$env:USERPROFILE\.elan\toolchains\leanprover--lean4---v4.35.0"
+$elan  = "$env:USERPROFILE\.elan\bin"
 $clang = "$root\bin\clang.exe"
-$lean  = "$root\bin\lean.exe"
+$lake  = "$elan\lake.exe"
 $ar    = "$root\bin\llvm-ar.exe"
 
 if (-not (Test-Path -LiteralPath $clang)) {
@@ -76,10 +77,20 @@ if (-not $SkipTests) {
     if ($rc -ne 0) { exit $rc }
 }
 
-if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
-    Write-Host "`nVerifying 42 Pure-Kernel Lean 4 Mathematical Proofs (strict axiom allowlist)..."
-    $leanOut = & $lean "$proj\lean\AutophageProofs.lean" 2>&1
-    $leanRc = $LASTEXITCODE
+if (-not $SkipLean -and (Test-Path -LiteralPath $lake)) {
+    Write-Host "`nVerifying 48 Pure-Kernel Lean 4.35.0 Proofs (Palomar Challenge/Solution + strict axiom allowlist)..."
+    $env:PATH = "$elan;$env:PATH"
+    Push-Location -LiteralPath "$proj\lean"
+    try {
+        & $lake build
+        if ($LASTEXITCODE -ne 0) { throw "lake build failed ($LASTEXITCODE)" }
+        & $lake build Challenge
+        if ($LASTEXITCODE -ne 0) { throw "lake build Challenge failed ($LASTEXITCODE)" }
+        $leanOut = & $lake env lean VerifyAxioms.lean 2>&1
+        $leanRc = $LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
     foreach ($line in $leanOut) { Write-Host $line }
     if ($leanRc -ne 0) {
         throw "Lean 4 verification failed with exit code $leanRc"
@@ -113,12 +124,12 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lean)) {
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 42) {
-        throw "Expected >= 42 audited Lean 4 theorems, found only $audited"
+    if ($audited -lt 48) {
+        throw "Expected >= 48 audited Lean 4 theorems, found only $audited"
     }
     $auditPath = "$proj\results\lean4-audit.txt"
     [System.IO.File]::WriteAllText($auditPath, ($cleanAuditLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
-    Write-Host "Lean 4 Formal Verification PASSED ($audited pure-kernel theorems, strict allowlist {propext, Classical.choice, Quot.sound}, 0 warnings)!"
+    Write-Host "Lean 4.35.0 Formal Verification PASSED ($audited pure-kernel theorems, strict allowlist {propext, Classical.choice, Quot.sound}, 0 warnings)!"
 }
 
-Write-Host "`nAUTOPHAGE v1.3.0 BUILD & VERIFICATION COMPLETE."
+Write-Host "`nAUTOPHAGE v1.4.0 BUILD & VERIFICATION COMPLETE."

@@ -1,4 +1,4 @@
-=== AUTOPHAGE v1.2.0 13-VECTOR OMEGA CASTRATION ABLATION & IRON LAW CURVE (ep=140, seed=5010) ===
+=== AUTOPHAGE v1.4.0 13-VECTOR OMEGA CASTRATION ABLATION & IRON LAW CURVE (ep=140, seed=5010) ===
 Condition               Pct | Alive  Lin Ribo |    OVI St |   Asm  Leff   R50 |   RelDrift | Backlash(KS/Int/Spo/SC)
 GLOBAL_FERAL_0           0% |  1015  349  426 |  91.09 S6 |  25.0  26.6  0.46 |   0.00e+00 | 0/0/0/0
 GLOBAL_MILD_25          25% |   123   98  105 |  71.97 S4 |  14.5  23.8  0.35 |   1.30e-16 | 31/1615/2879/11780
@@ -31,4 +31,4 @@ DEGRADING              100% |   695  390  586 |  88.04 S5 |  21.0  28.4  0.36 | 
 MINIMIZING              50% |  1011  239  485 |  91.40 S6 |  19.0  28.8  0.52 |   2.02e-16 | 0/0/0/0
 MINIMIZING             100% |    63   31   31 |  62.23 S4 |  11.0  24.3  0.01 |   0.00e+00 | 0/0/0/0
 
-Saved ablation CSV to: results\07_castration_ablation_13vec.csv
+Saved ablation CSV to: Z:\[Vibe Coded (AI)]\ANTIGRAVITY\autophage\results\07_castration_ablation_13vec.csv

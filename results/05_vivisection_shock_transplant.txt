@@ -1,4 +1,4 @@
-=== AUTOPHAGE v1.2.0 VIVISECTION, PLANARIAN EXCISION, 90% EXTINCTION & TRANSPLANT ===
+=== AUTOPHAGE v1.4.0 VIVISECTION, PLANARIAN EXCISION, 90% EXTINCTION & TRANSPLANT ===
 [PRE_SHOCK ] ep=180 alive=1024 rep=989 lin=124 ribo=252(inv=272) irred=368 holo=606(max=163) spores=58 abst=166 | OVI=87.56(S5) G=1.00 Th=1.00 A=22.0 Leff=26.8 R50=0.43 | drift=0.00e+00 2ndV=0 | copy=5107 sex=1321 ref=61135 retro=75848 rmut=9657 | sha=233b0b80799a
   Planarian Excision on Apex Slot #214 (ECC=NO): R25=18.75% | R50=9.38% | R75=6.25% | Live50%=9.38%
   Planarian Excision on Top ECC Slot #788 (ECC=YES): R25=100.00% | R50=100.00% | R75=100.00% | Live50%=100.00% | PopMeanR50=43.4%

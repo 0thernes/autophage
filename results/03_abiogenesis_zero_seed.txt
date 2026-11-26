@@ -1,21 +1,21 @@
-=== AUTOPHAGE v1.2.0 ZERO-SEED SPONTANEOUS ABIOGENESIS (PURE RANDOM PRIMORDIAL SOUP) ===
+=== AUTOPHAGE v1.4.0 ZERO-SEED SPONTANEOUS ABIOGENESIS (PURE RANDOM PRIMORDIAL SOUP) ===
   Grid=32x32 (1024 cells) | Seed=5000 | Epochs=300 | Restraints=ALL 0% (PURE FERAL)
 [t=0   ] ep=0 alive=0 rep=0 lin=0 ribo=0(inv=0) irred=0 holo=0(max=0) spores=0 abst=0 | OVI=0.00(S0) G=0.00 Th=0.00 A=0.0 Leff=0.0 R50=0.00 | drift=0.00e+00 2ndV=0 | copy=0 sex=0 ref=0 retro=0 rmut=0 | sha=7ee270880352
-[t=30  ] ep=30 alive=981 rep=688 lin=476 ribo=756(inv=667) irred=451 holo=721(max=18) spores=425 abst=710 | OVI=86.56(S5) G=1.00 Th=1.00 A=6.0 Leff=31.5 R50=0.52 | drift=1.70e-16 2ndV=0 | copy=974 sex=167 ref=5702 retro=14054 rmut=2559 | sha=5e5f4d916640
+[t=30  ] ep=30 alive=981 rep=688 lin=476 ribo=756(inv=667) irred=451 holo=721(max=18) spores=425 abst=710 | OVI=86.56(S5) G=1.00 Th=1.00 A=6.0 Leff=31.5 R50=0.52 | drift=1.70e-16 2ndV=0 | copy=974 sex=167 ref=5702 retro=14054 rmut=2559 | sha=9dc2f2cefc92
 [t=60  ] ep=60 alive=999 rep=804 lin=410 ribo=648(inv=594) irred=442 holo=730(max=40) spores=343 abst=565 | OVI=91.08(S6) G=1.00 Th=1.00 A=19.0 Leff=29.4 R50=0.51 | drift=0.00e+00 2ndV=0 | copy=1360 sex=389 ref=8524 retro=23582 rmut=4224 | sha=ff7fa04c75bf
 [t=90  ] ep=90 alive=1015 rep=903 lin=271 ribo=399(inv=383) irred=338 holo=623(max=94) spores=119 abst=369 | OVI=92.66(S6) G=1.00 Th=1.00 A=19.0 Leff=26.4 R50=0.82 | drift=0.00e+00 2ndV=0 | copy=1845 sex=800 ref=15872 retro=32418 rmut=5719 | sha=15abbd8b8694
 [t=120 ] ep=120 alive=1019 rep=967 lin=160 ribo=470(inv=604) irred=379 holo=820(max=611) spores=110 abst=246 | OVI=92.13(S6) G=1.00 Th=1.00 A=24.0 Leff=30.6 R50=0.59 | drift=1.16e-16 2ndV=0 | copy=3298 sex=1088 ref=29547 retro=43119 rmut=7701 | sha=94d1dac47d4c
-[t=150 ] ep=150 alive=1001 rep=985 lin=164 ribo=586(inv=708) irred=490 holo=858(max=760) spores=300 abst=161 | OVI=92.11(S6) G=1.00 Th=1.00 A=24.0 Leff=33.4 R50=0.52 | drift=1.90e-16 2ndV=0 | copy=5869 sex=1302 ref=38568 retro=57174 rmut=10578 | sha=1462cce9c6d6
+[t=150 ] ep=150 alive=1001 rep=985 lin=164 ribo=586(inv=708) irred=490 holo=858(max=760) spores=300 abst=161 | OVI=92.11(S6) G=1.00 Th=1.00 A=24.0 Leff=33.4 R50=0.52 | drift=1.90e-16 2ndV=0 | copy=5869 sex=1302 ref=38568 retro=57174 rmut=10578 | sha=7d1137bae8dd
 [t=180 ] ep=180 alive=1001 rep=994 lin=207 ribo=487(inv=519) irred=525 holo=798(max=735) spores=275 abst=107 | OVI=91.74(S6) G=1.00 Th=1.00 A=25.0 Leff=27.2 R50=0.50 | drift=0.00e+00 2ndV=0 | copy=6577 sex=1561 ref=43838 retro=68711 rmut=12257 | sha=2191ef4146c9
 [t=210 ] ep=210 alive=1016 rep=1010 lin=254 ribo=304(inv=325) irred=553 holo=771(max=716) spores=210 abst=76 | OVI=92.05(S6) G=1.00 Th=1.00 A=22.0 Leff=29.3 R50=0.60 | drift=0.00e+00 2ndV=0 | copy=7339 sex=1871 ref=52073 retro=81672 rmut=13536 | sha=ec0f62ab508f
 [t=240 ] ep=240 alive=1019 rep=1013 lin=297 ribo=225(inv=236) irred=479 holo=755(max=701) spores=119 abst=50 | OVI=92.46(S6) G=1.00 Th=1.00 A=29.0 Leff=28.4 R50=0.73 | drift=1.23e-16 2ndV=0 | copy=8255 sex=2160 ref=63645 retro=95292 rmut=14573 | sha=99803a4c5862
-[t=270 ] ep=270 alive=1022 rep=1016 lin=271 ribo=170(inv=191) irred=489 holo=790(max=733) spores=92 abst=40 | OVI=91.53(S6) G=1.00 Th=1.00 A=27.0 Leff=27.1 R50=0.58 | drift=0.00e+00 2ndV=0 | copy=9095 sex=2351 ref=77761 retro=108893 rmut=15315 | sha=a065b2020485
-[t=300 ] ep=300 alive=1023 rep=1018 lin=286 ribo=188(inv=189) irred=469 holo=842(max=803) spores=95 abst=36 | OVI=91.26(S6) G=1.00 Th=1.00 A=22.0 Leff=27.9 R50=0.53 | drift=0.00e+00 2ndV=0 | copy=9774 sex=2473 ref=93790 retro=122575 rmut=16027 | sha=0377f28ddf3b
+[t=270 ] ep=270 alive=1022 rep=1016 lin=271 ribo=170(inv=191) irred=489 holo=790(max=733) spores=92 abst=40 | OVI=91.53(S6) G=1.00 Th=1.00 A=27.0 Leff=27.1 R50=0.58 | drift=0.00e+00 2ndV=0 | copy=9095 sex=2351 ref=77761 retro=108893 rmut=15315 | sha=16af3de802fe
+[t=300 ] ep=300 alive=1023 rep=1018 lin=286 ribo=188(inv=189) irred=469 holo=842(max=803) spores=95 abst=36 | OVI=91.26(S6) G=1.00 Th=1.00 A=22.0 Leff=27.9 R50=0.53 | drift=0.00e+00 2ndV=0 | copy=9774 sex=2473 ref=93790 retro=122575 rmut=16027 | sha=28ecb9064a00
 
 --- SPONTANEOUSLY EMERGED APEX ORGANISM (slot=477, lineage=399, gen=58, offspring=49) ---
   Ribosome M=0x22CC068E9102686D (rank=8, bias=0x68) | M^-1=0xE420244BB3212A47
   Centromere Poly=0x163 (IRREDUCIBLE GF(2^8) FIELD) | 2-Adic Addr=0xDCDE13D8 | Assembly=5 | Causal L_eff=28
-; AUTOPHAGE v1.2.0 Live Native x86-64 Genome Disassembly (60 active exons / 64, 1553 JIT bytes)
+; AUTOPHAGE v1.4.0 Live Native x86-64 Genome Disassembly (60 active exons / 64, 1553 JIT bytes)
 ; Prologue: save rbx..r15, map r12=tape_a, r13=tape_b, r14=ctx, rbp=h0&7F, r9=h1&7F, r11=popcnt
   [00] 0x5C  STIGMERGY_EMIT    | mov [r14+stig_out],rdi; bio|=EMIT
   [01] 0x1C  STIGMERGY_EMIT    | mov [r14+stig_out],rbx; bio|=EMIT

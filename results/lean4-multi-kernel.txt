@@ -1,0 +1,40 @@
+# AUTOPHAGE v1.4.0 — Multi-Kernel Lean 4.35.0 Verification Transcript
+# Toolchain: leanprover/lean4:v4.35.0 (Palomar verification stack)
+# Pure definitions: lean/AutophageProofs/Spec.lean (0 proofs, 0 sorry)
+# Isolated specification: lean/Challenge.lean (imports ONLY AutophageProofs.Spec, 48 theorem specs)
+# Verified solution: lean/Solution.lean (48/48 sorry-free theorems, 0 admit, 0 native_decide, 0 bv_decide)
+# Comparator manifest: lean/comparator.json (all 48 theorems)
+# Formalization metadata: lean/formalization.yaml (v0.4 schema)
+
+[KERNEL 1/6] lean4 kernel (lake build + lake build Challenge + lake env lean VerifyAxioms.lean)
+  Result: PASS (exit 0)
+  Theorems audited: 48
+  Allowed axioms only: [propext, Classical.choice, Quot.sound]
+  Forbidden axioms (sorryAx, Lean.ofReduceBool, Lean.trustCompiler, _native, custom): 0
+  Audit log: results/lean4-audit.txt
+
+[KERNEL 2/6] leanchecker --fresh Solution
+  Command: lake env leanchecker --fresh Solution
+  Result: PASS (exit 0, Windows x86_64 local run; also re-run on Ubuntu CI)
+
+[KERNEL 3/6] leanchecker-paranoid --fresh Solution
+  Command: lake env leanchecker-paranoid --fresh Solution
+  Result: PASS (exit 0, Windows x86_64 local run; also re-run on Ubuntu CI)
+
+[KERNEL 4/6] nanoda_bin (independent Rust Lean 4 kernel, unpermitted_axiom_hard_error=true)
+  Export: lake env leanexport Solution -- <48 theorems> (23.22 MB)
+  Config: permitted_axioms=["propext","Classical.choice","Quot.sound"], unpermitted_axiom_hard_error=true, nat_extension=true, string_extension=true
+  Output: Checked 2784 declarations with no typechecker errors, 1 pretty printer errors: [     "Unable to print axioms", ]
+  Result: PASS (exit 0, Windows x86_64 local run; also re-run in lake check --paranoid on Ubuntu CI)
+
+[KERNEL 5/6] con-leche --verified (independent verified Rust kernel)
+  Command: lake env con-leche --verified <export>
+  Output: con-leche: accepted 2546 declarations (--verified)
+  Result: PASS (exit 0, Windows x86_64 local run; also re-run in lake check --paranoid on Ubuntu CI)
+
+[KERNEL 6/6] con-ron --verified + lean4lean + bubblewrap comparator
+  con-ron --verified (Windows local): con-ron: accepted 2546 declarations (--verified) -> PASS (exit 0)
+  lean4lean + lake check --paranoid + lake comparator --config comparator.json --paranoid:
+    Note: On Windows, lean4lean.exe cannot parse Windows .olean path headers and lake check /
+    lake comparator require Linux bubblewrap (bwrap). Full 6/6 kernel verification + isolated
+    Challenge/Solution comparator runs automatically on Ubuntu Linux in .github/workflows/ci.yml.

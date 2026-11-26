@@ -1,7 +1,7 @@
 #include "autophage_internal.h"
 
 /* ============================================================================
- * AUTOPHAGE v1.3.0 BRUTAL BARE-METAL FALSIFICATION HARNESS (18 GATES + 6 MUTANTS)
+ * AUTOPHAGE v1.4.0 BRUTAL BARE-METAL FALSIFICATION HARNESS (18 GATES + 6 MUTANTS)
  * Every assertion runs live on x86-64 silicon. Zero stubs, zero skipped gates.
  * ============================================================================ */
 
@@ -856,7 +856,7 @@ static int test_t18_asmodensius_112_and_abstention(void) {
 int main(void) {
     hw_install_fault_shield();
     printf("===========================================================================\n");
-    printf("  AUTOPHAGE v1.3.0 BARE-METAL SILICON FALSIFICATION SUITE (18 GATES + 6 MUT)\n");
+    printf("  AUTOPHAGE v1.4.0 BARE-METAL SILICON FALSIFICATION SUITE (18 GATES + 6 MUT)\n");
     printf("===========================================================================\n");
 
     run_gate("T01", "Silicon CPUID, Live RWX JIT & NIST SHA-256",           test_t01_silicon_and_sha256);

@@ -1,0 +1,117 @@
+# yaml-language-server: $schema=./repo-standard.schema.json
+# Project manifest for the Build Standard for LLMs v1.2.0. Read by scripts/audit-repo.sh and Audit-Repo.ps1.
+standard: "1.2.0"
+name: "autophage"
+description: "AUTOPHAGE v1.4.0 — Bare-metal polymorphic x86-64 Galois-field genetic engine (C11/AVX2/GFNI/PCLMULQDQ RWX JIT), 48 Pure Lean 4.35.0 6-kernel Palomar proofs, 18-gate silicon falsification suite & AMS-LaTeX white paper"
+owner: "Alexander Stephen Donahue (0thernes)"
+year: "2026"
+project_type: research
+stack: [c, x86_64, lean4, node, python, latex]
+flags:
+  public: true
+  package: false
+  visual: true
+  ui: true
+  native: true
+  ai: false
+  personal_data: false
+  service: true
+  deployed: false
+  api: true
+  perf: true
+  concurrent: false
+  numeric: true
+  experimental: true
+  ml: false
+  formal: true
+items:
+  A01: {status: done}  # README with a one-line purpose [core]
+  A02: {status: done}  # Badge ribbon [recommended]
+  A03: {status: done}  # Quickstart that works from a clean clone [core]
+  A04: {status: done}  # Usage examples [core]
+  A05: {status: done}  # Demo media [recommended]
+  A06: {status: done}  # LICENSE (Apache-2.0 + LICENSE-DOCS CC-BY-4.0) [core]
+  A07: {status: done}  # CHANGELOG [core]
+  A08: {status: done}  # Semantic version, tags and a single version source (VERSION=1.4.0) [core]
+  A09: {status: done}  # Automated tests that pass (18/18 gates + 6/6 mutants + prop_check) [core]
+  A10: {status: done}  # Informational CI (.github/workflows/ci.yml) [core]
+  A11: {status: done}  # Releases (tags: ["v*"] in ci.yml) [recommended]
+  A12: {status: done}  # .gitignore [core]
+  A13: {status: done}  # .gitattributes and .editorconfig [recommended]
+  A14: {status: done}  # CONTRIBUTING guide [recommended]
+  A15: {status: done}  # CODE_OF_CONDUCT [recommended]
+  A16: {status: done}  # SECURITY.md [core]
+  A17: {status: done}  # SUPPORT.md [recommended]
+  A18: {status: done}  # Issue templates (zero PR templates) [recommended]
+  A19: {status: done}  # About description and topics updated via gh repo edit [core]
+  A20: {status: done}  # docs/ folder [recommended]
+  A21: {status: done}  # Architecture Decision Records (docs/adr/0001-*.md) [recommended]
+  A22: {status: done}  # CITATION.cff (+ CITATION.bib + .zenodo.json) [advanced]
+  A23: {status: done}  # Clean history and correct identity [core]
+  A24: {status: done}  # No secrets, build output or huge files (>5 MB) committed [core]
+  A25: {status: done}  # Cross-platform CI (ubuntu-latest + windows-latest) [recommended]
+  A26: {status: done}  # Social preview image (docs/media/social-preview.svg) [recommended]
+  A27: {status: n/a, note: "Bare-metal native x86-64 RWX JIT C11 engine streamed by local loopback web/server.mjs; cannot execute live x86-64 machine code on static GitHub Pages."}
+  A28: {status: n/a, note: "Zero third-party package-manager manifest (package: false; zero runtime dependencies in C11, Lean 4, Node.js, or Python)."}
+  A29: {status: done}  # ROADMAP.md [recommended]
+  A30: {status: done}  # Labels for the 10 finding classes (.github/labels.tsv) [recommended]
+  A31: {status: done}  # Task runner with one-word commands (justfile) [core]
+  A32: {status: done}  # Agent entry points: AGENTS.md canonical, CLAUDE.md, GEMINI.md, Cursor rules, llms.txt [core]
+  A33: {status: done}  # Environment and configuration documented (.env.example + docs/configuration.md) [core]
+  A34: {status: done}  # Observability basics: GET /healthz, GET /api/state, SSE disconnect banner, structured stderr logging in web/server.mjs [recommended]
+  A35: {status: done}  # Data, snapshots, backups and offsite repo mirror/bundle (docs/operations.md) [recommended]
+  A36: {status: n/a, note: "Local bare-metal research engine, not a hosted deployment (deployed: false)."}
+  A37: {status: done}  # Performance budgets (docs/benchmarks.md: 0 post-warmup allocs, <1e-12 drift, 16 MiB arena, gate wall budgets) [advanced]
+  A38: {status: done}  # Accessibility: semantic landmarks, role=status connection banner, keyboard buttons/sliders, high-contrast Observatory UI (web/index.html) [core]
+  A39: {status: done}  # Third-party licensing and attribution (NOTICE + THIRD_PARTY_NOTICES.md) [recommended]
+  A40: {status: n/a, note: "Zero runtime AI SDKs or LLM models shipped (ai: false)."}
+  A41: {status: n/a, note: "Zero third-party package manifest (package: false); ABI versioning documented in include/autophage_abi.h & CHANGELOG.md."}
+  A42: {status: done}  # Maintenance status (status: active badge + notice in README.md) [recommended]
+  A43: {status: done}  # examples/ directory (examples/README.md + examples/run_quick_experiment.py) [recommended]
+  A44: {status: done}  # FAQ and glossary (docs/faq.md & docs/glossary.md) [recommended]
+  A45: {status: n/a, note: "Zero personal data collected, stored, or transmitted (personal_data: false)."}
+  B01: {status: done}  # Reproducible build from a clean clone (justfile reproduce + build.ps1 + build_linux.sh) [core]
+  B02: {status: n/a, note: "No external package manifest (zero third-party runtime deps); Lean 4.35.0 pinned via lean/lean-toolchain + lean/lake-manifest.json."}
+  B03: {status: done}  # Determinism checks (4-way Win64/Linux JIT==Scalar 0-bit SHA-256 parity 4bd29f39...3c20612, T09, T11) [core]
+  B04: {status: done}  # CLAIMS.md ledger [core]
+  B05: {status: done}  # Falsifiable tests per claim (C1-C10 mapped to 18 gates, 48 Lean theorems, prop_check & citations) [core]
+  B06: {status: done}  # Negative tests (6 planted mutants M1-M6, tampered .apbin rejection, negative alloc guard trip, Lean T47-T48) [core]
+  B07: {status: done}  # Regression test per fixed bug (Gates T04, T06, T07, T08, T10, T11, T12, T14, T16, T17 lock v1.0-v1.4 fixes) [core]
+  B08: {status: done}  # Golden and snapshot tests (Gate T11 .apbin v2 cross-kernel save/resume + canonical SHA-256 golden digest) [recommended]
+  B09: {status: done}  # Contract and API tests (C11 ABI 0x00010400 in T01-T18, 112-trait bridge T18, NDJSON/HTTP /healthz & CSRF checks) [recommended]
+  B10: {status: done}  # Property-based tests (scripts/prop_check.py + randomized 5,000-genome / 500-matrix properties in T02-T04) [core]
+  B11: {status: done}  # Differential testing (NATIVE_JIT vs SCALAR_REF in T04, T09, T11, bench; HW GFNI/PCLMUL vs scalar in T02-T03) [recommended]
+  B12: {status: done}  # Reference implementation as test oracle (jit_reference_oracle, scalar GFNI/PCLMUL, scripts/prop_check.py) [recommended]
+  B13: {status: done}  # Mutation testing (6/6 planted negative mutants caught in test/test_falsification.c: M1-M6) [recommended]
+  B14: {status: done}  # Metamorphic testing (T10 observer invariance, T02/T05 M^-1 round-trip, T15 excision recovery, T11 cross-kernel resume) [advanced]
+  B15: {status: done}  # Fuzzing (test/fuzz_jit_libfuzzer.c libFuzzer harness + 1,000,000 live RWX fuzz execs with OOB canaries in T05) [recommended]
+  B16: {status: done}  # Sanitizers and runtime checkers (-fsanitize=address,undefined in build_linux.sh, justfile, ci.yml + wired alloc guard T12) [core]
+  B17: {status: done}  # Static analysis and linters, report-only (cppcheck + ruff + node --check in justfile & ci.yml) [recommended]
+  B18: {status: done}  # Strict type checking (-Wall -Wextra -Werror + _Static_assert layout checks + Lean 4.35.0 dependent types) [recommended]
+  B19: {status: n/a, note: "Canonical deterministic single-threaded execution (threads = 1, concurrent: false)."}
+  B20: {status: done}  # Numeric and floating-point stability (-ffp-contract=off, exact int64 uq + Kahan-Neumaier FP64 drift <= 2.02e-16 in T07) [advanced]
+  B21: {status: done}  # Failure injection (90% mass extinction, 25/50/75% excision, tampered .apbin, 6 planted mutants, SSE cap/413/403 tests) [advanced]
+  B22: {status: done}  # Formal specification and proof (lean/: 48 Pure Lean 4.35.0 theorems, Palomar Challenge/Solution, 6 independent kernels) [advanced]
+  B23: {status: n/a, note: "Protocol and ledger invariants are proved directly in Pure Lean 4.35.0; no separate TLA+/Alloy specification."}
+  B24: {status: n/a, note: "Runtime targets bare-metal x86-64 C11 + RWX JIT; core algebraic and safety models are proved in Lean 4.35.0."}
+  B25: {status: n/a, note: "C11 memory/UB safety verified via ASan/UBSan (-fsanitize=address,undefined), 1M canary fuzzing (T05), libFuzzer, and Lean mask proofs (T26-T27)."}
+  B26: {status: done}  # Honest benchmarks (docs/benchmarks.md + results/02_bench_{win64,linux}.txt disclosing 27.35% cache-hit tradeoff) [core]
+  B27: {status: done}  # Performance tracking over time, report-only (ci.yml bench execution + docs/benchmarks.md cross-version history) [advanced]
+  B28: {status: done}  # Controls and multiple seeds (N=24 locked held-out paired seeds 5000..5023 + unprotected/lobotomized/delimited controls) [core]
+  B29: {status: done}  # Significance testing (two-sided 10,000-permutation paired sign-flip tests in src/main_cli.c & results/06_paired_stats_n24.txt) [core]
+  B30: {status: done}  # Effect sizes and confidence intervals (paired dominance delta_pair = +1.000, mean differences, 24/24 win counts) [core]
+  B31: {status: done}  # Multiple-comparison correction (Holm-Bonferroni step-down p_Holm = 0.00030 across all 3 preregistered hypotheses) [recommended]
+  B32: {status: done}  # Pre-registration of hypotheses (docs/preregistration.md) [advanced]
+  B33: {status: n/a, note: "No ML training or model selection (ml: false)."}
+  B34: {status: n/a, note: "No runtime LLM or AI inference (ai: false)."}
+  B35: {status: done}  # Security scanning, report-only (gitleaks + cppcheck + audit-repo.sh in .github/workflows/ci.yml) [recommended]
+  B36: {status: done}  # Threat model (docs/threat-model.md — STRIDE covering RWX JIT, .apbin, and loopback Observatory) [recommended]
+  B37: {status: done}  # Release hashes and checksums (CHECKSUMS.sha256 + SHA256SUMS in ci.yml) [core]
+  B38: {status: done}  # Build provenance and attestations (actions/attest-build-provenance@v2 in .github/workflows/ci.yml) [recommended]
+  B39: {status: done}  # Data checksums and dataset versioning (data/MANIFEST.sha256) [recommended]
+  B40: {status: done}  # Audit trail (docs/run-log.md + HARDENING_LOG.md + Git history) [recommended]
+  B41: {status: done}  # Limitations and real-vs-metaphor (LIMITATIONS.md) [core]
+  B42: {status: done}  # What would prove us wrong (CLAIMS.md explicit refutation column) [core]
+  B43: {status: done}  # Replication protocol (REPLICATION.md) [core]
+  B44: {status: done}  # Independent replication log (REPLICATION.md dated table, honestly noting awaiting external replicator) [advanced]
+  B45: {status: done}  # Peer and red-team review (docs/reviews/2026-11-25-10-pass-red-team-audit.md) [recommended]
