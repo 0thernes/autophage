@@ -6,13 +6,16 @@ mkdir -p "$PROJ/bin" "$PROJ/results"
 
 CC="${CC:-gcc}"
 if [[ "${AUTOPHAGE_CI_PORTABLE:-0}" == "1" ]]; then
-  FLAGS=(-O3 -Wall -Wextra -Werror -Wno-unused-parameter -march=native -DAUTOPHAGE_CI_PORTABLE -I"$PROJ/include")
+  FLAGS=(-O3 -Wall -Wextra -Werror -Wno-unused-parameter -march=x86-64 -DAUTOPHAGE_CI_PORTABLE -I"$PROJ/include")
 else
   FLAGS=(-O3 -Wall -Wextra -Werror -Wno-unused-parameter -march=native -mgfni -mvpclmulqdq -mpclmul -mbmi -mbmi2 -mpopcnt -mavx2 -I"$PROJ/include")
 fi
 
 if [[ "${AUTOPHAGE_SANITIZE:-0}" == "1" ]]; then
-  FLAGS+=(-g -fsanitize=address,undefined -fno-omit-frame-pointer)
+  # Disable AVX-512 codegen under ASan to avoid GCC PR101000: ASan FakeStack
+  # places local 64B arrays at +0x20 (32B-aligned) inside 64B-aligned frames,
+  # causing 64B-aligned vmovdqa64 stores to #GP (SIGSEGV) on AVX-512 hosts.
+  FLAGS+=(-g -fsanitize=address,undefined -fno-omit-frame-pointer -mno-avx512f)
 fi
 
 CORE=(

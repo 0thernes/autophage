@@ -29,3 +29,9 @@ An independent statement audit of commit `1956c2c` checked the public claims aga
 |---|---|---|---|
 | `lean/AutophageProofs.lean` l.994, `T30_second_law_monotone_and_noise_gate` | The statement is `sink ≤ sink + rad ∧ 0 * raw_ovi = 0` over free `Nat` variables. It does not refer to `LedgerState` or `applyTransfer`, so it says nothing about the engine, although its name says "Second Law" and "noise gate". | Replace it with a theorem over the ledger step function showing that the radiated-heat sink never decreases, or rename it as an arithmetic lemma. | Yes (a replacement changes the statement) |
 | `lean/AutophageProofs.lean` l.882 (`T21`), l.898 (`T23`), l.902 (`T24`), l.969 (`T28`), l.974 (`T29`) | One-line library or `omega` facts (`x ^^^ x = 0`, `a ^^^ b = b ^^^ a`, `g - 1 < g`, `(a - t) + (b + t) = a + b`) named after Landauer, ultrametric, JIT-gas and First-Law properties. | Report them as elementary lemmas (done in the documents above); optionally rename. | No (names only) |
+
+## 2026-11-26 hardening pass (CI ASan AVX-512 FakeStack fix)
+
+| Date | Finding Class | Location | Defect | Resolution |
+|---|---|---|---|---|
+| 2026-11-26 | `bug` | `build_linux.sh` | `AUTOPHAGE_CI_PORTABLE=1` passed `-march=native`, allowing GCC on AVX-512 GitHub Actions runners (`ubuntu-26.04`) to emit 64-byte aligned `vmovdqa64` stores into ASan FakeStack frames (`+0x20`, only 32-byte aligned; GCC PR101000), triggering `SIGSEGV` in `metrology_excision_regen_cell` under `AUTOPHAGE_SANITIZE=1` (CI runs `45904159100`, `45911933274`). | Replaced `-march=native` with portable `-march=x86-64` under `AUTOPHAGE_CI_PORTABLE=1` and added `-mno-avx512f` under `AUTOPHAGE_SANITIZE=1`, preserving full ASan/UBSan + `detect_stack_use_after_return=1` coverage across all runner CPUs. |
