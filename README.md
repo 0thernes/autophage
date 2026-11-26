@@ -54,7 +54,7 @@ Set-Location autophage
 # 1. Build Win64 PE + DLL + Static Lib + 18/18 Gates + 6/6 Mutants + 48 Lean Proofs
 pwsh -NoProfile -ExecutionPolicy Bypass -File build.ps1
 
-# 2. Replay the Lean 4.35.0 kernel plus 5 independent checkers locally (lean4; leanchecker, leanchecker-paranoid, nanoda_bin, con-leche, con-ron)
+# 2. Replay the Lean 4.35.0 reference kernel (lean4, leanchecker, leanchecker-paranoid) and 3 independent checkers (nanoda_bin, con-leche, con-ron) locally
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/verify_lean_multikernel.ps1
 
 # 3. Run Python property checks, README axiom parity, live citations, white paper & repo audit
@@ -188,7 +188,7 @@ Automatically parity-checked against [`results/lean4-audit.txt`](results/lean4-a
 - **Unsolved Problems Mega-Atlas (`0 / 1,900` Retired):** AUTOPHAGE constructs discrete mathematical invariants and an empirical x86-64 testbed related to `AI-045` (Open-Ended Artificial Life), `BIO-001` (Abiogenesis), `CHEM-052` (RNA Fidelity / Eigen Threshold), and `SYS-009` (Autopoiesis & Agency), but **retires zero (`0 / 1,900`) overarching open problems** (see [`docs/MEGA_ATLAS_CROSSCHECK.md`](docs/MEGA_ATLAS_CROSSCHECK.md)).
 - **Formal Scope Boundary:** Raw x86-64 instruction byte emission (`src/jit_x86_64.c`) and IEEE-754 Kahan-Neumaier floating-point drift are verified differentially and empirically (Gates `T04`, `T05`, `T07`, `T09`, libFuzzer, ASan/UBSan), not formalized inside Lean (`docs/statement-fidelity.md`). The Lean theorems state facts about the definitions in `lean/AutophageProofs/Spec.lean`, not about the C11 source or emitted x86-64 code.
 - **What the 48 theorems are:** Several are substantive finite checks (`T12a`, `T15`, `T16`, `T20a`, `T25a`, `T29a`), but 6 are one-line identities: `T21` (`x ^^^ x = 0`), `T23` (`a ^^^ a = 0`), `T24` (`a ^^^ b = b ^^^ a`), `T28` (`g - 1 < g`), `T29` (`(a - t) + (b + t) = a + b`) and `T30` (`sink ≤ sink + rad ∧ 0 * x = 0`). Their physics-flavoured names (Landauer, First Law, Second Law) describe how the engine uses them, not what Lean proves. The count of 30 irreducible binary octics, the Toffoli/Fredkin involutions and the invertibility of a 2×2 matrix with nonzero determinant are textbook facts; the contribution is a mechanised check against this codebase's definitions.
-- **Kernel replay:** The six-kernel acceptance (`lake check --paranoid`, `lake comparator --paranoid`) needs Linux `bubblewrap` and runs in Ubuntu CI; on Windows the Lean kernel plus five independent checkers run locally.
+- **Kernel replay:** The six-kernel acceptance (`lake check --paranoid`, `lake comparator --paranoid`) needs Linux `bubblewrap` and runs in Ubuntu CI; on Windows the reference kernel (lean4, leanchecker, leanchecker-paranoid) and three independent checkers (nanoda_bin, con-leche, con-ron) run locally.
 - **Performance Honesty:** Rapid genome mutation yields a `27.35%` JIT cache hit rate in `bench`, moderating end-to-end speedup to `1.04×–1.15×` (Win64) / `1.30×` (WSL2 Linux), while hot-loop cached RWX execution (Gate `T05`, 1M calls) achieves `~15.4–18.2 M execs/s` ([`docs/benchmarks.md`](docs/benchmarks.md), [`LIMITATIONS.md`](LIMITATIONS.md)).
 
 ---
