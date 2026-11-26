@@ -18,6 +18,12 @@ Canonical verification documentation (synchronized with root [`VERIFICATION.md`]
 
 ## 2. 18-Gate Bare-Metal Silicon Falsification Suite + 6 Planted Mutants
 
-- **Win64 PE (`clang 23.1.0`, ThinLTO, `-ffp-contract=off`):** `18 / 18 PASSED`, `6 / 6` planted negative mutants caught (`M1` energy leak, `M2` Second-Law backflow, `M3a/3b` intron bloat + dead scratch, `M4` white noise, `M5` 1-bit observer write, `M6` coupled PRNG) + tampered `.apbin` rejected + negative-control allocation monitor trip verified (`T12`).
+- **Win64 PE (`clang 23.1.0`, ThinLTO, `-ffp-contract=off`):** `18 / 18 PASSED`, `6 / 6` planted negative mutants caught (`M1` energy leak, `M2` Second-Law backflow, `M3a/3b` intron bloat + dead scratch, `M4` white noise, `M5` 1-bit observer write, `M6` coupled PRNG) + tampered `.apbin` rejected + negative-control allocation monitor trip verified (Gate `T12`).
 - **Linux ELF64 (`gcc -Wall -Wextra -Werror` + ASan/UBSan):** `18 / 18 PASSED`, `0` warnings, `0`-bit diff canonical SHA-256 (`4bd29f39e96270cfbc659e1970e1ab875c4c0e807d93e48ef05b45e373c20612`) matching Win64 JIT and Scalar.
 - **Independent Property Verification:** `scripts/prop_check.py` independently verifies `30×32` Cauchy MDS fields + `500×` GFNI, Toffoli, Fredkin, and 2-adic `tzcnt32` laws (`PASS`).
+
+## 3. Scope Notes (2026-11-26 Statement Audit)
+
+- The CI step "Run All 6 Independent Kernels" calls `leanchecker`, `leanchecker-paranoid`, `lake check --paranoid` and `lake comparator --paranoid`; `--paranoid` is what runs `lean4lean`, `nanoda`, `con-leche` and `con-ron`. Their acceptance was confirmed from the Ubuntu CI log; local replay needs Linux `bubblewrap`.
+- The 48 theorems concern Lean models, not emitted machine code. Six (`T21`, `T23`, `T24`, `T28`, `T29`, `T30`) are one-line arithmetic or XOR identities, and `T30` is not a second-law statement about the engine.
+- Gate IDs `T01`–`T18` (C11 tests) are distinct from Lean theorem IDs with the same numbers.

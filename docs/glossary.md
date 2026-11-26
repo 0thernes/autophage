@@ -10,7 +10,7 @@
 - **First-Law Micro-Quantum (`uq`):** Exact integer energy unit (`1 uq = 1e-6 kJ`) conserved across 5 pools (`E_cell_free`, `E_membrane_pot`, `E_detritus`, `Q_heat_local`, `Q_heat_radiated_sink`, `T29`, `T29a`, `T45`).
 - **Iron Law Curve:** Empirical monotone decline of composite `OVI` as global 13-vector restraint intensity rises from `0%` → `25%` → `50%` → `100%`.
 - **Landauer Erasure Counter (`POPCNT`):** Hardware `POPCNT(old ^ new)` accumulation into register `R11` on irreversible instructions and singular-rank GFNI folds (`0` bits erased on reversible gates, `T17`–`T22`).
-- **OVBS-52 / OVI:** 8-pillar heuristic vitality composite index (`0..100`) gated by anti-gaming ($\Gamma$) and Spiegelman complexity ($\Theta$) factors (`indicator-only`, `T30`).
+- **OVBS-52 / OVI:** 8-pillar heuristic vitality composite index (`0..100`) gated by anti-gaming ($\Gamma$) and Spiegelman complexity ($\Theta$) factors (`indicator-only`; white-noise zero-gating is tested in Gate `T14`; Lean `T30` contains only the identity `0 * x = 0`).
 - **Palomar 6-Kernel Verification:** Independent multi-kernel verification of isolated `Challenge.lean` vs. `Solution.lean` across `lean4`, `leanchecker-paranoid`, `lean4lean`, `nanoda_bin`, `con-leche`, and `con-ron`.
 - **Weismann Reverse-Transcription ($M^{-1}$):** Inverting somatic Strand $\beta$ discoveries back into germline Strand $\alpha$ via `gf2_mat_invert(M)` (`T05`, `T05a`, `T42`, `T43`).
 

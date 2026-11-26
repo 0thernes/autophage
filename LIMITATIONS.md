@@ -17,13 +17,19 @@ AUTOPHAGE uses biologically inspired nomenclature ("ribosome", "Strand α / Stra
 
 ## 2. Formal Verification Scope Boundaries (Lean 4.35.0)
 
-Our 48 Pure Lean 4.35.0 theorems (`lean/AutophageProofs.lean`) verify the **mathematical specifications** of GFNI affine maps, `PCLMULQDQ` carry-less products, 30 irreducible degree-8 polynomials, 2×2 Cauchy MDS decoding, 64-bit Toffoli/Fredkin involutions and `popcnt64` conservation, 32-bit `tzcnt32` ultrametricity, JIT mask bounds, gas decrement, 5-pool integer transfer conservation, Philox 8-tuple disjointness, 3-tier seed bands, OEE archive growth, and Weismann soma isolation.
+Our 48 Pure Lean 4.35.0 theorems (`lean/AutophageProofs.lean`) verify the **mathematical specifications** of GFNI affine maps, `PCLMULQDQ` carry-less products, the 30 degree-8 polynomials that pass a trial-division irreducibility test (all divisors of degree 1–4), 2×2 Cauchy MDS decoding, 64-bit Toffoli/Fredkin involutions and Fredkin `popcnt64` conservation, 32-bit `tzcnt32` ultrametricity, JIT mask bounds, gas decrement, 5-pool integer transfer conservation, Philox 8-tuple disjointness, 3-tier seed bands, OEE archive growth, and Weismann soma isolation.
 
 They do **NOT** formally verify inside Lean:
-1. **Raw x86-64 machine-code emission (`src/jit_x86_64.c`)** — verified empirically and differentially against `jit_reference_oracle` across 5,000 randomized genomes (`T04`), full 60-epoch worlds (`T09`), `1,000,000` canary-guarded fuzz runs (`T05`), and libFuzzer (`test/fuzz_jit_libfuzzer.c`), not via a formally verified compiler backend like CompCert.
-2. **IEEE-754 floating-point Kahan-Neumaier summation (`k_inflow_kj`, `k_export_kj`, `k_heat_radiated_kj`)** — Lean proves exact `Int` micro-quantum closure (`T29`, `T29a`, `T45`); FP64 relative drift (`<= 2.02e-16`) is verified empirically (`T07`) and stabilized with `-ffp-contract=off`.
-3. **Full C11 memory safety of `soup_engine.c` / `metrology_ovbs.c`** — verified via `-Wall -Wextra -Werror`, ASan/UBSan (`-fsanitize=address,undefined` in CI), and `T05`/`T11`/`T12`, not via formal C verification (Frama-C/VST).
+1. **Raw x86-64 machine-code emission (`src/jit_x86_64.c`)** — verified empirically and differentially against `jit_reference_oracle` across 5,000 randomized genomes (Gate `T04`), full 60-epoch worlds (Gate `T09`), `1,000,000` canary-guarded fuzz runs (Gate `T05`), and libFuzzer (`test/fuzz_jit_libfuzzer.c`), not via a formally verified compiler backend like CompCert.
+2. **IEEE-754 floating-point Kahan-Neumaier summation (`k_inflow_kj`, `k_export_kj`, `k_heat_radiated_kj`)** — Lean proves exact `Int` micro-quantum closure (`T29`, `T29a`, `T45`); FP64 relative drift (`<= 2.02e-16`) is verified empirically (Gate `T07`) and stabilized with `-ffp-contract=off`.
+3. **Full C11 memory safety of `soup_engine.c` / `metrology_ovbs.c`** — verified via `-Wall -Wextra -Werror`, ASan/UBSan (`-fsanitize=address,undefined` in CI), and Gates `T05`/`T11`/`T12`, not via formal C verification (Frama-C/VST).
 4. **Windows `lean4lean` / `bubblewrap` gap** — on Windows hosts, `lean4lean.exe` cannot parse Windows `.olean` path headers and `lake check` / `lake comparator` require Linux `bubblewrap` (`bwrap`). Five independent checkers run natively on Windows, while all 6/6 kernels + `lake comparator --paranoid` execute on Ubuntu Linux in `.github/workflows/ci.yml`.
+
+### Further scope notes (2026-11-26 statement audit)
+
+- **Elementary lemmas under physics names** — six of the 48 theorems are one-line identities: `T21` (`x ^^^ x = 0`), `T23` (`a ^^^ a = 0`), `T24` (`a ^^^ b = b ^^^ a`), `T28` (`g - 1 < g` for `g > 0`), `T29` (`(a - t) + (b + t) = a + b`) and `T30` (`sink ≤ sink + rad ∧ 0 * x = 0`). None of them mentions an engine definition. In particular `T30` does not show that the heat sink never decreases under the ledger step; the `0` heat-sink decreases reported in `CLAIMS.md` C4 are an empirical gate result. "Landauer" in theorem names means a bit-erasure count, not physical heat.
+- **Prior work** — the count of 30 irreducible binary octics, the Toffoli/Fredkin involutions and the invertibility of a 2×2 matrix with nonzero determinant are textbook results. The Lean suite is a mechanised check of these facts against this codebase's definitions; it resolves no open problem.
+- **Six-kernel replay is CI-only** — acceptance by the six kernels was observed in the Ubuntu CI log. `lake check --paranoid` and `lake comparator` require Linux `bubblewrap` and cannot be replayed on Windows.
 
 ## 3. Empirical & Performance Limitations
 

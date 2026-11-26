@@ -13,11 +13,16 @@ abstract: >-
   themselves via evolvable 8x8 F_2 ribosome matrices (VGF2P8AFFINEQB) into live
   native x86-64 RWX machine code with Galois-field polynomial recombination
   (PCLMULQDQ), 2x2 Cauchy MDS self-repair over GF(2^8), symplectic reversible
-  Toffoli/Fredkin gates, Landauer POPCNT erasure accounting, and 2-adic TZCNT
-  kin-sensing. Its mathematical kernel is machine-checked across 48 Pure Lean
-  4.35.0 theorems (zero Mathlib, zero sorry, zero native_decide) with a
-  6-kernel Palomar Challenge/Solution contract and an 18-gate bare-metal
-  silicon falsification suite (including 6 planted negative mutants).
+  Toffoli/Fredkin gates, POPCNT bit-erasure accounting, and 2-adic TZCNT
+  kin-sensing. 48 Lean 4.35.0 theorems (zero Mathlib, zero sorry, zero
+  native_decide) about Lean models of its finite-field, bitvector and ledger
+  definitions, not its emitted machine code, are kernel-checked by Lean (lake
+  build, leanchecker); the 48 comparator targets were also accepted by 6
+  independent kernels in Ubuntu CI. Six of the 48 are one-line arithmetic or
+  XOR identities, and the finite-field facts checked (for example the 30
+  irreducible binary octics) are textbook results. Engine behaviour is tested
+  by an 18-gate falsification suite (including 6 planted negative mutants).
+  The work resolves no open problem.
 authors:
   - family-names: "Donahue"
     given-names: "Alexander Stephen"
@@ -31,7 +36,7 @@ keywords:
   - Galois field
   - GFNI
   - reversible computing
-  - Landauer thermodynamics
+  - bit-erasure accounting
   - Lean 4
   - formal verification
   - Cauchy MDS

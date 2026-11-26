@@ -7,10 +7,11 @@ project:
   name: "AUTOPHAGE Formal Verification Suite (AutophageProofs)"
   description: >-
     Zero-Mathlib Pure Lean 4.35.0 formalization of 48 audited theorems (42 core
-    algebraic, thermodynamic, JIT-safety, Philox-isolation, OEE, and Weismann
-    theorems plus 6 concrete non-vacuity witnesses and sharp negative-boundary
-    refutations) certifying the mathematical kernel of the AUTOPHAGE bare-metal
-    polymorphic x86-64 Galois-field genetic engine.
+    algebraic, ledger, JIT-guard, Philox-isolation, OEE, and Weismann theorems
+    plus 6 concrete non-vacuity witnesses and sharp negative-boundary
+    refutations) about Lean models of the AUTOPHAGE bare-metal polymorphic
+    x86-64 Galois-field genetic engine. Six of the 48 (T21, T23, T24, T28, T29,
+    T30) are one-line arithmetic or XOR identities.
   authors:
     - name: "Alexander Stephen Donahue"
       orcid: "0009-0006-8168-9648"
@@ -51,13 +52,15 @@ status:
   scope: >-
     Certifies exact bitvector and integer invariants for Intel VGF2P8AFFINEQB
     F_2^(8x8) ribosome linear/affine inversion and elementary GL(8,2) row operations;
-    GF(2)[x] carry-less multiplication (PCLMULQDQ), exact count of 30 irreducible
-    degree-8 polynomials matching C11 GF2_IRRED_POLY8[30], Dobzhansky-Muller zero
-    divisors, and universal 2x2 Cauchy MDS recovery across all 30 irreducible GF(2^8)
-    fields; 64-bit Toffoli/Fredkin involutions and exact popcnt64 Hamming-weight
-    conservation; exact 32-bit tzcnt32 2-adic Strong Triangle Inequality; JIT byte/qword
-    mask bounds and strictly decreasing gas halting; arbitrary multi-step 5-pool
-    First-Law integer ledger invariance and Second-Law monotonicity; Philox 8-tuple
+    GF(2)[x] carry-less multiplication (PCLMULQDQ), exact count of 30 degree-8
+    polynomials passing a trial-division irreducibility test (all divisors of
+    degree 1-4) and matching C11 GF2_IRRED_POLY8[30], Dobzhansky-Muller zero
+    divisors, and 2x2 Cauchy MDS recovery in each of those 30 GF(2^8) fields;
+    64-bit Toffoli/Fredkin involutions and exact Fredkin popcnt64 Hamming-weight
+    conservation; exact 32-bit tzcnt32 2-adic Strong Triangle Inequality; arithmetic
+    bounds of the JIT byte/qword masks and the gas decrement (emission not proved);
+    multi-step 5-pool integer ledger zero residual, plus the Nat lemma T30
+    (sink <= sink + rad), which is not a second-law statement about the engine; Philox 8-tuple
     domain disjointness, 3-tier seed firewall, OEE archive monotonicity, Weismann
     soma-only germline isolation, and 6 concrete non-vacuity and negative-boundary
     theorems. Explicitly NOT formalized inside Lean: raw x86-64 machine-code emission
@@ -140,8 +143,9 @@ fidelity:
 review:
   status: "self-assessed"
   notes: >-
-    Not externally peer-reviewed. Machine-checked locally across 5 Windows-capable
-    independent Lean 4.35.0 kernels (lean, leanchecker --fresh, leanchecker-paranoid
-    --fresh, con-leche --verified, con-ron --verified, nanoda_bin) and wired for all
+    Not externally peer-reviewed. Machine-checked locally by the Lean 4.35.0 kernel
+    plus 5 Windows-capable independent checkers (leanchecker --fresh,
+    leanchecker-paranoid --fresh, con-leche --verified, con-ron --verified,
+    nanoda_bin) and wired for all
     6/6 kernels (+ lean4lean + lake check --paranoid + lake comparator --paranoid)
     on Ubuntu Linux with bubblewrap in `.github/workflows/ci.yml`.

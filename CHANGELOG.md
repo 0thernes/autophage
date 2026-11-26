@@ -3,6 +3,11 @@
 All notable changes to **AUTOPHAGE** are documented in this file.
 Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and Semantic Versioning (`VERSION`).
 
+## [Unreleased] - 2026-11-26
+
+### Fixed
+- **Claim wording after the 2026-11-26 statement audit** (documentation only; no Lean, C11, data or paper changes): `README.md`, `CLAIMS.md`, `LIMITATIONS.md`, `CITATION.cff`, `lean/formalization.yaml` and `docs/` now state that the 48 Lean theorems concern Lean models rather than emitted machine code; list `T21`, `T23`, `T24`, `T28`, `T29`, `T30` as one-line identities; drop `T30` as evidence for "0 Second-Law violations" (an empirical gate result); restrict popcount conservation to Fredkin; label C11 test gates as "Gate `Txx`"; state that Lean `T26`–`T28` prove mask and gas arithmetic only; fix the local kernel count; note the textbook status of the finite-field facts. Paper and Lean issues are recorded in `ERRATA.md`.
+
 ## [1.4.0] - 2026-11-25
 
 ### Added

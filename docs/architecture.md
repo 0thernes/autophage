@@ -25,11 +25,11 @@ Dedicated per-action parameter slots eliminate cross-opcode `bio_param` clobberi
 ## 2. Dual-ABI Polymorphic x86-64 RWX JIT (`src/jit_x86_64.c`)
 
 - **Register Normalization:** Prologue saves `rbx, rbp, rsi, rdi, r12..r15` and maps Win64 (`rcx, rdx, r8`) or SysV AMD64 (`rdi, rsi, rdx`) arguments onto `r12=tape_a`, `r13=tape_b`, `r14=ctx`.
-- **Provable Hardware Safety Invariants:** Every byte tape access uses `and reg32, 0x7F` (`< 128`, Lean `T26`); every qword tape access uses `and reg32, 0x78` (`off + 8 <= 128`, Lean `T27`; strict necessity proved in `T48`); every backward loop executes `sub r15, 1; jle +skip` (Lean `T28`).
+- **Hardware Safety Invariants:** Every byte tape access uses `and reg32, 0x7F`; every qword tape access uses `and reg32, 0x78`; every backward loop executes `sub r15, 1; jle +skip`. Lean proves the arithmetic of these guards (`< 128`, `T26`; `off + 8 <= 128`, `T27`, necessity in `T48`; `g - 1 < g`, `T28`). That the JIT emits them is tested (Gates `T04`, `T05`, `T09`, libFuzzer), not proved.
 - **Bit-Exact Reference Oracle:** `jit_reference_oracle` executes the identical 32-opcode semantics in portable C11; `T04`, `T09`, `T11`, and `test/fuzz_jit_libfuzzer.c` verify 0-bit divergence.
 
 ## 3. Galois Algebra, Cauchy MDS ECC & 5-Pool Conservation
 
 - **$\mathbb{F}_2^{8\times 8}$ Ribosome (`VGF2P8AFFINEQB`):** Row `i` stored at byte `7-i`, identity `0x0102040810204080ULL`, Gaussian inversion yielding $M^{-1}$ and $c^{-1} = M^{-1} c$ (`T01`–`T07`, `T43`).
-- **30 Irreducible Degree-8 Fields & 2×2 Cauchy MDS (`src/galois_math.c`):** Exact partition of 256 monic degree-8 polynomials into 30 irreducible fields and 226 reducible zero-divisor rings (`T12`, `T12a`, `T14`, `T47`). Cauchy matrix `[[1, 3], [5, 1]]` has nonzero determinant `0x0E` in all 30 fields (`T15`, `T15a`, `T16`, `T44`), guaranteeing 100% recovery of up to 64/64 Strand $\alpha$ bytes when earned via `OP_SELF_HEAL_ECC`.
+- **30 Irreducible Degree-8 Fields & 2×2 Cauchy MDS (`src/galois_math.c`):** Exact partition of 256 monic degree-8 polynomials into 30 irreducible fields and 226 reducible zero-divisor rings (`T12`, `T12a`, `T14`, `T47`). Cauchy matrix `[[1, 3], [5, 1]]` has nonzero determinant `0x0E` in all 30 fields (`T15`, `T15a`, `T16`, `T44`), so in the Lean model both bytes of each pair are recovered from its two parity bytes; the C11 32-pair loop over the 64 Strand $\alpha$ bytes is checked by Gate `T15`.
 - **5-Pool Conserved Thermodynamic Ledger (`src/soup_engine.c`):** `E_cell_free`, `E_membrane_pot`, `E_detritus`, `Q_heat_local`, `Q_heat_radiated_sink` updated exclusively through conserved `int64_t` micro-quantum (`1 uq = 1e-6 kJ`) transfers (`T29`, `T29a`, `T45`) paired with Kahan-Neumaier FP64 accumulators (`-ffp-contract=off`).
