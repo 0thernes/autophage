@@ -16,7 +16,7 @@ jobs:
     name: Linux C11 (-Werror, 19 Gates, 6 Mutants, ASan/UBSan, Blueprint & Timestamps)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compile C11 Engine (-Wall -Wextra -Werror) & Run 19-Gate Falsification Suite
         run: |
           set -euo pipefail
@@ -41,7 +41,7 @@ jobs:
     name: Windows C11 (GCC -Werror, 19 Gates, 6 Mutants, prop_check & Blueprint)
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Compile C11 Engine (Portable Win64 GCC) & Run 19-Gate Suite
         shell: pwsh
         run: |
@@ -67,7 +67,7 @@ jobs:
     name: Pure Lean 4.35.0 — 56 Theorems, 6-Kernel Palomar Comparator & Negative Tamper Rejection
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install bubblewrap for Palomar multi-kernel sandbox
         run: sudo apt-get update && sudo apt-get install -y bubblewrap
       - name: Install elan & pinned Lean 4.35.0 toolchain
@@ -106,7 +106,7 @@ jobs:
     name: AMS-LaTeX White Paper, Clean-Room arXiv & SLSA Provenance
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install Tectonic
         run: |
           curl --proto '=https' --tlsv1.2 -fsSL https://drop-sh.fullyjustified.net | sh
@@ -122,7 +122,7 @@ jobs:
           sha256sum dist/Donahue_2026_autophage.pdf dist/arxiv_submission.tar.gz results/lean4-audit.txt results/lean4-multi-kernel.txt results/citation-audit.json results/07_castration_ablation_13vec.csv > SHA256SUMS
           cat SHA256SUMS
       - name: Attest Build Provenance (SLSA)
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         continue-on-error: true
         with:
           subject-path: |
@@ -134,7 +134,7 @@ jobs:
     name: Build Standard v1.2.0 Audit & Report-Only Security / Static Scans
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Run Build Standard v1.2.0 self-audit (report-only)

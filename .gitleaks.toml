@@ -1,0 +1,14 @@
+title = "AUTOPHAGE gitleaks configuration (Build Standard v1.2.0 B35)"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Allowlist deterministic non-secret GF(2) hash salt constant and timestamp/checksum fixtures"
+paths = [
+  '''^CHECKSUMS\.sha256$''',
+  '''^data/MANIFEST\.sha256$''',
+]
+regexes = [
+  '''0xE7037ED1A0B428DBULL''',
+]

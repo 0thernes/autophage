@@ -27,13 +27,15 @@ namespace Autophage
     Witness `(d, s, t) = (0, 1, 1)` maps total popcount `0 + 1 + 1 = 2` to `1 + 1 + 1 = 3`. -/
 public theorem AT01_refute_toffoli_popcnt_conserved :
     ¬ (∀ d s t : BitVec 64,
-        let (d1, s1, t1) := toffoli64 d s t
-        popcnt64 d1 + popcnt64 s1 + popcnt64 t1 = popcnt64 d + popcnt64 s + popcnt64 t) := by
+        let out := toffoli64 d s t
+        popcnt64 out.1 + popcnt64 out.2.1 + popcnt64 out.2.2 =
+          popcnt64 d + popcnt64 s + popcnt64 t) := by
   intro hAll
   have hw := hAll 0#64 1#64 1#64
   have hne :
-      (let (d1, s1, t1) := toffoli64 0#64 1#64 1#64
-       popcnt64 d1 + popcnt64 s1 + popcnt64 t1 ≠ popcnt64 0#64 + popcnt64 1#64 + popcnt64 1#64) := by
+      (let out := toffoli64 0#64 1#64 1#64
+       popcnt64 out.1 + popcnt64 out.2.1 + popcnt64 out.2.2 ≠
+         popcnt64 0#64 + popcnt64 1#64 + popcnt64 1#64) := by
     decide
   exact hne hw
 

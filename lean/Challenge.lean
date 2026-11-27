@@ -226,8 +226,9 @@ public theorem T48_refute_unmasked_head_inbounds :
 -- Part VIII: Adversarial False-Variant Refutations (`AdversarialTests.lean`, 8 theorems)
 public theorem AT01_refute_toffoli_popcnt_conserved :
     ¬ (∀ d s t : BitVec 64,
-        let (d1, s1, t1) := toffoli64 d s t
-        popcnt64 d1 + popcnt64 s1 + popcnt64 t1 = popcnt64 d + popcnt64 s + popcnt64 t) := by sorry
+        let out := toffoli64 d s t
+        popcnt64 out.1 + popcnt64 out.2.1 + popcnt64 out.2.2 =
+          popcnt64 d + popcnt64 s + popcnt64 t) := by sorry
 
 public theorem AT02_refute_singular_ribosome_invertible :
     let singMat : BitVec 64 := 0x0002040810204080#64

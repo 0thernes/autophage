@@ -16,7 +16,7 @@ jobs:
     name: Verify Release Checksums, Timestamps & SLSA Provenance
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Verify dual cryptographic timestamps & generate SHA256SUMS
         run: |
           set -euo pipefail
@@ -35,12 +35,12 @@ jobs:
             results/07_castration_ablation_13vec.csv > SHA256SUMS
           cat SHA256SUMS
       - name: Upload SHA256SUMS workflow artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: release-sha256sums
           path: SHA256SUMS
       - name: Attest Release Build Provenance (SLSA / Rekor)
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         continue-on-error: true
         with:
           subject-path: |
