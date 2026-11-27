@@ -17,6 +17,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+      - name: Verify SHA-256 Integrity Manifests (CHECKSUMS.sha256 & data/MANIFEST.sha256)
+        run: |
+          set -euo pipefail
+          sha256sum -c CHECKSUMS.sha256
+          sha256sum -c data/MANIFEST.sha256
       - name: Compile C11 Engine (-Wall -Wextra -Werror) & Run 19-Gate Falsification Suite
         run: |
           set -euo pipefail
