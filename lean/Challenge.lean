@@ -3,13 +3,13 @@ module
 public import AutophageProofs.Spec
 
 /-!
-# AUTOPHAGE v1.4.0 — Isolated Statement-Only Challenge Specification (`Challenge.lean`)
+# AUTOPHAGE v1.5.0 — Isolated Statement-Only Challenge Specification (`Challenge.lean`)
 
 Imports ONLY `AutophageProofs.Spec` (pure mathematical definitions, ZERO proofs, ZERO `sorry`)
-and NEVER imports `AutophageProofs.lean` or `Solution.lean`.
+and NEVER imports `AutophageProofs.lean`, `AdversarialTests.lean`, or `Solution.lean`.
 
-Every `sorry` below is intentional and matched strictly against sorry-free `Solution.lean`
-across all 6 independent Lean 4.35.0 proof kernels via:
+Every `sorry` below (56 theorem specifications) is intentional and matched strictly against
+sorry-free `Solution.lean` across all 6 independent Lean 4.35.0 proof kernels via:
     lake comparator --config comparator.json --paranoid
 -/
 
@@ -146,8 +146,13 @@ public theorem T29a_first_law_ledger_multistep (s : LedgerState) (ops : List Tra
     (h0 : s.residual e_init = 0) :
     (applyTransfers s ops).residual e_init = 0 := by sorry
 
-public theorem T30_second_law_monotone_and_noise_gate (sink rad : Nat) (raw_ovi : Nat) :
-    sink ≤ sink + rad ∧ 0 * raw_ovi = 0 := by sorry
+public theorem T30_ledger_heat_sink_monotone_and_zero_weight_gate
+    (s : LedgerState) (ops : List TransferOp) (e_init : Int) (raw_ovi : Nat)
+    (h0 : s.residual e_init = 0)
+    (hNonNeg : ∀ op ∈ ops, op.isNonNegHeatRadiation) :
+    s.e_heat_snk ≤ (applyTransfers s ops).e_heat_snk ∧
+    (applyTransfers s ops).residual e_init = 0 ∧
+    oviGate 0 raw_ovi = 0 := by sorry
 
 -- Part VI: Philox Domain Isolation, 3-Tier Seed Firewall, OEE Archive & Weismann Isolation (4 theorems)
 public theorem T39_philox_domain_disjoint
@@ -217,5 +222,46 @@ public theorem T47_refute_reducible_poly_integral_domain :
 public theorem T48_refute_unmasked_head_inbounds :
     ¬ (∀ h : BitVec 32, h.toNat < 128) ∧
     ¬ (∀ h : BitVec 32, (h &&& 0x7F#32).toNat + 8 ≤ 128) := by sorry
+
+-- Part VIII: Adversarial False-Variant Refutations (`AdversarialTests.lean`, 8 theorems)
+public theorem AT01_refute_toffoli_popcnt_conserved :
+    ¬ (∀ d s t : BitVec 64,
+        let (d1, s1, t1) := toffoli64 d s t
+        popcnt64 d1 + popcnt64 s1 + popcnt64 t1 = popcnt64 d + popcnt64 s + popcnt64 t) := by sorry
+
+public theorem AT02_refute_singular_ribosome_invertible :
+    let singMat : BitVec 64 := 0x0002040810204080#64
+    ¬ (∃ Minv : BitVec 8 → BitVec 8, ∀ x : BitVec 8, Minv (gfniApply singMat x 0#8) = x) := by sorry
+
+public theorem AT03_refute_reducible_poly8_divisor_free :
+    ¬ (∀ p : BitVec 8, isIrreduciblePoly8Full p = true) ∧
+    polyDividesDeg (0x0100#16 ||| (0x01#8).zeroExtend 16) 0x0003#16 1 = true ∧
+    cauchyRecLo 0x01#8 0x01#8 0x00#8 ≠ 0x01#8 := by sorry
+
+public theorem AT04_refute_unguarded_ledger_transfer :
+    ¬ (∀ (s : LedgerState) (e_init amt : Int),
+        s.residual e_init = 0 →
+        ({ s with e_detritus := s.e_detritus - amt } : LedgerState).residual e_init = 0) ∧
+    ¬ (∀ (s : LedgerState) (op : TransferOp),
+        s.e_heat_snk ≤ (applyTransfer s op).e_heat_snk) := by sorry
+
+public theorem AT05_refute_and_mask_zero_erasure :
+    ¬ (∀ old mask : BitVec 64, popcnt64 (old ^^^ (old &&& mask)) = 0) ∧
+    popcnt64 (0xFFFFFFFFFFFFFFFF#64 ^^^ (0xFFFFFFFFFFFFFFFF#64 &&& 0x00000000FFFFFFFF#64)) = 32 := by sorry
+
+public theorem AT06_refute_wrong_mask_pext_pdep :
+    ¬ (∀ src m1 m2 : BitVec 64, pdep64 (pext64 src m1) m2 = (src &&& m1)) ∧
+    ¬ (∀ src m1 m2 : BitVec 64, (pext64 src m1).toNat < 2 ^ popcnt64 m2) := by sorry
+
+public theorem AT07_refute_unconstrained_philox_and_seed_bands :
+    ¬ (∀ dom1 dom2 : Nat,
+        PhiloxCounterKey.mk 1 5000 dom1 0 0 0 0 0 ≠
+        PhiloxCounterKey.mk 1 5000 dom2 0 0 0 0 0) ∧
+    ¬ isLockedSeed 500 ∧
+    ¬ isPracticeSeed 2500 := by sorry
+
+public theorem AT08_refute_germline_write_isolated :
+    ¬ (∀ (st : WeismannState) (mask : BitVec 64),
+        ({ st with germline := st.germline ^^^ mask } : WeismannState).germline = st.germline) := by sorry
 
 end Autophage

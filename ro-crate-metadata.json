@@ -1,0 +1,52 @@
+{
+  "@context": "https://w3id.org/ro/crate/1.1/context",
+  "@graph": [
+    {
+      "@type": "CreativeWork",
+      "@id": "ro-crate-metadata.json",
+      "conformsTo": { "@id": "https://w3id.org/ro/crate/1.1" },
+      "about": { "@id": "./" }
+    },
+    {
+      "@type": "Dataset",
+      "@id": "./",
+      "name": "AUTOPHAGE v1.5.0 Research Crate",
+      "version": "1.5.0",
+      "datePublished": "2026-11-26",
+      "license": "https://spdx.org/licenses/Apache-2.0",
+      "url": "https://github.com/0thernes/autophage",
+      "identifier": "swh:1:snp:6ea23803655df1f9679deb98d44efbf53321a393",
+      "description": "Reproducible C11 x86-64 polymorphic genetic engine, 56 Pure Lean 4.35.0 model declarations (48 core/non-vacuity + 8 AdversarialTests refutations), 19-gate + 6-mutant silicon falsification suite, interactive Proof Blueprint portal, and non-peer-reviewed AMS-LaTeX white paper. Solves 0/1,900 Mega-Atlas open problems.",
+      "author": { "@id": "https://orcid.org/0009-0006-8168-9648" },
+      "hasPart": [
+        { "@id": "dist/Donahue_2026_autophage.pdf" },
+        { "@id": "dist/arxiv_submission.tar.gz" },
+        { "@id": "lean/AutophageProofs.lean" },
+        { "@id": "lean/AdversarialTests.lean" },
+        { "@id": "results/lean4-audit.txt" },
+        { "@id": "results/citation-audit.json" },
+        { "@id": "CHECKSUMS.sha256" },
+        { "@id": "CHECKSUMS.sha256.tsr" },
+        { "@id": "CHECKSUMS.sha256.ots" },
+        { "@id": "docs/blueprint.html" }
+      ]
+    },
+    {
+      "@type": "Person",
+      "@id": "https://orcid.org/0009-0006-8168-9648",
+      "name": "Alexander Stephen Donahue",
+      "email": "0_0@0thernes.art",
+      "affiliation": "Independent Researcher, Spokane, WA, USA"
+    },
+    { "@type": "File", "@id": "dist/Donahue_2026_autophage.pdf", "encodingFormat": "application/pdf" },
+    { "@type": "File", "@id": "dist/arxiv_submission.tar.gz", "encodingFormat": "application/gzip" },
+    { "@type": "File", "@id": "lean/AutophageProofs.lean", "encodingFormat": "text/plain" },
+    { "@type": "File", "@id": "lean/AdversarialTests.lean", "encodingFormat": "text/plain" },
+    { "@type": "File", "@id": "results/lean4-audit.txt", "encodingFormat": "text/plain" },
+    { "@type": "File", "@id": "results/citation-audit.json", "encodingFormat": "application/json" },
+    { "@type": "File", "@id": "CHECKSUMS.sha256", "encodingFormat": "text/plain" },
+    { "@type": "File", "@id": "CHECKSUMS.sha256.tsr", "encodingFormat": "application/timestamp-reply" },
+    { "@type": "File", "@id": "CHECKSUMS.sha256.ots", "encodingFormat": "application/octet-stream" },
+    { "@type": "File", "@id": "docs/blueprint.html", "encodingFormat": "text/html" }
+  ]
+}

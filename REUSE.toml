@@ -1,0 +1,57 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2026 Alexander Stephen Donahue
+version = 1
+SPDX-PackageName = "autophage"
+SPDX-PackageSupplier = "Alexander Stephen Donahue <0_0@0thernes.art>"
+SPDX-PackageDownloadLocation = "https://github.com/0thernes/autophage"
+
+[[annotations]]
+path = [
+  "VERSION",
+  "NOTICE",
+  "CHECKSUMS.sha256",
+  "CHECKSUMS.sha256.tsr",
+  "CHECKSUMS.sha256.ots",
+  "include/**",
+  "src/**",
+  "test/**",
+  "web/**",
+  "examples/**",
+  "scripts/**",
+  "build.ps1",
+  "build_linux.sh",
+  "justfile",
+  "lean/**",
+  "data/**",
+  "results/**",
+  "repo.yaml",
+  "repo-standard.schema.json",
+  "CITATION.cff",
+  "CITATION.bib",
+  "codemeta.json",
+  "croissant.json",
+  "ro-crate-metadata.json",
+  ".zenodo.json",
+  ".editorconfig",
+  ".gitattributes",
+  ".gitignore",
+  ".env.example",
+  ".github/**",
+  ".cursor/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alexander Stephen Donahue <0_0@0thernes.art>"
+SPDX-License-Identifier = "Apache-2.0"
+
+[[annotations]]
+path = [
+  "*.md",
+  "llms.txt",
+  "llms-full.txt",
+  "docs/**",
+  "paper/**",
+  "dist/**",
+]
+precedence = "aggregate"
+SPDX-FileCopyrightText = "2026 Alexander Stephen Donahue <0_0@0thernes.art>"
+SPDX-License-Identifier = "CC-BY-4.0"

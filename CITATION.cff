@@ -2,27 +2,31 @@ cff-version: 1.2.0
 title: "AUTOPHAGE: Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Lean 4.35.0 Verification"
 message: "If you use AUTOPHAGE, its Lean 4.35.0 proofs, or its companion white paper, please cite it using these metadata."
 type: software
-version: "1.4.0"
-date-released: "2026-11-25"
+version: "1.5.0"
+date-released: "2026-11-26"
 license: "Apache-2.0"
 repository-code: "https://github.com/0thernes/autophage"
-url: "https://github.com/0thernes/autophage"
+url: "https://0thernes.github.io/autophage/"
 abstract: >-
-  AUTOPHAGE v1.4.0 is a zero-dependency C11 bare-metal artificial-life and
+  AUTOPHAGE v1.5.0 is a zero-dependency C11 bare-metal artificial-life and
   open-ended evolutionary engine in which 256-byte dual-strand organisms compile
   themselves via evolvable 8x8 F_2 ribosome matrices (VGF2P8AFFINEQB) into live
   native x86-64 RWX machine code with Galois-field polynomial recombination
   (PCLMULQDQ), 2x2 Cauchy MDS self-repair over GF(2^8), symplectic reversible
   Toffoli/Fredkin gates, POPCNT bit-erasure accounting, and 2-adic TZCNT
-  kin-sensing. 48 Lean 4.35.0 theorems (zero Mathlib, zero sorry, zero
-  native_decide) about Lean models of its finite-field, bitvector and ledger
-  definitions, not its emitted machine code, are kernel-checked by Lean (lake
-  build, leanchecker); the 48 comparator targets were also accepted by 6
-  independent kernels in Ubuntu CI. Six of the 48 are one-line arithmetic or
-  XOR identities, and the finite-field facts checked (for example the 30
-  irreducible binary octics) are textbook results. Engine behaviour is tested
-  by an 18-gate falsification suite (including 6 planted negative mutants).
-  The work resolves no open problem.
+  kin-sensing. 56 Pure Lean 4.35.0 declarations (48 core/non-vacuity theorems
+  including multi-step ledger heat-sink monotonicity T30 plus 8 adversarial
+  false-variant refutations AT01-AT08; zero Mathlib, zero sorry in Solution,
+  zero native_decide/bv_decide) about the Lean models in Spec.lean, not emitted
+  x86-64 machine code, are verified by the Lean reference kernel plus 3
+  independent Rust checkers locally on Windows and all 6 kernels with bubblewrap
+  comparator + live negative tamper rejection in Ubuntu CI. Five theorems
+  (T21, T23, T24, T28, T29) are elementary arithmetic or XOR helper lemmas, and
+  the finite-field/reversible-gate facts are textbook results mechanically
+  verified against this codebase's definitions. Engine behavior is tested by a
+  19-gate falsification suite (including 6 planted negative mutants and B07
+  ASan AVX-512 alignment regression Gate T19). Not peer-reviewed; resolves
+  zero (0/1,900) overarching Mega-Atlas open problems.
 authors:
   - family-names: "Donahue"
     given-names: "Alexander Stephen"

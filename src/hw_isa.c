@@ -432,7 +432,7 @@ void sha256_update(Sha256Ctx* ctx, const void* data, size_t len) {
 }
 
 void sha256_final(Sha256Ctx* ctx, uint8_t out[32]) {
-    uint8_t tail[128];
+    AP_ALIGN64 uint8_t tail[128];
     memset(tail, 0, sizeof(tail));
     if (ctx->buf_len > 0) memcpy(tail, ctx->buf, ctx->buf_len);
     tail[ctx->buf_len] = 0x80u;

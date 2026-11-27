@@ -3,7 +3,7 @@ module
 public import AutophageProofs.Spec
 
 /-!
-# AUTOPHAGE v1.4.0 — Pure Kernel Formal Lean 4.35.0 Verification Suite (48 Theorems, 0 `sorry`, 0 External Axioms)
+# AUTOPHAGE v1.5.0 — Pure Kernel Formal Lean 4.35.0 Verification Suite (48 Core/Witness Theorems + 8 AdversarialTests = 56 Total, 0 `sorry`, 0 External Axioms)
 
 Machine-checked proofs verified strictly inside the pure Lean 4.35.0 kernel
 (no Mathlib, no `Std.Tactic.BVDecide`, no `bv_decide`, no `native_decide`, no custom axioms;
@@ -13,13 +13,17 @@ every `#print axioms` audit lies strictly within `{propext, Classical.choice, Qu
   Part II  : GF(2)[x] Carry-Less Polynomial Ring (`PCLMULQDQ`), Full Trial-Divisor Match
              to C11 `GF2_IRRED_POLY8[30]` (30 Irreducible / 226 Reducible), Dobzhansky-Muller
              Zero Divisors, and Universal Planarian Cauchy 2x2 MDS Recovery Across ALL 30 Fields (T08–T16a)
-  Part III : Symplectic Reversible Gates (`TOFFOLI`, `FREDKIN`), Exact `popcnt64` Conservation
-             & Landauer Bit Erasure (T17–T22)
-  Part IV  : 2-Adic Ultrametric Centromere Geometry & Exact `tzcnt32` Strong Triangle Inequality (T23–T25a)
-  Part V   : Native x86-64 JIT Memory Safety, Gas Halting & Multi-Step Conserved Ledger Invariance (T26–T30)
+  Part III : Symplectic Reversible Gates (`TOFFOLI`, `FREDKIN`), Exact Fredkin `popcnt64` Conservation
+             & Bit-Erasure Accounting (T17–T22; T21 is an elementary XOR helper)
+  Part IV  : 2-Adic Ultrametric Centromere Geometry & Exact `tzcnt32` Strong Triangle Inequality
+             (T23–T25a; T23, T24 are elementary XOR helpers)
+  Part V   : JIT Mask Bounds, Gas Decrement & Multi-Step Conserved Ledger / Heat-Sink Monotonicity
+             (T26–T30; T28, T29 are elementary arithmetic helpers; T30 proves multi-step `LedgerState`
+             heat-sink monotonicity + conservation + zero-alive OVI gate)
   Part VI  : Domain-Isolated Philox Counter Keys, 3-Tier Seed Firewall, OEE Archive Monotonicity,
              & Weismann Soma Mutation Isolation (T39–T42)
-  Part VII : Non-Vacuity Witnesses & Adversarial Sharp Negative Boundaries (T43–T48)
+  Part VII : Non-Vacuity Witnesses & Sharp Negative Boundaries (T43–T48)
+  (Companion module `AdversarialTests.lean` adds 8 explicit false-variant refutations AT01–AT08.)
 -/
 
 namespace Autophage
@@ -878,7 +882,8 @@ public theorem T20a_fredkin64_popcnt_conserved (c s t : BitVec 64) :
     popcnt64 s1 + popcnt64 t1 = popcnt64 s + popcnt64 t :=
   fredkin64_popcntUpTo c s t 64
 
-/-- T21: Zero-change state transitions erase strictly 0 bits (Landauer lower bound = 0). -/
+/-- T21 [Elementary helper lemma]: BitVec 64 XOR self-cancellation (`x ^^^ x = 0`),
+    used to model zero bit-erasure count on an unchanged 64-bit register. -/
 public theorem T21_landauer_zero_change_zero_erasure (x : BitVec 64) :
     x ^^^ x = 0#64 :=
   BitVec.xor_self
@@ -894,11 +899,11 @@ public theorem T22_landauer_and_exact_erased_bits (old mask : BitVec 64) :
 
 /-! ## Part IV: 2-Adic Ultrametric Centromere Geometry (`TZCNT`) -/
 
-/-- T23: 2-adic clade self-XOR is zero (maximal kin affinity). -/
+/-- T23 [Elementary helper lemma]: BitVec 32 XOR self-cancellation (`a ^^^ a = 0`). -/
 public theorem T23_ultrametric_self_zero (a : BitVec 32) : a ^^^ a = 0#32 :=
   BitVec.xor_self
 
-/-- T24: 2-adic clade XOR is symmetric. -/
+/-- T24 [Elementary helper lemma]: BitVec 32 XOR commutativity (`a ^^^ b = b ^^^ a`). -/
 public theorem T24_ultrametric_symmetry (a b : BitVec 32) : a ^^^ b = b ^^^ a :=
   BitVec.xor_comm a b
 
@@ -964,13 +969,14 @@ public theorem T27_jit_qword_mask_inbounds (h : BitVec 32) :
   have hv : (0x78#32).toNat = 120 := rfl
   omega
 
-/-- T28: Guaranteed JIT Loop Termination (`FM-BUG-03` eliminated):
-    Every backward jump strictly decreases positive gas `g - 1 < g`. -/
+/-- T28 [Elementary helper lemma]: Positive `Nat` predecessor is strictly smaller (`g - 1 < g`),
+    modeling the decreasing measure of the loop gas counter. -/
 public theorem T28_jit_gas_strictly_decreasing (g : Nat) (hg : g > 0) :
     g - 1 < g := by
   omega
 
-/-- T29: First-Law Conservation of Every Conserved Micro-Quantum Transfer (`0` int residual). -/
+/-- T29 [Elementary helper lemma]: Single-transfer integer sum invariance
+    `(e_src - amt) + (e_dst + amt) = e_src + e_dst`. -/
 public theorem T29_first_law_transfer_conservation (e_src e_dst amt : Int) :
     (e_src - amt) + (e_dst + amt) = e_src + e_dst := by
   omega
@@ -980,7 +986,7 @@ private theorem applyTransfer_preserves_residual (s : LedgerState) (op : Transfe
   cases op <;> simp [applyTransfer, LedgerState.residual] <;> omega
 
 /-- T29a: Multi-Step Conserved Transfer Ledger Invariance — ANY finite sequence of
-    thermodynamic transfers across all 5 pools + inflow/export preserves exact 0 residual! -/
+    transfers across all 5 pools + inflow/export preserves exact 0 residual! -/
 public theorem T29a_first_law_ledger_multistep (s : LedgerState) (ops : List TransferOp) (e_init : Int)
     (h0 : s.residual e_init = 0) :
     (applyTransfers s ops).residual e_init = 0 := by
@@ -990,10 +996,45 @@ public theorem T29a_first_law_ledger_multistep (s : LedgerState) (ops : List Tra
     apply ih (applyTransfer s op)
     rw [applyTransfer_preserves_residual, h0]
 
-/-- T30: Second-Law Heat-Sink Monotonicity & Anti-Gaming White-Noise Zero-Gate. -/
-public theorem T30_second_law_monotone_and_noise_gate (sink rad : Nat) (raw_ovi : Nat) :
-    sink ≤ sink + rad ∧ 0 * raw_ovi = 0 := by
-  omega
+private theorem applyTransfer_heat_sink_monotone (s : LedgerState) (op : TransferOp)
+    (hNonNeg : op.isNonNegHeatRadiation) :
+    s.e_heat_snk ≤ (applyTransfer s op).e_heat_snk := by
+  cases op with
+  | heatToSink a =>
+    have h1 : s.e_heat_snk + 0 ≤ s.e_heat_snk + a := Int.add_le_add_left hNonNeg s.e_heat_snk
+    rwa [Int.add_zero] at h1
+  | detritusToCell _ | cellToHeat _ | cellToDetritus _ | cellToMembrane _
+  | membraneToDetritus _ | externalInflow _ | externalExport _ =>
+    exact Int.le_refl _
+
+private theorem applyTransfers_heat_sink_monotone (s : LedgerState) (ops : List TransferOp)
+    (hNonNeg : ∀ op ∈ ops, op.isNonNegHeatRadiation) :
+    s.e_heat_snk ≤ (applyTransfers s ops).e_heat_snk := by
+  induction ops generalizing s with
+  | nil => exact Int.le_refl _
+  | cons op rest ih =>
+    have hHead : op.isNonNegHeatRadiation := hNonNeg op List.mem_cons_self
+    have hTail : ∀ o ∈ rest, o.isNonNegHeatRadiation :=
+      fun o ho => hNonNeg o (List.mem_cons_of_mem op ho)
+    exact Int.le_trans (applyTransfer_heat_sink_monotone s op hHead)
+                       (ih (applyTransfer s op) hTail)
+
+/-- T30: Multi-Step Ledger Radiated-Heat Sink Monotonicity, Conservation, and Zero-Alive Gate —
+    Over `Spec.lean`'s `LedgerState` and `applyTransfers`, any finite sequence `ops` whose
+    `.heatToSink a` transfers satisfy `0 ≤ a` preserves exact `0` total ledger residual AND
+    never decreases `e_heat_snk`; additionally `oviGate 0 raw_ovi = 0` for any `raw_ovi`.
+    (Formalizes the discrete integer accounting rule in `soup_engine.c` and `metrology_ovbs.c`,
+    not physical calorimetry.) -/
+public theorem T30_ledger_heat_sink_monotone_and_zero_weight_gate
+    (s : LedgerState) (ops : List TransferOp) (e_init : Int) (raw_ovi : Nat)
+    (h0 : s.residual e_init = 0)
+    (hNonNeg : ∀ op ∈ ops, op.isNonNegHeatRadiation) :
+    s.e_heat_snk ≤ (applyTransfers s ops).e_heat_snk ∧
+    (applyTransfers s ops).residual e_init = 0 ∧
+    oviGate 0 raw_ovi = 0 :=
+  ⟨applyTransfers_heat_sink_monotone s ops hNonNeg,
+   T29a_first_law_ledger_multistep s ops e_init h0,
+   rfl⟩
 
 /-! ## Part VI: Philox Domain Isolation, 3-Tier Seed Firewall, OEE Archive & Weismann Isolation -/
 

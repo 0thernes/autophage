@@ -5,7 +5,7 @@ module
 
 Canonical mathematical and hardware-model definitions shared identically by BOTH:
   - `Challenge.lean` (isolated statement-only specification — imports ONLY this module, ZERO proofs)
-  - `AutophageProofs.lean` & `Solution.lean` (48 sorry-free Pure Lean 4.35.0 theorems verified across 6 kernels)
+  - `AutophageProofs.lean`, `AdversarialTests.lean` & `Solution.lean` (56 sorry-free Pure Lean 4.35.0 theorems verified across 6 kernels)
 
 Zero Mathlib, zero `sorry`, zero `native_decide`, zero external axioms.
 -/
@@ -293,6 +293,42 @@ public inductive TransferOp where
 
 @[expose] public def applyTransfers (s : LedgerState) (ops : List TransferOp) : LedgerState :=
   ops.foldl applyTransfer s
+
+/-- Predicate restricting heat-radiation transfers to non-negative amounts (`0 ≤ a`),
+    modeling `xfer_heat_to_sink`'s `if (req <= 0 || c->heat_uq <= 0) return 0;` guard. -/
+@[expose] public def TransferOp.isNonNegHeatRadiation : TransferOp → Prop
+  | .heatToSink a => 0 ≤ a
+  | _             => True
+
+/-- Zero-alive OVI gate modeling `if (alive == 0u) out->ovi_score = 0.0;` in `src/metrology_ovbs.c`. -/
+@[expose] public def oviGate (alive raw_ovi : Nat) : Nat :=
+  if alive = 0 then 0 else raw_ovi
+
+/-- Exact bit-parallel extract (`PEXT`) matching `scalar_pext64` in `src/jit_x86_64.c`. -/
+@[expose] public def pext64Loop (src mask : BitVec 64) (i sbit : Nat) (acc : BitVec 64) : Nat → BitVec 64
+  | 0 => acc
+  | rem + 1 =>
+    if mask.getLsbD i then
+      let acc' := if src.getLsbD i then acc ||| (1#64 <<< sbit) else acc
+      pext64Loop src mask (i + 1) (sbit + 1) acc' rem
+    else
+      pext64Loop src mask (i + 1) sbit acc rem
+
+@[expose] public def pext64 (src mask : BitVec 64) : BitVec 64 :=
+  pext64Loop src mask 0 0 0#64 64
+
+/-- Exact bit-parallel deposit (`PDEP`) matching `scalar_pdep64` in `src/jit_x86_64.c`. -/
+@[expose] public def pdep64Loop (src mask : BitVec 64) (i sbit : Nat) (acc : BitVec 64) : Nat → BitVec 64
+  | 0 => acc
+  | rem + 1 =>
+    if mask.getLsbD i then
+      let acc' := if src.getLsbD sbit then acc ||| (1#64 <<< i) else acc
+      pdep64Loop src mask (i + 1) (sbit + 1) acc' rem
+    else
+      pdep64Loop src mask (i + 1) sbit acc rem
+
+@[expose] public def pdep64 (src mask : BitVec 64) : BitVec 64 :=
+  pdep64Loop src mask 0 0 0#64 64
 
 /-! ## Part VI Definitions: Philox Domain Isolation, 3-Tier Seed Firewall, OEE Archive & Weismann -/
 

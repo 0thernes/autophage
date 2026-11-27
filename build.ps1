@@ -32,6 +32,7 @@ $cflags = @(
     "-march=native", "-mgfni", "-mvpclmulqdq", "-mpclmul", "-mbmi", "-mbmi2", "-mpopcnt", "-mavx2", "-mavxvnni",
     "-ffp-contract=off",
     "--target=x86_64-w64-windows-gnu",
+    "--sysroot=$root",
     "-DAUTOPHAGE_BARE_WIN64",
     "-I$proj\include",
     "-isystem", "$root\include\clang"
@@ -68,7 +69,7 @@ if (Test-Path -LiteralPath $ar) {
 }
 
 if (-not $SkipTests) {
-    Write-Host "`nRunning 18-Gate Bare-Metal Silicon Falsification Suite..."
+    Write-Host "`nRunning 19-Gate Bare-Metal Silicon Falsification Suite (18 Core + B07 Regression)..."
     Push-Location -LiteralPath "$proj\bin"
     & ".\test_falsification.exe"
     $rc = $LASTEXITCODE
@@ -78,7 +79,7 @@ if (-not $SkipTests) {
 }
 
 if (-not $SkipLean -and (Test-Path -LiteralPath $lake)) {
-    Write-Host "`nVerifying 48 Pure-Kernel Lean 4.35.0 Proofs (Palomar Challenge/Solution + strict axiom allowlist)..."
+    Write-Host "`nVerifying 56 Pure-Kernel Lean 4.35.0 Proofs (Palomar Challenge/Solution + AdversarialTests + strict axiom allowlist)..."
     $env:PATH = "$elan;$env:PATH"
     Push-Location -LiteralPath "$proj\lean"
     try {
@@ -124,12 +125,12 @@ if (-not $SkipLean -and (Test-Path -LiteralPath $lake)) {
         }
         throw "Unexpected Lean 4 output line: $line"
     }
-    if ($audited -lt 48) {
-        throw "Expected >= 48 audited Lean 4 theorems, found only $audited"
+    if ($audited -lt 56) {
+        throw "Expected >= 56 audited Lean 4 theorems, found only $audited"
     }
     $auditPath = "$proj\results\lean4-audit.txt"
     [System.IO.File]::WriteAllText($auditPath, ($cleanAuditLines -join "`n") + "`n", [System.Text.UTF8Encoding]::new($false))
     Write-Host "Lean 4.35.0 Formal Verification PASSED ($audited pure-kernel theorems, strict allowlist {propext, Classical.choice, Quot.sound}, 0 warnings)!"
 }
 
-Write-Host "`nAUTOPHAGE v1.4.0 BUILD & VERIFICATION COMPLETE."
+Write-Host "`nAUTOPHAGE v1.5.0 BUILD & VERIFICATION COMPLETE."

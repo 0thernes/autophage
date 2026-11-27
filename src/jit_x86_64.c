@@ -1329,7 +1329,7 @@ size_t jit_disassemble_expressed(const uint8_t expressed[64], uint64_t splice_ma
     size_t pos = 0;
     uint32_t hdr_len = total_code_len >= code_len ? total_code_len : code_len;
     int n = snprintf(buf + pos, cap - pos,
-                     "; AUTOPHAGE v1.4.0 Live Native x86-64 Genome Disassembly (%d active exons / 64, %u JIT bytes)\n"
+                     "; AUTOPHAGE v1.5.0 Live Native x86-64 Genome Disassembly (%d active exons / 64, %u JIT bytes)\n"
                      "; Prologue: save rbx..r15, map r12=tape_a, r13=tape_b, r14=ctx, rbp=h0&7F, r9=h1&7F, r11=popcnt\n",
                      plan.n_active, (unsigned)hdr_len);
     if (n < 0) { buf[0] = '\0'; return 0; }

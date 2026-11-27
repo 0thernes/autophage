@@ -1,0 +1,77 @@
+name: Release Artifacts & SLSA Provenance
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  release:
+    name: Verify Release Checksums, Timestamps & SLSA Provenance
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify dual cryptographic timestamps & generate SHA256SUMS
+        run: |
+          set -euo pipefail
+          python3 scripts/stamp_timestamps.py --verify
+          python3 scripts/check_readme_axioms.py
+          python3 scripts/check_blueprint.py
+          sha256sum \
+            dist/Donahue_2026_autophage.pdf \
+            dist/arxiv_submission.tar.gz \
+            CHECKSUMS.sha256 \
+            CHECKSUMS.sha256.tsr \
+            CHECKSUMS.sha256.ots \
+            results/lean4-audit.txt \
+            results/lean4-multi-kernel.txt \
+            results/citation-audit.json \
+            results/07_castration_ablation_13vec.csv > SHA256SUMS
+          cat SHA256SUMS
+      - name: Upload SHA256SUMS workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-sha256sums
+          path: SHA256SUMS
+      - name: Attest Release Build Provenance (SLSA / Rekor)
+        uses: actions/attest-build-provenance@v2
+        continue-on-error: true
+        with:
+          subject-path: |
+            dist/Donahue_2026_autophage.pdf
+            dist/arxiv_submission.tar.gz
+            CHECKSUMS.sha256
+            SHA256SUMS
+      - name: Publish GitHub Release on Tag Push (Plain Unsigned Tag per R1)
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME}"
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release upload "$TAG" \
+              dist/Donahue_2026_autophage.pdf \
+              dist/arxiv_submission.tar.gz \
+              CHECKSUMS.sha256 \
+              CHECKSUMS.sha256.tsr \
+              CHECKSUMS.sha256.ots \
+              SHA256SUMS \
+              --clobber
+          else
+            gh release create "$TAG" \
+              dist/Donahue_2026_autophage.pdf \
+              dist/arxiv_submission.tar.gz \
+              CHECKSUMS.sha256 \
+              CHECKSUMS.sha256.tsr \
+              CHECKSUMS.sha256.ots \
+              SHA256SUMS \
+              --title "AUTOPHAGE ${TAG}" \
+              --notes "Automated release for AUTOPHAGE ${TAG} with frozen AMS-LaTeX preprint PDF, clean-room arXiv tarball, SHA-256 manifests, RFC 3161 (.tsr) + OpenTimestamps (.ots) proofs, and SLSA provenance attestation."
+          fi

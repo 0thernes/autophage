@@ -1,6 +1,6 @@
-# Hardening Log — AUTOPHAGE v1.4.0 (3-Cycle Adversarial Audit)
+# Hardening Log — AUTOPHAGE v1.5.0 (4-Cycle Adversarial Audit)
 
-Every finding discovered across Cycles 1–3 is classified into **exactly one** of the 10 Build Standard v1.2.0 finding classes (`bug`, `error`, `issue`, `problem`, `concern`, `dilemma`, `conflict`, `gap`, `hole`, `blindspot`) per Rule R7.
+Every finding discovered across Cycles 1–4 is classified into **exactly one** of the 10 Build Standard v1.2.0 finding classes (`bug`, `error`, `issue`, `problem`, `concern`, `dilemma`, `conflict`, `gap`, `hole`, `blindspot`) per Rule R7.
 
 ## Cycle 1 — Core Engine, Thermodynamics & Lean Kernel Purity (`v1.0.0` → `v1.3.0`)
 
@@ -32,3 +32,12 @@ Every finding discovered across Cycles 1–3 is classified into **exactly one** 
 | **H-14** | `bug` | Visual inspection of rendered `dist/Donahue_2026_autophage.pdf` caught `\nolinkurl` stripping internal spaces inside 26 multi-word `\code{...}` / `\tcode{...}` spans (e.g., `lakecomparator`). | Added `\PassOptionsToPackage{obeyspaces}{url}` before `\usepackage{xurl}` in `paper/main.tex`, rebuilt PDF & clean-room arXiv tarball (`0` Overfull `\hbox`), visually verified rendered PNG, and refreshed `CHECKSUMS.sha256`. |
 
 **Correction (2026-11-26):** H-07 and H-13 above count the local Windows replay as five independent kernels. Of the checkers `scripts/verify_lean_multikernel.ps1` runs, `lean4`, `leanchecker` and `leanchecker-paranoid` replay with the Lean reference kernel; only `nanoda_bin`, `con-leche` and `con-ron` are independent implementations. See `README.md` and `LIMITATIONS.md`.
+
+## Cycle 4 — Deep Hardening: ASan AVX-512 Fix, Lean Adversarial Suite, Errata Closure & Playbook v1.3 (`v1.5.0`)
+
+| ID | Class | Summary | Concrete Fix & Verification |
+|---|---|---|---|
+| **H-15** | `bug` | Ubuntu CI run `#45904159100` crashed with `AddressSanitizer: SEGV` at `src/metrology_ovbs.c:164` (`metrology_excision_regen_cell`) due to GCC PR101000 (`-O3 -march=native -fsanitize=address` emitting aligned 64B `vmovdqa64` stores into 32B-aligned ASan FakeStack `+0x20` frames on AVX-512 runners). | Added C11 `AP_ALIGN64` (`_Alignas(64)`) to all 64B/128B stack genome buffers (verified `__asan_stack_malloc_2` under `znver4 + ASan`), hardened `build_linux.sh` (`-march=x86-64`, `-mno-avx512f` under sanitizer), added B07 regression **Gate `T19`**, and added `--sysroot` to `build.ps1`. |
+| **H-16** | `hole` | `T30_second_law_monotone_and_noise_gate` proved only free-`Nat` `sink ≤ sink + rad ∧ 0 * x = 0`, and repository lacked dedicated `AdversarialTests.lean` refutations and live negative Lean tamper testing. | Replaced `T30` with constructive multi-step `T30_ledger_heat_sink_monotone_and_zero_weight_gate` over `Spec.lean`'s `LedgerState`/`applyTransfers`, added `lean/AdversarialTests.lean` (`AT01`–`AT08` → `56/56` declarations), and added CI-enforced `scripts/test_lean_negative.py` (`5/5` rejected). |
+| **H-17** | `error` | Five wording/scope errors persisted in frozen `paper/main.tex` (`v1.4.0`) after the `2026-11-26 statement audit` (Toffoli popcount scope, elementary helper classification, `Gate Txx` vs. `Lean Txx`, Landauer wording, and `Spec.lean`/textbook attribution). | Corrected all 5 items in `paper/main.tex` (`v1.5.0`), upgraded `scripts/check_citations.py` to verify Crossref/DataCite title/author/year/retraction alignment (`17/17` PASS in `results/citation-audit.json`), rebuilt PDF (`0` Overfull `\hbox`) & clean-room arXiv tarball, and logged closure in `ERRATA.md`. |
+| **H-18** | `gap` | Missing interactive Lean Blueprint / GitHub Pages portal, automated tag release workflow, FAIR metadata (`Croissant`/`RO-Crate`/`CodeMeta`), Datasheet, Submission Readiness matrix, REUSE/SPDX, and cryptographic RFC 3161 + Bitcoin OTS timestamps. | Added `docs/index.html`, `docs/blueprint.html`, `scripts/build_blueprint.py`, `scripts/check_blueprint.py`, `.github/workflows/pages.yml`, `.github/workflows/release.yml`, `croissant.json`, `ro-crate-metadata.json`, `codemeta.json`, `docs/DATASHEET.md`, `SUBMISSION_READINESS.md`, `REUSE.toml`, `LICENSES/`, and `scripts/stamp_timestamps.py` (DigiCert `.tsr` + 3-calendar `.ots` verified in CI). |

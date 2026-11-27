@@ -1,4 +1,4 @@
-name: AUTOPHAGE v1.4.0 CI (Cross-Platform C11, Sanitizers, 6-Kernel Lean 4.35, Paper & Security)
+name: AUTOPHAGE v1.5.0 CI (Cross-Platform C11, Sanitizers, 6-Kernel Lean 4.35, Paper & Security)
 
 on:
   push:
@@ -13,11 +13,11 @@ permissions:
 
 jobs:
   c11-linux:
-    name: Linux C11 (-Werror, 18 Gates, 6 Mutants, ASan/UBSan, prop_check)
+    name: Linux C11 (-Werror, 19 Gates, 6 Mutants, ASan/UBSan, Blueprint & Timestamps)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Compile C11 Engine (-Wall -Wextra -Werror) & Run 18-Gate Falsification Suite
+      - name: Compile C11 Engine (-Wall -Wextra -Werror) & Run 19-Gate Falsification Suite
         run: |
           set -euo pipefail
           AUTOPHAGE_CI_PORTABLE=1 bash build_linux.sh
@@ -25,22 +25,24 @@ jobs:
         run: |
           set -euo pipefail
           AUTOPHAGE_CI_PORTABLE=1 AUTOPHAGE_SANITIZE=1 bash build_linux.sh
-      - name: Run Dual-Kernel Parity Benchmark & Independent Property Checks
+      - name: Run Dual-Kernel Parity Benchmark, Property, Axiom, Blueprint & Timestamp Checks
         run: |
           set -euo pipefail
           ./bin/autophage_linux bench --epochs 200 --size 32
           python3 scripts/prop_check.py
           python3 scripts/check_readme_axioms.py
+          python3 scripts/check_blueprint.py
           python3 scripts/check_citations.py --offline
+          python3 scripts/stamp_timestamps.py --verify
           node --check web/server.mjs
           node --check web/app.js
 
   c11-windows:
-    name: Windows C11 (Clang + 18 Gates + 6 Mutants + prop_check)
+    name: Windows C11 (GCC -Werror, 19 Gates, 6 Mutants, prop_check & Blueprint)
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Compile C11 Engine (Portable Win64 Clang/GCC) & Run 18-Gate Suite
+      - name: Compile C11 Engine (Portable Win64 GCC) & Run 19-Gate Suite
         shell: pwsh
         run: |
           $ErrorActionPreference = "Stop"
@@ -56,11 +58,13 @@ jobs:
           if ($rc -ne 0) { exit $rc }
           python scripts/prop_check.py
           python scripts/check_readme_axioms.py
+          python scripts/check_blueprint.py
+          python scripts/stamp_timestamps.py --verify
           node --check web/server.mjs
           node --check web/app.js
 
   lean-6kernel:
-    name: Pure Lean 4.35.0 — 48 Theorems & 6-Kernel Palomar Comparator
+    name: Pure Lean 4.35.0 — 56 Theorems, 6-Kernel Palomar Comparator & Negative Tamper Rejection
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -70,7 +74,7 @@ jobs:
         run: |
           curl -sSf https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh | sh -s -- -y --default-toolchain none
           echo "$HOME/.elan/bin" >> "$GITHUB_PATH"
-      - name: Build AutophageProofs, Solution & Challenge + Audit All 48 Axioms
+      - name: Build AutophageProofs, AdversarialTests, Solution & Challenge + Audit All 56 Axioms
         working-directory: lean
         run: |
           set -euo pipefail
@@ -80,12 +84,16 @@ jobs:
           cat /tmp/lean4-audit.txt
           COUNT=$(grep -cE "depends on axioms:|does not depend on any axioms" /tmp/lean4-audit.txt)
           echo "Audited theorem count: $COUNT"
-          test "$COUNT" -eq 48
+          test "$COUNT" -eq 56
           if grep -E "sorryAx|ofReduceBool|trustCompiler|_native" /tmp/lean4-audit.txt; then
             echo "FORBIDDEN AXIOM DETECTED" >&2
             exit 1
           fi
-      - name: Run All 6 Independent Kernels (leanchecker-paranoid, lean4lean, nanoda_bin, con-leche, con-ron + comparator)
+      - name: Run Live Negative Elaboration & Axiom-Tamper Rejection Harness
+        run: |
+          set -euo pipefail
+          python3 scripts/test_lean_negative.py
+      - name: Run 6-Kernel Palomar Checkers & Bubblewrap Challenge/Solution Comparator
         working-directory: lean
         run: |
           set -euo pipefail
@@ -111,7 +119,7 @@ jobs:
       - name: Generate CI SHA256SUMS
         run: |
           set -euo pipefail
-          sha256sum dist/Donahue_2026_autophage.pdf dist/arxiv_submission.tar.gz results/lean4-audit.txt results/lean4-multi-kernel.txt results/07_castration_ablation_13vec.csv > SHA256SUMS
+          sha256sum dist/Donahue_2026_autophage.pdf dist/arxiv_submission.tar.gz results/lean4-audit.txt results/lean4-multi-kernel.txt results/citation-audit.json results/07_castration_ablation_13vec.csv > SHA256SUMS
           cat SHA256SUMS
       - name: Attest Build Provenance (SLSA)
         uses: actions/attest-build-provenance@v2

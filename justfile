@@ -1,14 +1,18 @@
-# AUTOPHAGE v1.4.0 — One-Word Task Runner (Build Standard v1.2.0)
+# AUTOPHAGE v1.5.0 — One-Word Task Runner (Build Standard v1.2.0)
 set shell := ["bash", "-cu"]
 set windows-shell := ["pwsh", "-NoProfile", "-Command"]
 
-# Full clean-clone reproduction: native C11 build, 18/18 gates, 6/6 mutants, prop_check, 48 Lean proofs, paper & audit
+# Full clean-clone reproduction: native C11 build, 19/19 gates, 6/6 mutants, prop_check, 56 Lean proofs, negative tests, blueprint, timestamps, paper & audit
 [windows]
 reproduce:
     pwsh -NoProfile -ExecutionPolicy Bypass -File build.ps1
     pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/verify_lean_multikernel.ps1
+    python scripts/test_lean_negative.py
     python scripts/prop_check.py
     python scripts/check_readme_axioms.py
+    python scripts/build_blueprint.py
+    python scripts/check_blueprint.py
+    python scripts/stamp_timestamps.py --verify
     python scripts/check_citations.py
     python scripts/build_paper.py
     pwsh -NoProfile -File scripts/Audit-Repo.ps1
@@ -16,13 +20,17 @@ reproduce:
 [unix]
 reproduce:
     bash build_linux.sh
+    python3 scripts/test_lean_negative.py
     python3 scripts/prop_check.py
     python3 scripts/check_readme_axioms.py
+    python3 scripts/build_blueprint.py
+    python3 scripts/check_blueprint.py
+    python3 scripts/stamp_timestamps.py --verify
     python3 scripts/check_citations.py
     python3 scripts/build_paper.py
     bash scripts/audit-repo.sh .
 
-# Native C11 build + 18-gate bare-metal falsification suite
+# Native C11 build + 19-gate bare-metal falsification suite
 [windows]
 build:
     pwsh -NoProfile -ExecutionPolicy Bypass -File build.ps1 -SkipLean
@@ -31,20 +39,24 @@ build:
 build:
     bash build_linux.sh
 
-# Run falsification suite + Python property-based checks (`prop_check`)
+# Run falsification suite + Python property-based checks + blueprint & timestamp checks
 [windows]
 test:
     pwsh -NoProfile -ExecutionPolicy Bypass -File build.ps1 -SkipLean
     python scripts/prop_check.py
     python scripts/check_readme_axioms.py
+    python scripts/check_blueprint.py
+    python scripts/stamp_timestamps.py --verify
 
 [unix]
 test:
     bash build_linux.sh
     python3 scripts/prop_check.py
     python3 scripts/check_readme_axioms.py
+    python3 scripts/check_blueprint.py
+    python3 scripts/stamp_timestamps.py --verify
 
-# Linux AddressSanitizer + UndefinedBehaviorSanitizer build & test (B16)
+# Linux AddressSanitizer + UndefinedBehaviorSanitizer build & test (B16 + B07 Gate T19)
 [unix]
 sanitize:
     AUTOPHAGE_SANITIZE=1 AUTOPHAGE_CI_PORTABLE=1 bash build_linux.sh
@@ -70,16 +82,23 @@ lint:
     node --check web/app.js
     if (Get-Command ruff -ErrorAction SilentlyContinue) { ruff check scripts/ }
 
-# Pure Lean 4.35.0 build & multi-kernel Palomar verification
+# Pure Lean 4.35.0 build, multi-kernel Palomar verification & negative tamper tests
 [windows]
 lean:
     pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/verify_lean_multikernel.ps1
+    python scripts/test_lean_negative.py
 
 [unix]
 lean:
     cd lean && lake build && lake build Challenge && lake env lean VerifyAxioms.lean > ../results/lean4-audit.txt && lake check --paranoid && lake comparator --config comparator.json --paranoid
+    python3 scripts/test_lean_negative.py
 
-# Compile AMS-LaTeX white paper + clean-room arXiv tarball verification
+# Build & verify interactive Lean 4.35.0 Blueprint & GitHub Pages portal
+blueprint:
+    python3 scripts/build_blueprint.py
+    python3 scripts/check_blueprint.py
+
+# Compile AMS-LaTeX white paper + live Crossref/DataCite citation audit + clean-room arXiv tarball verification
 paper:
     python3 scripts/check_citations.py
     python3 scripts/build_paper.py

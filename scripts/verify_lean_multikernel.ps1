@@ -17,8 +17,17 @@ try {
 
     $axiomsRaw = & "$elan\lake.exe" env lean VerifyAxioms.lean 2>&1
     if ($LASTEXITCODE -ne 0) { throw "VerifyAxioms.lean failed ($LASTEXITCODE)" }
-    $axiomLines = @($axiomsRaw | ForEach-Object { "$_".Trim() } | Where-Object { $_ -ne "" })
-    if ($axiomLines.Count -ne 48) { throw "Expected 48 axiom lines, got $($axiomLines.Count)" }
+    $axiomLines = New-Object System.Collections.Generic.List[string]
+    foreach ($rawLn in $axiomsRaw) {
+        $s = "$rawLn"
+        if ([string]::IsNullOrWhiteSpace($s)) { continue }
+        if ($s -match '^\s+' -and $axiomLines.Count -gt 0) {
+            $axiomLines[$axiomLines.Count - 1] = ($axiomLines[$axiomLines.Count - 1] + " " + $s.Trim())
+        } else {
+            $axiomLines.Add($s.Trim())
+        }
+    }
+    if ($axiomLines.Count -ne 56) { throw "Expected 56 axiom lines, got $($axiomLines.Count)" }
     [System.IO.File]::WriteAllText((Join-Path $resDir "lean4-audit.txt"), ($axiomLines -join "`n") + "`n", $utf8)
 
     Write-Host "[2/6] leanchecker --fresh Solution ..."
@@ -29,10 +38,10 @@ try {
     $lcpOut = (& "$elan\lake.exe" env leanchecker-paranoid --fresh Solution 2>&1) -join "`n"
     if ($LASTEXITCODE -ne 0) { throw "leanchecker-paranoid failed: $lcpOut" }
 
-    Write-Host "[4/6] Exporting all 48 theorems via leanexport ..."
+    Write-Host "[4/6] Exporting all 56 theorems via leanexport ..."
     $cfg = Get-Content -LiteralPath "comparator.json" -Raw | ConvertFrom-Json
     $thms = @($cfg.theorem_names)
-    $expFile = Join-Path $env:TEMP "autophage_v140_sol.export"
+    $expFile = Join-Path $env:TEMP "autophage_v150_sol.export"
     $expRaw = & "$elan\lake.exe" env leanexport Solution -- @thms
     if ($LASTEXITCODE -ne 0) { throw "leanexport failed ($LASTEXITCODE)" }
     [System.IO.File]::WriteAllText($expFile, ($expRaw -join "`n") + "`n", $utf8)
@@ -45,7 +54,7 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "con-ron failed: $conRonOut" }
 
     Write-Host "[6/6] nanoda_bin (strict unpermitted_axiom_hard_error: true) ..."
-    $nanodaCfgPath = Join-Path $env:TEMP "autophage_v140_nanoda.json"
+    $nanodaCfgPath = Join-Path $env:TEMP "autophage_v150_nanoda.json"
     $nanodaCfg = [ordered]@{
         export_file_path             = ($expFile -replace '\\', '/')
         use_stdin                    = $false
@@ -60,46 +69,49 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "nanoda_bin failed: $nanodaOut" }
 
     $transcript = @"
-# AUTOPHAGE v1.4.0 — Multi-Kernel Lean 4.35.0 Verification Transcript
+# AUTOPHAGE v1.5.0 — Multi-Kernel Lean 4.35.0 Verification Transcript
 # Toolchain: leanprover/lean4:v4.35.0 (Palomar verification stack)
 # Pure definitions: lean/AutophageProofs/Spec.lean (0 proofs, 0 sorry)
-# Isolated specification: lean/Challenge.lean (imports ONLY AutophageProofs.Spec, 48 theorem specs)
-# Verified solution: lean/Solution.lean (48/48 sorry-free theorems, 0 admit, 0 native_decide, 0 bv_decide)
-# Comparator manifest: lean/comparator.json (all 48 theorems)
+# Isolated specification: lean/Challenge.lean (imports ONLY AutophageProofs.Spec, 56 theorem specs)
+# Verified solution: lean/Solution.lean (56/56 sorry-free theorems: 48 AutophageProofs + 8 AdversarialTests, 0 admit, 0 native_decide, 0 bv_decide)
+# Comparator manifest: lean/comparator.json (all 56 theorems)
 # Formalization metadata: lean/formalization.yaml (v0.4 schema)
+# Kernel independence note: lean4, leanchecker, and leanchecker-paranoid replay with the Lean reference kernel;
+#   nanoda_bin, con-leche, and con-ron are 3 independent Rust kernel implementations executed locally on Windows;
+#   lean4lean + bubblewrap (bwrap) lake check --paranoid / lake comparator --paranoid run on Ubuntu Linux CI.
 
-[KERNEL 1/6] lean4 kernel (lake build + lake build Challenge + lake env lean VerifyAxioms.lean)
+[CHECKER 1/6 — Reference kernel] lean4 kernel (lake build + lake build Challenge + lake env lean VerifyAxioms.lean)
   Result: PASS (exit 0)
   Theorems audited: $($axiomLines.Count)
   Allowed axioms only: [propext, Classical.choice, Quot.sound]
   Forbidden axioms (sorryAx, Lean.ofReduceBool, Lean.trustCompiler, _native, custom): 0
   Audit log: results/lean4-audit.txt
 
-[KERNEL 2/6] leanchecker --fresh Solution
+[CHECKER 2/6 — Reference kernel replay] leanchecker --fresh Solution
   Command: lake env leanchecker --fresh Solution
   Result: PASS (exit 0, Windows x86_64 local run; also re-run on Ubuntu CI)
 
-[KERNEL 3/6] leanchecker-paranoid --fresh Solution
+[CHECKER 3/6 — Reference kernel paranoid replay] leanchecker-paranoid --fresh Solution
   Command: lake env leanchecker-paranoid --fresh Solution
   Result: PASS (exit 0, Windows x86_64 local run; also re-run on Ubuntu CI)
 
-[KERNEL 4/6] nanoda_bin (independent Rust Lean 4 kernel, unpermitted_axiom_hard_error=true)
-  Export: lake env leanexport Solution -- <48 theorems> ($expSizeMB MB)
+[CHECKER 4/6 — Independent Rust kernel 1/3] nanoda_bin (unpermitted_axiom_hard_error=true)
+  Export: lake env leanexport Solution -- <56 theorems> ($expSizeMB MB)
   Config: permitted_axioms=["propext","Classical.choice","Quot.sound"], unpermitted_axiom_hard_error=true, nat_extension=true, string_extension=true
   Output: $nanodaOut
   Result: PASS (exit 0, Windows x86_64 local run; also re-run in lake check --paranoid on Ubuntu CI)
 
-[KERNEL 5/6] con-leche --verified (independent verified Rust kernel)
+[CHECKER 5/6 — Independent Rust kernel 2/3] con-leche --verified
   Command: lake env con-leche --verified <export>
   Output: $conLecheOut
   Result: PASS (exit 0, Windows x86_64 local run; also re-run in lake check --paranoid on Ubuntu CI)
 
-[KERNEL 6/6] con-ron --verified + lean4lean + bubblewrap comparator
+[CHECKER 6/6 — Independent Rust kernel 3/3 + Ubuntu Linux lean4lean/bwrap comparator]
   con-ron --verified (Windows local): $conRonOut -> PASS (exit 0)
   lean4lean + lake check --paranoid + lake comparator --config comparator.json --paranoid:
     Note: On Windows, lean4lean.exe cannot parse Windows .olean path headers and lake check /
-    lake comparator require Linux bubblewrap (bwrap). Full 6/6 kernel verification + isolated
-    Challenge/Solution comparator runs automatically on Ubuntu Linux in .github/workflows/ci.yml.
+    lake comparator require Linux bubblewrap (bwrap). Full 6-checker Palomar acceptance (including
+    independent lean4lean) + isolated Challenge/Solution comparator run on Ubuntu Linux in .github/workflows/ci.yml.
 "@
     [System.IO.File]::WriteAllText((Join-Path $resDir "lean4-multi-kernel.txt"), $transcript.Trim() + "`n", $utf8)
     Remove-Item -Force -LiteralPath $expFile, $nanodaCfgPath -ErrorAction SilentlyContinue

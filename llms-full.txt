@@ -1,13 +1,15 @@
-# AUTOPHAGE v1.4.0 — Full Context Index for LLMs (`llms-full.txt`)
+# AUTOPHAGE v1.5.0 — Full Context Index for LLMs (`llms-full.txt`)
 
 ## 1. Identity & Legal
-- **Project:** AUTOPHAGE (`v1.4.0`, C11 ABI `0x00010400`)
+- **Project:** AUTOPHAGE (`v1.5.0`, C11 ABI `0x00010500`)
 - **Repository:** `https://github.com/0thernes/autophage`
+- **Interactive Portal & Blueprint:** `https://0thernes.github.io/autophage/`
+- **Software Heritage Snapshot:** `swh:1:snp:6ea23803655df1f9679deb98d44efbf53321a393`
 - **Author:** Alexander Stephen Donahue — Independent Researcher, Spokane, WA, USA
 - **ORCID:** `0009-0006-8168-9648` (`https://orcid.org/0009-0006-8168-9648`)
 - **Contact:** `0_0@0thernes.art` · `https://0thernes.art`
-- **Licenses:** Apache-2.0 (`LICENSE`) for C11, Lean 4.35.0, scripts, web bridge, CI; CC-BY-4.0 (`LICENSE-DOCS`) for white paper, PDFs, figures, and documentation.
-- **Peer-Review Status:** Independent research software and preprint; not externally peer-reviewed.
+- **Licenses:** Apache-2.0 (`LICENSE`, `LICENSES/Apache-2.0.txt`) for C11, Lean 4.35.0, scripts, web bridge, CI; CC-BY-4.0 (`LICENSE-DOCS`, `LICENSES/CC-BY-4.0.txt`) for white paper, PDFs, figures, and documentation (`REUSE.toml`).
+- **Peer-Review Status:** Independent research software and preprint; **not externally peer-reviewed**.
 
 ## 2. Technical Architecture Summary
 - **Organism Layout (`AutophageCell`, 256 bytes = 4 × 64B cache lines):**
@@ -15,30 +17,31 @@
   - Line 1 (`0x40..0x7F`): 64-byte germline Strand $\alpha$ translated via `VGF2P8AFFINEQB` + `VPXOR`.
   - Line 2 (`0x80..0xBF`): 64-byte somatic scratchpad & earned 2×2 Cauchy MDS parity over $\mathbb{F}_{2^8}$.
   - Line 3 (`0xC0..0xFF`): 4 persistent 64-bit somatic registers, metrology counters, and per-cell conserved `membrane_pot_uq`.
-- **Dual-ABI x86-64 RWX JIT (`src/jit_x86_64.c`):** Single-pass zero-allocation compiler targeting Win64 PE and Linux SysV AMD64 with 4,096-slot 16 MiB executable arena, CPUID scalar trampoline fallback for non-GFNI hosts, hardware `& 0x7F` / `& 0x78` memory masks, and hardware gas countdown `sub r15, 1; jle`. Verified `0`-bit diff against `jit_reference_oracle` across 5,000 genomes (`T04`), 60-epoch worlds (`T09`), cross-kernel `.apbin` snapshots (`T11`), and 200-epoch benchmarks (`SHA-256 = 4bd29f39e96270cfbc659e1970e1ab875c4c0e807d93e48ef05b45e373c20612`).
-- **Thermodynamic & Statistical Rigor:** 5-pool exact integer micro-quantum conservation (`0 uq` residual) + Kahan-Neumaier FP64 (`<= 2.02e-16` drift, `-ffp-contract=off`), strictly monotone Second-Law heat sink (`0` violations), 4-domain `Philox4x32-10` isolation, zero post-warmup allocations (`T12`), strict observer independence (`T10`), and 13 smooth Omega restraint vectors (`results/07_castration_ablation_13vec.csv`).
+- **Dual-ABI x86-64 RWX JIT (`src/jit_x86_64.c`):** Single-pass zero-allocation compiler targeting Win64 PE and Linux SysV AMD64 with 4,096-slot 16 MiB executable arena, CPUID scalar trampoline fallback for non-GFNI hosts, hardware `& 0x7F` / `& 0x78` memory masks, and hardware gas countdown `sub r15, 1; jle`. Verified `0`-bit diff against `jit_reference_oracle` across 5,000 genomes (Gate `T04`), 60-epoch worlds (Gate `T09`), cross-kernel `.apbin` snapshots (Gate `T11`), and 200-epoch benchmarks (`SHA-256 = 4bd29f39e96270cfbc659e1970e1ab875c4c0e807d93e48ef05b45e373c20612`).
+- **Bit-Erasure Accounting, Conservation & Alignment Hardening:** 5-pool exact integer micro-quantum conservation (`0 uq` residual) + Kahan-Neumaier FP64 (`<= 2.02e-16` drift, `-ffp-contract=off`), `0` observed heat-sink decreases (Gate `T07`), 4-domain `Philox4x32-10` isolation (Gate `T08`), zero post-warmup allocations (Gate `T12`), strict observer independence (Gate `T10`), B07 AVX-512 ASan FakeStack 64B buffer alignment regression (Gate `T19`), and 13 smooth Omega restraint vectors (`results/07_castration_ablation_13vec.csv`).
 
-## 3. Formal Verification Summary (Lean 4.35.0 — 48 Pure-Kernel Theorems)
-- **Files:** `lean/AutophageProofs/Spec.lean`, `lean/AutophageProofs.lean`, `lean/Challenge.lean`, `lean/Solution.lean`, `lean/VerifyAxioms.lean`, `lean/comparator.json`, `lean/formalization.yaml`.
-- **Theorem Groups:**
+## 3. Formal Verification Summary (Lean 4.35.0 — 56 Pure-Kernel Declarations)
+- **Files:** `lean/AutophageProofs/Spec.lean`, `lean/AutophageProofs.lean`, `lean/AdversarialTests.lean`, `lean/Challenge.lean`, `lean/Solution.lean`, `lean/VerifyAxioms.lean`, `lean/comparator.json`, `lean/formalization.yaml`.
+- **Theorem Groups (all proving facts about `Spec.lean` models, not emitted x86-64 machine code):**
   - Part I (`T01`–`T07`, 9 thms): Intel `VGF2P8AFFINEQB` identity, bias involution, universal XOR-linearity, asymmetric Weismann inverse round-trip, universal `Fin 8` row-swap and row-shear involutions.
   - Part II (`T08`–`T16a`, 12 thms): `clmul8` ring laws, exact 30 irreducible / 226 reducible degree-8 polynomials matching C11 `GF2_IRRED_POLY8[30]`, Dobzhansky-Muller zero divisor (`0x03 * 0xFF = 0` mod `0x01`), Cauchy determinant invertibility and exact 2×2 MDS recovery across ALL 30 fields (`1,966,080` pairs).
-  - Part III (`T17`–`T22`, 7 thms): 64-bit Toffoli/Fredkin involutions, XOR/AND/`popcnt64` conservation, Landauer zero-change & exact `AND` bit erasure.
-  - Part IV (`T23`–`T25a`, 4 thms): 2-adic ultrametric self-zero, symmetry, mask triangle inequality, and exact `tzcnt32` Strong Triangle Inequality.
-  - Part V (`T26`–`T30`, 6 thms): JIT byte (`< 128`) and qword (`off + 8 <= 128`) mask safety, gas termination, single- and multi-step 5-pool ledger conservation, Second-Law monotonicity & white-noise zero-gate.
+  - Part III (`T17`–`T22`, 7 thms): 64-bit Toffoli/Fredkin involutions, Fredkin-only XOR/AND/`popcnt64` conservation (`T19`–`T20a`), elementary helper `T21` (`x ^^^ x = 0`), and exact `AND` bit erasure (`T22`).
+  - Part IV (`T23`–`T25a`, 4 thms): Elementary XOR helpers `T23`/`T24` plus exact `tzcnt32` 2-adic Strong Triangle Inequality (`T25`, `T25a`).
+  - Part V (`T26`–`T30`, 6 thms): JIT byte (`< 128`) and qword (`off + 8 <= 128`) mask arithmetic, elementary helper `T28` (`g - 1 < g`) and `T29` (`(a-t)+(b+t)=a+b`), multi-step 5-pool ledger conservation (`T29a`), and constructive multi-step radiated-heat sink monotonicity + conservation + `oviGate 0 raw_ovi = 0` (`T30` over `LedgerState`/`applyTransfers`).
   - Part VI (`T39`–`T42`, 4 thms): Philox 8-tuple domain disjointness, 3-tier seed firewall disjointness, OEE archive monotonicity, Weismann soma-only germline isolation.
-  - Part VII (`T43`–`T48`, 6 thms): Concrete Non-Vacuity witnesses and sharp adversarial negative-boundary refutations.
-- **Axioms:** Strictly `⊆ {propext, Classical.choice, Quot.sound}`; `0` `sorry` in `AutophageProofs`/`Solution`, `0` `native_decide`, `0` `bv_decide`.
-- **Multi-Kernel Verification:** Verified locally on Windows via `lean4`, `leanchecker --fresh`, `leanchecker-paranoid --fresh`, `nanoda_bin` (`unpermitted_axiom_hard_error: true`), `con-leche --verified`, `con-ron --verified`, and across all `6/6` kernels (+ `lean4lean` + `lake check --paranoid` + `lake comparator --paranoid`) on Ubuntu Linux in `.github/workflows/ci.yml`.
+  - Part VII (`T43`–`T48`, 6 thms): Concrete Non-Vacuity witnesses and sharp negative-boundary refutations.
+  - Part VIII (`AT01`–`AT08`, 8 thms in `lean/AdversarialTests.lean`): Concrete `¬P` false-variant refutations (Toffoli popcount failure, singular rank-7 ribosome, reducible `0x01` divisor/Cauchy failure, unguarded ledger transfer/negative radiation, nonzero `AND` erasure, wrong-mask `PEXT`/`PDEP` bound, unconstrained Philox/seed bands, germline write breaking isolation).
+- **Axioms:** Strictly `⊆ {propext, Classical.choice, Quot.sound}`; `0` `sorry` in `AutophageProofs`/`AdversarialTests`/`Solution`, `0` `native_decide`, `0` `bv_decide`.
+- **Multi-Kernel Verification & Negative Tests:** Checked locally on Windows by the Lean reference kernel (`lean4`, `leanchecker --fresh`, `leanchecker-paranoid --fresh`) + 3 independent Rust checkers (`nanoda_bin`, `con-leche --verified`, `con-ron --verified`), and verified across all 6 Palomar checkers (`+ lean4lean` + `bubblewrap` `lake check --paranoid` + `lake comparator --paranoid`) plus `5/5` live negative elaboration & tamper rejections (`scripts/test_lean_negative.py`) on Ubuntu Linux in `.github/workflows/ci.yml`.
 
 ## 4. Epistemic Boundaries & Non-Retirement
 - **Mega-Atlas Cross-Check:** `0 / 1,900` overarching Unsolved Problems Mega-Atlas open problems are solved or retired. Related open problems (`AI-045`, `BIO-001`, `CHEM-052`, `SYS-009`) remain **OPEN**; AUTOPHAGE provides formal discrete algebraic invariants and an empirical x86-64 testbed only.
-- **Not Formalized in Lean:** Raw x86-64 machine-code encoding (`src/jit_x86_64.c`), IEEE-754 Kahan-Neumaier floating-point drift, and C11 runtime memory safety (verified via 18 gates, 6 planted mutants, 1M canary fuzzing, libFuzzer, and ASan/UBSan).
+- **Not Formalized in Lean:** Raw x86-64 machine-code encoding (`src/jit_x86_64.c`), IEEE-754 Kahan-Neumaier floating-point drift, and C11 runtime memory safety (verified via 19 gates, 6 planted mutants, 1M canary fuzzing, libFuzzer, and ASan/UBSan).
 
 ## 5. Key Commands
 - Windows full build & verify: `pwsh -NoProfile -ExecutionPolicy Bypass -File build.ps1`
-- Windows 5-kernel Lean audit: `pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/verify_lean_multikernel.ps1`
-- Linux full build & verify: `bash build_linux.sh` (add `AUTOPHAGE_SANITIZE=1` for ASan/UBSan)
-- Property checks & axiom parity: `python scripts/prop_check.py && python scripts/check_readme_axioms.py`
+- Windows multi-kernel Lean audit + negative tests: `pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/verify_lean_multikernel.ps1 && python scripts/test_lean_negative.py`
+- Linux full build & verify: `bash build_linux.sh` (add `AUTOPHAGE_CI_PORTABLE=1 AUTOPHAGE_SANITIZE=1` for portable ASan/UBSan)
+- Property checks, axiom parity, blueprint & timestamps: `python scripts/prop_check.py && python scripts/check_readme_axioms.py && python scripts/check_blueprint.py && python scripts/stamp_timestamps.py --verify`
 - White paper & citations: `python scripts/check_citations.py && python scripts/build_paper.py`
 - Build Standard v1.2.0 self-audit: `pwsh -NoProfile -File scripts/Audit-Repo.ps1`

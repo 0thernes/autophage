@@ -1,29 +1,36 @@
-# AUTOPHAGE v1.4.0
+# AUTOPHAGE v1.5.0
 
-> Bare-metal polymorphic x86-64 Galois-field genetic engine in zero-dependency C11 (`VGF2P8AFFINEQB`, `PCLMULQDQ`, `BMI1/2`, `POPCNT`, live RWX JIT) with 48 Pure Lean 4.35.0 6-kernel Palomar proofs, 18-gate bare-metal falsification suite (+ 6 planted mutants), and companion AMS-LaTeX white paper. Author: Alexander Stephen Donahue (Independent Researcher, Spokane, WA, USA; ORCID 0009-0006-8168-9648). Dual license: Apache-2.0 (code/proofs) / CC-BY-4.0 (docs/paper).
+> Bare-metal polymorphic x86-64 Galois-field genetic engine in zero-dependency C11 (`VGF2P8AFFINEQB`, `PCLMULQDQ`, `BMI1/2`, `POPCNT`, live RWX JIT) with 56 Pure Lean 4.35.0 model declarations (`48` core/non-vacuity + `8` `AdversarialTests.lean` refutations `AT01`–`AT08`, 6-kernel Palomar stack in Ubuntu CI), 19-gate bare-metal falsification suite (+ 6 planted mutants + B07 ASan regression Gate `T19`), interactive Proof Blueprint portal (`https://0thernes.github.io/autophage/`), DigiCert RFC 3161 + Bitcoin OTS timestamps, FAIR metadata, and companion AMS-LaTeX white paper. Author: Alexander Stephen Donahue (Independent Researcher, Spokane, WA, USA; ORCID 0009-0006-8168-9648). Dual license: Apache-2.0 (code/proofs) / CC-BY-4.0 (docs/paper). Not peer-reviewed; 0/1,900 Mega-Atlas problems retired.
 
 ## Canonical Entry Points
-- [README.md](README.md): Overview, quickstart, usage, verbatim Lean 4.35.0 `#print axioms` output, and verified benchmark summary
+- [README.md](README.md): Overview, quickstart, usage, AI-assistance & CRediT disclosure, verbatim Lean 4.35.0 `#print axioms` output (56 declarations), and verified benchmark summary
 - [AGENTS.md](AGENTS.md): Canonical engineering rules, exact commands, and verification checklist
 - [CLAIMS.md](CLAIMS.md): Numbered claims ledger (`C1`–`C10`) with epistemic tiers and explicit refutation conditions
-- [LIMITATIONS.md](LIMITATIONS.md): Real-vs-metaphor boundary, formal proof scope limits, and performance tradeoffs
+- [LIMITATIONS.md](LIMITATIONS.md): Real-vs-metaphor boundary, formal proof scope limits, elementary helper list, and performance tradeoffs
+- [ERRATA.md](ERRATA.md): Historical audit log (`2026-11-26 statement audit`) and `v1.5.0` closure table
+- [SUBMISSION_READINESS.md](SUBMISSION_READINESS.md): Playbook v1.3 submission readiness & compliance matrix
 - [REPLICATION.md](REPLICATION.md): Clean-clone Windows and Linux replication protocol and dated log
 - [VERIFICATION.md](VERIFICATION.md): Complete empirical and formal verification ledger
 
-## Formal Verification & White Paper
+## Formal Verification, Interactive Blueprint & White Paper
+- [docs/index.html](docs/index.html) & [docs/blueprint.html](docs/blueprint.html): WCAG 2.2 AA, strict-CSP, zero-CDN interactive Lean 4.35.0 Proof Blueprint & GitHub Pages portal
 - [lean/AutophageProofs/Spec.lean](lean/AutophageProofs/Spec.lean): Pure definitions only (zero proofs, zero `sorry`)
-- [lean/AutophageProofs.lean](lean/AutophageProofs.lean): 48 Pure Lean 4.35.0 theorems (`T01`–`T30`, `T39`–`T48`, `0` `sorry`, `0` `native_decide`)
-- [lean/Challenge.lean](lean/Challenge.lean): Isolated statement-only Palomar specification
-- [lean/Solution.lean](lean/Solution.lean): Sorry-free Palomar solution export
+- [lean/AutophageProofs.lean](lean/AutophageProofs.lean): 48 Pure Lean 4.35.0 model theorems (`T01`–`T30`, `T39`–`T48`, `0` `sorry`, `0` `native_decide`)
+- [lean/AdversarialTests.lean](lean/AdversarialTests.lean): 8 concrete false-variant refutations (`AT01`–`AT08`, `0` `sorry`, `0` `native_decide`)
+- [lean/Challenge.lean](lean/Challenge.lean): Isolated statement-only Palomar specification (56 declarations)
+- [lean/Solution.lean](lean/Solution.lean): Sorry-free Palomar solution export (56 declarations)
 - [lean/formalization.yaml](lean/formalization.yaml): Machine-readable v0.4 formalization metadata
-- [docs/statement-fidelity.md](docs/statement-fidelity.md): Row-by-row Lean-to-C11/paper statement-fidelity matrix
+- [scripts/test_lean_negative.py](scripts/test_lean_negative.py): Live negative elaboration & `sorry`/axiom/`native_decide` tamper rejection harness
+- [docs/statement-fidelity.md](docs/statement-fidelity.md): Row-by-row Lean-to-C11/paper statement-fidelity matrix (distinguishing 5 elementary helpers from 51 substantive proofs/refutations)
 - [docs/MEGA_ATLAS_CROSSCHECK.md](docs/MEGA_ATLAS_CROSSCHECK.md): Non-retirement cross-check (`0/1,900` overarching problems retired)
-- [paper/main.tex](paper/main.tex): AMS-LaTeX white paper source (`dist/Donahue_2026_autophage.pdf`)
+- [paper/main.tex](paper/main.tex): AMS-LaTeX white paper source (`dist/Donahue_2026_autophage.pdf`, `dist/arxiv_submission.tar.gz`)
 
-## Source Code & Tests
-- [include/autophage_abi.h](include/autophage_abi.h): Flat C11 public ABI (`0x00010400`)
+## FAIR Metadata, Provenance & Source Code
+- [croissant.json](croissant.json), [ro-crate-metadata.json](ro-crate-metadata.json), [codemeta.json](codemeta.json), [docs/DATASHEET.md](docs/DATASHEET.md), [REUSE.toml](REUSE.toml): Machine-readable FAIR & dataset metadata
+- [CHECKSUMS.sha256](CHECKSUMS.sha256), [CHECKSUMS.sha256.tsr](CHECKSUMS.sha256.tsr), [CHECKSUMS.sha256.ots](CHECKSUMS.sha256.ots): SHA-256 manifest + DigiCert RFC 3161 & Bitcoin OTS timestamps
+- [include/autophage_abi.h](include/autophage_abi.h): Flat C11 public ABI (`0x00010500`)
 - [src/jit_x86_64.c](src/jit_x86_64.c): Dual-ABI Win64/SysV RWX x86-64 JIT + scalar reference oracle
 - [src/galois_math.c](src/galois_math.c): `VGF2P8AFFINEQB` $\mathbb{F}_2^{8\times 8}$ algebra, 30 irreducible degree-8 polynomials, 2×2 Cauchy MDS ECC
 - [src/soup_engine.c](src/soup_engine.c): 5-pool conserved energy ledger, Philox4x32-10 domain isolation, 13-vector Castration Lab
-- [test/test_falsification.c](test/test_falsification.c): 18-gate bare-metal falsification suite + 6 planted negative mutants
+- [test/test_falsification.c](test/test_falsification.c): 19-gate bare-metal falsification suite (incl. B07 ASan Gate `T19`) + 6 planted negative mutants
 - [test/fuzz_jit_libfuzzer.c](test/fuzz_jit_libfuzzer.c): libFuzzer differential JIT vs. scalar oracle harness

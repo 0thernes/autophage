@@ -14,6 +14,15 @@
 #define AUTOPHAGE_JIT_CACHE_SLOTS  4096u  /* Power of 2 */
 #define AUTOPHAGE_JIT_ARENA_BYTES  (AUTOPHAGE_JIT_CACHE_SLOTS * AUTOPHAGE_JIT_MAX_BYTES) /* 16 MiB RWX */
 
+/* Explicit 64-byte alignment for stack-allocated 64B/128B genome/tape buffers:
+ * prevents GCC AVX-512 LOCAL_ALIGNMENT vmovdqa64 + ASan 32-byte fake-stack redzone #GP
+ * (CI run #45904159100 regression fix, GCC PR 110027 / Build Standard B07). */
+#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 201112L
+  #define AP_ALIGN64 _Alignas(64)
+#else
+  #define AP_ALIGN64 __attribute__((aligned(64)))
+#endif
+
 /* Philox4x32-10 Domain Isolation IDs (Asmodensius P4 / HW16 / M002) */
 #define PRNG_DOMAIN_WORLD_EXOG     1u /* Environmental waves, cosmic rays, global shocks */
 #define PRNG_DOMAIN_ENTITY_INT     2u /* Organism-internal mutations, ribosome ops, mating */

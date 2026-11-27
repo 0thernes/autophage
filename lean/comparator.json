@@ -39,7 +39,7 @@
     "Autophage.T28_jit_gas_strictly_decreasing",
     "Autophage.T29_first_law_transfer_conservation",
     "Autophage.T29a_first_law_ledger_multistep",
-    "Autophage.T30_second_law_monotone_and_noise_gate",
+    "Autophage.T30_ledger_heat_sink_monotone_and_zero_weight_gate",
     "Autophage.T39_philox_domain_disjoint",
     "Autophage.T40_seed_firewall_3tier_disjoint",
     "Autophage.T41_oee_archive_monotone_growth",
@@ -49,7 +49,15 @@
     "Autophage.T45_nonvacuous_ledger_multistep_witness",
     "Autophage.T46_nonvacuous_seed_firewall_witness",
     "Autophage.T47_refute_reducible_poly_integral_domain",
-    "Autophage.T48_refute_unmasked_head_inbounds"
+    "Autophage.T48_refute_unmasked_head_inbounds",
+    "Autophage.AT01_refute_toffoli_popcnt_conserved",
+    "Autophage.AT02_refute_singular_ribosome_invertible",
+    "Autophage.AT03_refute_reducible_poly8_divisor_free",
+    "Autophage.AT04_refute_unguarded_ledger_transfer",
+    "Autophage.AT05_refute_and_mask_zero_erasure",
+    "Autophage.AT06_refute_wrong_mask_pext_pdep",
+    "Autophage.AT07_refute_unconstrained_philox_and_seed_bands",
+    "Autophage.AT08_refute_germline_write_isolated"
   ],
   "definition_names": [],
   "permitted_axioms": [

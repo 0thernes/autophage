@@ -76,7 +76,7 @@ double metrology_shannon_entropy(const uint8_t* data, size_t len) {
  */
 uint32_t metrology_causal_knockout_len(const AutophageWorld* world, const AutophageCell* cell) {
     if (!cell) return 0u;
-    uint8_t expressed[64];
+    AP_ALIGN64 uint8_t expressed[64];
     for (int i = 0; i < 64; i++) {
         expressed[i] = gf2_mat_apply_byte(cell->ribosome_mat, cell->genome[i], cell->ribosome_bias);
     }
@@ -87,7 +87,8 @@ uint32_t metrology_causal_knockout_len(const AutophageWorld* world, const Autoph
     uint32_t h0    = (uint32_t)(cell->regs[0] & 0x7Fu);
     uint32_t h1    = (uint32_t)(cell->regs[1] & 0x7Fu);
 
-    uint8_t base_a[128], base_b[128];
+    AP_ALIGN64 uint8_t base_a[128];
+    AP_ALIGN64 uint8_t base_b[128];
     memcpy(base_a, cell->genome, 128u);
     for (int k = 0; k < 128; k++) base_b[k] = (uint8_t)((k * 37 + 19) & 0xFF);
 
@@ -110,7 +111,8 @@ uint32_t metrology_causal_knockout_len(const AutophageWorld* world, const Autoph
     for (int pc = 0; pc < 64; pc++) {
         if (((cell->splice_mask >> pc) & 1ULL) == 0ULL) continue;
 
-        uint8_t ko_a[128], ko_b[128];
+        AP_ALIGN64 uint8_t ko_a[128];
+        AP_ALIGN64 uint8_t ko_b[128];
         memcpy(ko_a, cell->genome, 128u);
         for (int k = 0; k < 128; k++) ko_b[k] = (uint8_t)((k * 37 + 19) & 0xFF);
 
@@ -160,7 +162,7 @@ double metrology_excision_regen_cell(const AutophageWorld* world, const Autophag
     uint32_t cut = (64u * excise_pct) / 100u;
     if (cut == 0u) return 1.0;
 
-    uint8_t strand_a[64];
+    AP_ALIGN64 uint8_t strand_a[64];
     memcpy(strand_a, cell->genome, 64u);
     memset(strand_a, 0, cut);
 
@@ -547,7 +549,7 @@ int autophage_inspect_slot(const AutophageWorld* w, uint32_t slot, AutophageSpec
     out->assembly_index      = metrology_assembly_index(c->genome, 64u);
     out->causal_active_bytes = metrology_causal_knockout_len(w, c);
 
-    uint8_t local_code[AUTOPHAGE_JIT_MAX_BYTES];
+    AP_ALIGN64 uint8_t local_code[AUTOPHAGE_JIT_MAX_BYTES];
     uint32_t clen = jit_emit_readonly(local_code, sizeof(local_code),
                                       out->expressed_opcodes, c->splice_mask,
                                       w->cfg.restraints[RESTRAINT_NERFING]);

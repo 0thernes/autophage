@@ -1,7 +1,7 @@
 {
-  "title": "AUTOPHAGE v1.4.0: A Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Lean 4.35.0 Verification and 18-Gate Silicon Falsification",
+  "title": "AUTOPHAGE v1.5.0: A Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Lean 4.35.0 Verification and 19-Gate Silicon Falsification",
   "upload_type": "software",
-  "description": "Zero-dependency C11 bare-metal x86-64 Galois-field genetic engine with 48 Pure Lean 4.35.0 machine-checked theorems (6-kernel Palomar Challenge/Solution contract, zero Mathlib, zero sorry, zero native_decide), 18-gate bare-metal silicon falsification suite with 6 planted negative mutants, dual-kernel bit-exact SHA-256 parity across Win64 PE and Linux ELF64, and companion AMS-LaTeX white paper. Dual-licensed Apache-2.0 (code/proofs) and CC-BY-4.0 (white paper/docs). Not externally peer-reviewed.",
+  "description": "Zero-dependency C11 bare-metal x86-64 Galois-field genetic engine with 56 Pure Lean 4.35.0 model theorems (48 core/non-vacuity + 8 AdversarialTests refutations AT01-AT08; 6-kernel Palomar Challenge/Solution contract, zero Mathlib, zero sorry in Solution, zero native_decide/bv_decide), 19-gate bare-metal silicon falsification suite with 6 planted negative mutants and B07 ASan alignment regression gate, dual-kernel bit-exact SHA-256 parity across Win64 PE and Linux ELF64, interactive Lean Blueprint portal, DigiCert RFC 3161 + Bitcoin OTS cryptographic timestamps, FAIR metadata (Croissant/RO-Crate/CodeMeta), and companion AMS-LaTeX white paper. Dual-licensed Apache-2.0 (code/proofs) and CC-BY-4.0 (white paper/docs). Not externally peer-reviewed; resolves 0/1,900 overarching Mega-Atlas open problems. AI-assistance disclosed in docs/AI_DISCLOSURE.md.",
   "creators": [
     {
       "name": "Donahue, Alexander Stephen",
@@ -10,7 +10,7 @@
     }
   ],
   "license": "apache-2.0",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "keywords": [
     "artificial life",
     "open-ended evolution",
@@ -18,7 +18,7 @@
     "Galois field",
     "GFNI",
     "reversible computing",
-    "Landauer thermodynamics",
+    "bit-erasure accounting",
     "Lean 4",
     "formal verification",
     "Cauchy MDS"
@@ -28,6 +28,16 @@
       "identifier": "https://github.com/0thernes/autophage",
       "relation": "isSupplementTo",
       "scheme": "url"
+    },
+    {
+      "identifier": "https://0thernes.github.io/autophage/",
+      "relation": "isDocumentedBy",
+      "scheme": "url"
+    },
+    {
+      "identifier": "swh:1:snp:6ea23803655df1f9679deb98d44efbf53321a393",
+      "relation": "isIdenticalTo",
+      "scheme": "other"
     }
   ]
 }

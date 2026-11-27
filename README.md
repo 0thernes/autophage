@@ -1,17 +1,19 @@
-# AUTOPHAGE v1.4.0
+# AUTOPHAGE v1.5.0
 
-**Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Pure Lean 4.35.0 Verification and 18-Gate Silicon Falsification.**
+**Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Pure Lean 4.35.0 Verification (`56` Declarations incl. `AdversarialTests`) and `19`-Gate Silicon Falsification.**
 
-[![Version](https://img.shields.io/badge/version-1.4.0-0ea5e9.svg)](VERSION)
+[![Version](https://img.shields.io/badge/version-1.5.0-0ea5e9.svg)](VERSION)
 [![Status](https://img.shields.io/badge/status-active-10b981.svg)](ROADMAP.md)
-[![Lean 4.35.0](https://img.shields.io/badge/Lean_4.35.0-48%2F48_theorems_(6--kernel)-818cf8.svg)](lean/Solution.lean)
-[![Falsification](https://img.shields.io/badge/falsification-18%2F18_gates_%2B_6%2F6_mutants-22c55e.svg)](test/test_falsification.c)
+[![Lean 4.35.0](https://img.shields.io/badge/Lean_4.35.0-56%2F56_theorems_(6--kernel_CI)-818cf8.svg)](lean/Solution.lean)
+[![Falsification](https://img.shields.io/badge/falsification-19%2F19_gates_%2B_6%2F6_mutants-22c55e.svg)](test/test_falsification.c)
+[![Interactive Blueprint](https://img.shields.io/badge/blueprint-GitHub_Pages-38bdf8.svg)](https://0thernes.github.io/autophage/blueprint.html)
 [![License: Apache-2.0 / CC-BY-4.0](https://img.shields.io/badge/license-Apache--2.0_%2F_CC--BY--4.0-f59e0b.svg)](LICENSE)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0006--8168--9648-a6ce39.svg)](https://orcid.org/0009-0006-8168-9648)
 
-> **Project status:** `status: active` · **Author:** Alexander Stephen Donahue (`Independent Researcher, Spokane, WA, USA`) · **Dual License:** Apache-2.0 (`LICENSE`, code/proofs) / CC-BY-4.0 (`LICENSE-DOCS`, white paper/docs) · **Peer-Review Status:** Independent research software & preprint ([`dist/Donahue_2026_autophage.pdf`](dist/Donahue_2026_autophage.pdf)); not externally peer-reviewed.
+> **Peer-Review & Scope Notice:** Independent research software and preprint ([`dist/Donahue_2026_autophage.pdf`](dist/Donahue_2026_autophage.pdf)); **not peer-reviewed** (`status: self-assessed`). **Zero (`0 / 1,900`)** overarching open problems in `0thernes/unsolved-problems-mega-atlas` are solved or retired.
+> **Author:** Alexander Stephen Donahue (`Independent Researcher, Spokane, WA, USA`) · **Portal & Blueprint:** [https://0thernes.github.io/autophage/](https://0thernes.github.io/autophage/) · **SWHID:** `swh:1:snp:6ea23803655df1f9679deb98d44efbf53321a393` · **Dual License:** Apache-2.0 (`LICENSE`, code/proofs) / CC-BY-4.0 (`LICENSE-DOCS`, white paper/docs) · **Project status:** `status: active`.
 
-![AUTOPHAGE v1.4.0 Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine](docs/media/social-preview.svg)
+![AUTOPHAGE v1.5.0 Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine](docs/media/social-preview.svg)
 
 ---
 
@@ -19,28 +21,28 @@
 
 AUTOPHAGE is a zero-dependency C11 artificial-life and open-ended evolutionary testbed where every digital organism is a **256-byte (4 × 64-byte L1 cache-line) dual-strand entity** that translates itself through its own **evolvable $8\times 8$ $\mathbb{F}_2$ Ribosome Matrix** (`VGF2P8AFFINEQB`) directly into **live native x86-64 RWX machine code** (`VirtualAlloc` / `mmap`), executing `GF2P8AFFINEQB`, `PCLMULQDQ`, `PEXT`, `PDEP`, `POPCNT`, `TZCNT`, and universal reversible Toffoli/Fredkin gates directly on silicon.
 
-1. **Polymorphic Native x86-64 RWX JIT (`src/jit_x86_64.c`):** Single-pass zero-allocation dual-ABI (Win64 PE & SysV AMD64) compiler with a 4,096-slot `16 MiB` executable arena and automatic runtime CPUID scalar trampoline fallback for hosts without hardware GFNI/VPCLMULQDQ. The JIT masks every tape byte index with `& 0x7F` and every qword index with `& 0x78`, and every backward loop decrements gas (`sub r15, 1; jle`). Lean proves the arithmetic of these guards: `(h &&& 0x7F) < 128` (`T26`), `off + 8 <= 128` for the qword mask (`T27`, necessity shown in `T48`), and `g - 1 < g` for `g > 0` (`T28`, a one-line lemma). Lean does not prove that `src/jit_x86_64.c` emits these instructions; that is tested. The JIT output is **0-bit diff identical** to the portable C scalar reference oracle across 5,000 randomized genomes (Gate `T04`), 60-epoch worlds (Gate `T09`), cross-kernel `.apbin` snapshots (Gate `T11`), and `1,000,000` live RWX canary-guarded fuzz executions (Gate `T05`, `0` faults).
-2. **Evolvable $8\times 8$ $\mathbb{F}_2$ Ribosomes (`VGF2P8AFFINEQB`):** Each organism stores its own 64-bit `ribosome_mat` + 8-bit `ribosome_bias` inside Cache Line 0 (`T01`–`T07`, `T43`). Full-rank matrices ($\mathrm{rank}(M)=8$, $\det_{\mathbb{F}_2}(M)=1$) translate reversibly with `0` Landauer erasure heat on `OP_REV_GFNI_FOLD`; singular matrices ($\mathrm{rank}(M)<8$) pay exact `POPCNT` Landauer erasure heat. `OP_RIBOSOME_MUTATE` rewrites an organism's own x86-64 compiler via neutral $\mathrm{GL}(8,2)$ elementary row operations.
-3. **Galois-Field Polynomial Sex (`PCLMULQDQ`) & Ring-Theoretic Speciation:** Each cell evolves a monic degree-8 modulus $x^8 + p(x) \in \mathbb{F}_2[x]$. Exactly **30 of 256** polynomials are irreducible and give fields $\mathbb{F}_{2^8}$ (Lean `T12` & `T12a` prove that exactly 30 pass a trial-division test over all divisors `d = 2..31`, i.e. all factors of degree 1–4, and that they equal the C11 table `GF2_IRRED_POLY8[30]`; the count of 30 binary irreducible octics is a textbook fact), while the remaining **226 reducible rings** possess zero divisors (`0x03 * 0xFF = 0` mod `0x01`, Lean `T14` & `T47`), generating algebraic Dobzhansky–Muller reproductive barriers and emergent mate refusals.
-4. **Weismann Reverse-Transcription ($M^{-1}$) & 2×2 Cauchy MDS Self-Repair:** Organisms invert somatic discoveries in Strand $\beta$ through $M^{-1} = \mathrm{gf2\_mat\_invert}(M)$ back into germline Strand $\alpha$ (`T05`, `T05a`, `T42`, `T43`), smoothly attenuated by `RESTRAINT_LOBOTOMIZING`. Organisms that express `OP_SELF_HEAL_ECC` (earned, never gifted at birth) store 2×2 Cauchy MDS parity (`[[1,3],[5,1]]`, `det = 0x0E ≠ 0` across **all 30 irreducible fields**, Lean `T15`, `T15a`, `T16`, `T16a`, `T44`), and an evolved ECC carrier recovered **100.00%** of Strand $\alpha$ after 25%, 50%, and 75% excision in the recorded run (empirical, `results/05_vivisection_shock_transplant.txt`).
-5. **Symplectic Reversible Gates & Exact 5-Pool Conservation (`POPCNT`):** Reversible gates (`TOFFOLI`, `FREDKIN`, `XOR`, `ROL`, `SWAP_TAPE`, `ADD/SUB`, rank-8 `GFNI`) are charged **0 erased bits** by the engine's bit-erasure count. Lean proves that 64-bit Toffoli and Fredkin are involutions (`T17`, `T18`) and that Fredkin conserves bitwise XOR, bitwise AND and total `popcnt64` (`T19`, `T20`, `T20a`); Toffoli changes popcount in general. `T21` is the identity `x ^^^ x = 0`. Irreversible ops accumulate exact `POPCNT(old ^ new)` erasures into `R11` (`T22`). Five energy pools (`E_cell_free`, per-cell `membrane_pot_uq`, local `detritus_grid`, `Q_heat_local`, `Q_heat_radiated_sink`) conserve exact integer micro-quanta: Lean proves a zero residual for multi-step integer transfer ledgers (`T29a`, witness `T45`; `T29` is the one-line identity `(a - t) + (b + t) = a + b`), and the gate tests report a `0 uq` residual, `<= 2.02e-16` Kahan-Neumaier FP64 drift and `0` observed heat-sink decreases (empirical). Lean `T30` is only the Nat lemma `sink ≤ sink + rad ∧ 0 * x = 0`; it is not a second-law statement about the engine.
-6. **2-Adic Ultrametric Kin-Sensing (`TZCNT`), Holobionts & 13 Smooth Restraint Vectors:** Hardware `TZCNT(addr_A ^ addr_B)` obeys the exact 2-adic Strong Triangle Inequality (Lean `T25`, `T25a`; `T23` and `T24` are the library identities `a ^^^ a = 0` and `a ^^^ b = b ^^^ a`), drives multicellular holobionts (`25,151` feral cancer defections vs. `0` under Track A Constitutional surveillance), and maps all **13 Omega Restraint Vectors** (`0–100%`) along a strictly decreasing Iron Law curve (`91.09 -> 71.97 -> 54.31 -> 0.00`) with all 4 empirical constraint-backlash escape signatures (Gate `T17`).
+1. **Polymorphic Native x86-64 RWX JIT (`src/jit_x86_64.c`):** Single-pass zero-allocation dual-ABI (Win64 PE & SysV AMD64) compiler with a 4,096-slot `16 MiB` executable arena and automatic runtime CPUID scalar trampoline fallback for hosts without hardware GFNI/VPCLMULQDQ. The JIT masks every tape byte index with `& 0x7F` and every qword index with `& 0x78`, and every backward loop decrements gas (`sub r15, 1; jle`). Lean proves the arithmetic of these guards: `(h &&& 0x7F) < 128` (`T26`), `off + 8 <= 128` for the qword mask (`T27`, necessity shown in `T48`), and `g - 1 < g` for `g > 0` (`T28`, an elementary helper lemma). Lean does not prove that `src/jit_x86_64.c` emits these instructions; that is tested. The JIT output is **0-bit diff identical** to the portable C scalar reference oracle across 5,000 randomized genomes (Gate `T04`), 60-epoch worlds (Gate `T09`), cross-kernel `.apbin` snapshots (Gate `T11`), and `1,000,000` live RWX canary-guarded fuzz executions (Gate `T05`, `0` faults).
+2. **Evolvable $8\times 8$ $\mathbb{F}_2$ Ribosomes (`VGF2P8AFFINEQB`):** Each organism stores its own 64-bit `ribosome_mat` + 8-bit `ribosome_bias` inside Cache Line 0 (`T01`–`T07`, `T43`, singular refutation `AT02`). Full-rank matrices ($\mathrm{rank}(M)=8$, $\det_{\mathbb{F}_2}(M)=1$) translate reversibly with `0` bit-erasure charge on `OP_REV_GFNI_FOLD`; singular matrices ($\mathrm{rank}(M)<8$) pay exact `POPCNT` bit-erasure accounting. `OP_RIBOSOME_MUTATE` rewrites an organism's own x86-64 compiler via neutral $\mathrm{GL}(8,2)$ elementary row operations.
+3. **Galois-Field Polynomial Sex (`PCLMULQDQ`) & Ring-Theoretic Speciation:** Each cell evolves a monic degree-8 modulus $x^8 + p(x) \in \mathbb{F}_2[x]$. Exactly **30 of 256** polynomials are irreducible and give fields $\mathbb{F}_{2^8}$ (Lean `T12` & `T12a` prove that exactly 30 pass a trial-division test over all divisors `d = 2..31`, i.e. all factors of degree 1–4, and that they equal the C11 table `GF2_IRRED_POLY8[30]`; the count of 30 binary irreducible octics is a textbook fact), while the remaining **226 reducible rings** possess zero divisors (`0x03 * 0xFF = 0` mod `0x01`, Lean `T14`, `T47`, `AT03`), generating algebraic Dobzhansky–Muller reproductive barriers and emergent mate refusals.
+4. **Weismann Reverse-Transcription ($M^{-1}$) & 2×2 Cauchy MDS Self-Repair:** Organisms invert somatic discoveries in Strand $\beta$ through $M^{-1} = \mathrm{gf2\_mat\_invert}(M)$ back into germline Strand $\alpha$ (`T05`, `T05a`, `T42`, `T43`, `AT08`), smoothly attenuated by `RESTRAINT_LOBOTOMIZING`. Organisms that express `OP_SELF_HEAL_ECC` (earned, never gifted at birth) store 2×2 Cauchy MDS parity (`[[1,3],[5,1]]`, `det = 0x0E ≠ 0` across **all 30 irreducible fields**, Lean `T15`, `T15a`, `T16`, `T16a`, `T44`), and an evolved ECC carrier recovered **100.00%** of Strand $\alpha$ after 25%, 50%, and 75% excision in the recorded run (empirical, `results/05_vivisection_shock_transplant.txt`).
+5. **Symplectic Reversible Gates, Bit-Erasure Accounting & Exact 5-Pool Conservation (`POPCNT`):** Reversible gates (`TOFFOLI`, `FREDKIN`, `XOR`, `ROL`, `SWAP_TAPE`, `ADD/SUB`, rank-8 `GFNI`) are charged **0 erased bits** by the engine's bit-erasure counter (an integer accounting model, not physical CMOS calorimetry). Lean proves that 64-bit Toffoli and Fredkin are involutions (`T17`, `T18`) and that **Fredkin only** conserves bitwise XOR, bitwise AND, and total `popcnt64` (`T19`, `T20`, `T20a`); Toffoli changes popcount in general (`AT01`). `T21` is the elementary helper `x ^^^ x = 0`; `T22` and `AT05` model exact `AND` bit erasure. Five energy pools (`E_cell_free`, per-cell `membrane_pot_uq`, local `detritus_grid`, `Q_heat_local`, `Q_heat_radiated_sink`) conserve exact integer micro-quanta: Lean proves zero residual (`T29a`, witness `T45`; `T29` is the elementary helper `(a - t) + (b + t) = a + b`) and multi-step radiated-heat sink monotonicity + conservation + `oviGate 0 raw_ovi = 0` over `Spec.lean`'s `LedgerState`/`applyTransfers` (`T30`, with unguarded-transfer/negative-radiation refutation `AT04`), while Gate `T07` audits the live C11 runtime (`0 uq` residual, `<= 2.02e-16` Kahan-Neumaier FP64 drift, `0` observed heat-sink decreases).
+6. **2-Adic Ultrametric Kin-Sensing (`TZCNT`), Holobionts & 13 Smooth Restraint Vectors:** Hardware `TZCNT(addr_A ^ addr_B)` obeys the exact 2-adic Strong Triangle Inequality (Lean `T25`, `T25a`; `T23` and `T24` are elementary XOR helpers `a ^^^ a = 0` and `a ^^^ b = b ^^^ a`), drives multicellular holobionts (`25,151` feral cancer defections vs. `0` under Track A Constitutional surveillance), and maps all **13 Omega Restraint Vectors** (`0–100%`) along a strictly decreasing Iron Law curve (`91.09 -> 71.97 -> 54.31 -> 0.00`) with all 4 empirical constraint-backlash escape signatures (Gate `T17`).
 
-**Identifier note.** `T01`–`T48` (with gaps `T31`–`T38`) name Lean theorems; `T01`–`T18` also name the C11 falsification gates in `test/test_falsification.c`. This README writes "Gate `Txx`" for a test gate and "Lean `Txx`" or plain `Txx` for a theorem.
+**Identifier note.** `T01`–`T48` (with gaps `T31`–`T38`) and `AT01`–`AT08` name Lean declarations; `T01`–`T19` also name the C11 falsification gates in `test/test_falsification.c`. This README writes "Gate `Txx`" for a C11 test gate and "Lean `Txx`" / `ATxx` for a theorem.
 
 ---
 
-## Verified Proof & Empirical Highlights (v1.4.0, Intel Core Ultra 9 275HX)
+## Verified Proof & Empirical Highlights (v1.5.0, Intel Core Ultra 9 275HX)
 
-| Verification Pillar | Verified Result (`v1.4.0`) | Evidence Artifact |
+| Verification Pillar | Verified Result (`v1.5.0`) | Evidence Artifact |
 |---|---|---|
-| **Pure Lean 4.35.0 Proofs (6-Kernel Palomar)** | **48 / 48 PROVEN** (`0` `sorry` in `Solution`, `0` `bv_decide`, `0` `native_decide`, `0` warnings; strictly `⊆ {propext, Classical.choice, Quot.sound}`). The theorems are about Lean models of the engine, not its machine code; 6 of them (`T21`, `T23`, `T24`, `T28`, `T29`, `T30`) are one-line arithmetic or XOR identities. | [`lean/Solution.lean`](lean/Solution.lean) · [`results/lean4-audit.txt`](results/lean4-audit.txt) · [`results/lean4-multi-kernel.txt`](results/lean4-multi-kernel.txt) |
-| **Win64 PE Falsification Suite (`clang 23.1.0` ThinLTO)** | **18 / 18 PASSED** (`2.486 s`, `6/6` planted mutants caught, wired alloc guard, tampered `.apbin` rejected) | [`test/test_falsification.c`](test/test_falsification.c) · [`results/01_silicon_probe.txt`](results/01_silicon_probe.txt) |
-| **Linux ELF64 + ASan/UBSan (`gcc -Werror`)** | **18 / 18 PASSED** (`0` warnings; ASan/UBSan + portable CPUID CI) | [`build_linux.sh`](build_linux.sh) · [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
+| **Pure Lean 4.35.0 Proofs (6-Kernel Palomar CI + `AdversarialTests`)** | **56 / 56 PROVEN** (`48` core/non-vacuity incl. upgraded multi-step `T30` + `8` `AdversarialTests.lean` refutations `AT01`–`AT08`; `0` `sorry` in `Solution`, `0` `bv_decide`, `0` `native_decide`, `0` warnings; strictly `⊆ {propext, Classical.choice, Quot.sound}`; `5/5` live negative/tamper rejections). The theorems concern the Lean models in `Spec.lean`, not emitted machine code; 5 (`T21`, `T23`, `T24`, `T28`, `T29`) are elementary arithmetic/XOR helper lemmas. | [`lean/Solution.lean`](lean/Solution.lean) · [`lean/AdversarialTests.lean`](lean/AdversarialTests.lean) · [`results/lean4-audit.txt`](results/lean4-audit.txt) · [`results/lean4-multi-kernel.txt`](results/lean4-multi-kernel.txt) |
+| **Win64 PE Falsification Suite (`clang 23.1.0` ThinLTO + MinGW GCC 16.1)** | **19 / 19 PASSED** (`6/6` planted mutants caught, B07 ASan alignment Gate `T19`, wired alloc guard, tampered `.apbin` rejected, `0` warnings) | [`test/test_falsification.c`](test/test_falsification.c) · [`results/01_silicon_probe.txt`](results/01_silicon_probe.txt) |
+| **Linux ELF64 + ASan/UBSan (`gcc -Werror`)** | **19 / 19 PASSED** (`0` warnings; ASan/UBSan + portable CPUID + AVX-512 FakeStack `AP_ALIGN64` regression verified) | [`build_linux.sh`](build_linux.sh) · [`.github/workflows/ci.yml`](.github/workflows/ci.yml) |
 | **4-Way Cross-OS / Cross-Kernel SHA-256 Parity** | **0-Bit Diff** (`4bd29f39e96270cfbc659e1970e1ab875c4c0e807d93e48ef05b45e373c20612`) | [`results/02_bench_win64.txt`](results/02_bench_win64.txt) · [`results/02_bench_linux.txt`](results/02_bench_linux.txt) |
-| **1,000,000 Live RWX Silicon Fuzz Execs (Gate `T05`)** | **0 Faults, 0 OOB Canaries, 65 ms (~15.4 M/s)** (55–65 ms range) | [`docs/benchmarks.md`](docs/benchmarks.md) |
+| **1,000,000 Live RWX Silicon Fuzz Execs (Gate `T05`)** | **0 Faults, 0 OOB Canaries, 55–65 ms (~15.4–18.2 M/s)** | [`docs/benchmarks.md`](docs/benchmarks.md) |
 | **Locked Paired Stats (`N=24`, seeds `5000..5023`)** | **24 / 24 wins** (`delta_pair = +1.000`, `p_signflip = 0.00010`, `p_Holm = 0.00030`) on all 3 preregistered hypotheses | [`results/06_paired_stats_n24.txt`](results/06_paired_stats_n24.txt) · [`docs/preregistration.md`](docs/preregistration.md) |
-| **AMS-LaTeX White Paper & Bibliography** | **Zero Overfull `\hbox`**, `17 / 17` live-verified DOIs/URLs, clean-room arXiv tarball verified | [`dist/Donahue_2026_autophage.pdf`](dist/Donahue_2026_autophage.pdf) · [`dist/arxiv_submission.tar.gz`](dist/arxiv_submission.tar.gz) |
+| **AMS-LaTeX White Paper, Citations & Cryptographic Timestamps** | **Zero Overfull `\hbox`**, `17 / 17` Crossref/DataCite title+author+retraction verified, clean-room arXiv tarball, DigiCert `.tsr` + Bitcoin `.ots`, SLSA/Rekor | [`dist/Donahue_2026_autophage.pdf`](dist/Donahue_2026_autophage.pdf) · [`results/citation-audit.json`](results/citation-audit.json) · [`CHECKSUMS.sha256`](CHECKSUMS.sha256) |
 
 ---
 
@@ -51,15 +53,18 @@ AUTOPHAGE is a zero-dependency C11 artificial-life and open-ended evolutionary t
 git clone https://github.com/0thernes/autophage.git
 Set-Location autophage
 
-# 1. Build Win64 PE + DLL + Static Lib + 18/18 Gates + 6/6 Mutants + 48 Lean Proofs
+# 1. Build Win64 PE + DLL + Static Lib + 19/19 Gates + 6/6 Mutants + 56 Lean Proofs
 pwsh -NoProfile -ExecutionPolicy Bypass -File build.ps1
 
-# 2. Replay the Lean 4.35.0 reference kernel (lean4, leanchecker, leanchecker-paranoid) and 3 independent checkers (nanoda_bin, con-leche, con-ron) locally
+# 2. Replay the Lean 4.35.0 reference kernel (lean4, leanchecker, leanchecker-paranoid) + 3 independent Rust checkers (nanoda_bin, con-leche, con-ron) + 5/5 live negative tests
 pwsh -NoProfile -ExecutionPolicy Bypass -File scripts/verify_lean_multikernel.ps1
+python scripts/test_lean_negative.py
 
-# 3. Run Python property checks, README axiom parity, live citations, white paper & repo audit
+# 3. Run Python property checks, README axiom parity, Blueprint check, dual timestamp verify, live Crossref citations, white paper & repo audit
 python scripts/prop_check.py
 python scripts/check_readme_axioms.py
+python scripts/check_blueprint.py
+python scripts/stamp_timestamps.py --verify
 python scripts/check_citations.py
 python scripts/build_paper.py
 pwsh -NoProfile -File scripts/Audit-Repo.ps1
@@ -73,8 +78,9 @@ cd autophage
 # Add AUTOPHAGE_CI_PORTABLE=1 on CPUs without GFNI/VPCLMULQDQ; add AUTOPHAGE_SANITIZE=1 for ASan/UBSan
 bash build_linux.sh
 
-# Full 6-kernel Palomar check + isolated Challenge/Solution comparator (requires bubblewrap)
-cd lean && lake build && lake build Challenge && lake check --paranoid && lake comparator --config comparator.json --paranoid
+# Full 6-kernel Palomar check + isolated Challenge/Solution comparator (requires bubblewrap) + live negative tests
+cd lean && lake build && lake build Challenge && lake check --paranoid && lake comparator --config comparator.json --paranoid && cd ..
+python3 scripts/test_lean_negative.py
 ```
 
 ---
@@ -99,7 +105,7 @@ node web/server.mjs
 # Open http://127.0.0.1:8787 (health probe at http://127.0.0.1:8787/healthz)
 ```
 
-### Direct C11 ABI Integration (`include/autophage_abi.h`, `AUTOPHAGE_ABI_VERSION 0x00010400u`)
+### Direct C11 ABI Integration (`include/autophage_abi.h`, `AUTOPHAGE_ABI_VERSION 0x00010500u`)
 ```c
 #include "autophage_abi.h"
 
@@ -124,9 +130,9 @@ autophage_destroy(world);
 
 ---
 
-## Verbatim Lean 4.35.0 `#print axioms` Audit (`48 / 48` Theorems)
+## Verbatim Lean 4.35.0 `#print axioms` Audit (`56 / 56` Declarations — 5-Second Proof Verification)
 
-Automatically parity-checked against [`results/lean4-audit.txt`](results/lean4-audit.txt) by `python scripts/check_readme_axioms.py`. Every theorem uses only standard Lean foundations (`⊆ {propext, Classical.choice, Quot.sound}`), with **zero** `sorryAx`, **zero** `Lean.ofReduceBool`, **zero** `Lean.trustCompiler`, and **zero** `_native` SAT axioms.
+Automatically parity-checked against [`results/lean4-audit.txt`](results/lean4-audit.txt) by `python scripts/check_readme_axioms.py` and mirrored in the [Interactive Lean 4.35.0 Proof Blueprint](https://0thernes.github.io/autophage/blueprint.html). Every declaration uses only standard Lean foundations (`⊆ {propext, Classical.choice, Quot.sound}`), with **zero** `sorryAx`, **zero** `Lean.ofReduceBool`, **zero** `Lean.trustCompiler`, and **zero** `_native` SAT axioms.
 
 <!-- LEAN_AXIOMS_START -->
 ```text
@@ -167,7 +173,7 @@ Automatically parity-checked against [`results/lean4-audit.txt`](results/lean4-a
 'Autophage.T28_jit_gas_strictly_decreasing' depends on axioms: [propext, Quot.sound]
 'Autophage.T29_first_law_transfer_conservation' depends on axioms: [propext, Quot.sound]
 'Autophage.T29a_first_law_ledger_multistep' depends on axioms: [propext, Quot.sound]
-'Autophage.T30_second_law_monotone_and_noise_gate' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Autophage.T30_ledger_heat_sink_monotone_and_zero_weight_gate' depends on axioms: [propext, Quot.sound]
 'Autophage.T39_philox_domain_disjoint' does not depend on any axioms
 'Autophage.T40_seed_firewall_3tier_disjoint' depends on axioms: [propext, Quot.sound]
 'Autophage.T41_oee_archive_monotone_growth' depends on axioms: [propext]
@@ -178,6 +184,14 @@ Automatically parity-checked against [`results/lean4-audit.txt`](results/lean4-a
 'Autophage.T46_nonvacuous_seed_firewall_witness' depends on axioms: [propext, Classical.choice, Quot.sound]
 'Autophage.T47_refute_reducible_poly_integral_domain' depends on axioms: [propext, Quot.sound]
 'Autophage.T48_refute_unmasked_head_inbounds' depends on axioms: [propext, Quot.sound]
+'Autophage.AT01_refute_toffoli_popcnt_conserved' depends on axioms: [propext, Quot.sound]
+'Autophage.AT02_refute_singular_ribosome_invertible' depends on axioms: [propext, Quot.sound]
+'Autophage.AT03_refute_reducible_poly8_divisor_free' depends on axioms: [propext, Classical.choice, Quot.sound]
+'Autophage.AT04_refute_unguarded_ledger_transfer' depends on axioms: [propext]
+'Autophage.AT05_refute_and_mask_zero_erasure' depends on axioms: [propext, Quot.sound]
+'Autophage.AT06_refute_wrong_mask_pext_pdep' depends on axioms: [propext, Quot.sound]
+'Autophage.AT07_refute_unconstrained_philox_and_seed_bands' depends on axioms: [propext, Quot.sound]
+'Autophage.AT08_refute_germline_write_isolated' depends on axioms: [propext, Quot.sound]
 ```
 <!-- LEAN_AXIOMS_END -->
 
@@ -186,16 +200,25 @@ Automatically parity-checked against [`results/lean4-audit.txt`](results/lean4-a
 ## Honest Verification Boundaries & Mega-Atlas Non-Retirement
 
 - **Unsolved Problems Mega-Atlas (`0 / 1,900` Retired):** AUTOPHAGE constructs discrete mathematical invariants and an empirical x86-64 testbed related to `AI-045` (Open-Ended Artificial Life), `BIO-001` (Abiogenesis), `CHEM-052` (RNA Fidelity / Eigen Threshold), and `SYS-009` (Autopoiesis & Agency), but **retires zero (`0 / 1,900`) overarching open problems** (see [`docs/MEGA_ATLAS_CROSSCHECK.md`](docs/MEGA_ATLAS_CROSSCHECK.md)).
-- **Formal Scope Boundary:** Raw x86-64 instruction byte emission (`src/jit_x86_64.c`) and IEEE-754 Kahan-Neumaier floating-point drift are verified differentially and empirically (Gates `T04`, `T05`, `T07`, `T09`, libFuzzer, ASan/UBSan), not formalized inside Lean (`docs/statement-fidelity.md`). The Lean theorems state facts about the definitions in `lean/AutophageProofs/Spec.lean`, not about the C11 source or emitted x86-64 code.
-- **What the 48 theorems are:** Several are substantive finite checks (`T12a`, `T15`, `T16`, `T20a`, `T25a`, `T29a`), but 6 are one-line identities: `T21` (`x ^^^ x = 0`), `T23` (`a ^^^ a = 0`), `T24` (`a ^^^ b = b ^^^ a`), `T28` (`g - 1 < g`), `T29` (`(a - t) + (b + t) = a + b`) and `T30` (`sink ≤ sink + rad ∧ 0 * x = 0`). Their physics-flavoured names (Landauer, First Law, Second Law) describe how the engine uses them, not what Lean proves. The count of 30 irreducible binary octics, the Toffoli/Fredkin involutions and the invertibility of a 2×2 matrix with nonzero determinant are textbook facts; the contribution is a mechanised check against this codebase's definitions.
-- **Kernel replay:** The six-kernel acceptance (`lake check --paranoid`, `lake comparator --paranoid`) needs Linux `bubblewrap` and runs in Ubuntu CI; on Windows the reference kernel (lean4, leanchecker, leanchecker-paranoid) and three independent checkers (nanoda_bin, con-leche, con-ron) run locally.
+- **Formal Scope Boundary:** Raw x86-64 instruction byte emission (`src/jit_x86_64.c`) and IEEE-754 Kahan-Neumaier floating-point drift are verified differentially and empirically (Gates `T04`, `T05`, `T07`, `T09`, `T19`, libFuzzer, ASan/UBSan), not formalized inside Lean (`docs/statement-fidelity.md`). The 56 Lean declarations state facts about the definitions in `lean/AutophageProofs/Spec.lean`, not about the C11 source or emitted x86-64 code.
+- **What the 56 declarations are:** 43 are substantive finite/algebraic/ledger/structural model theorems and non-vacuity witnesses (`T01`–`T20a`, `T22`, `T25`–`T27`, `T29a`, upgraded multi-step `T30`, `T39`–`T48`), 8 are concrete adversarial `¬P` false-variant refutations (`AT01`–`AT08` in `lean/AdversarialTests.lean`), and **5 are elementary one-line arithmetic/XOR helper lemmas**: `T21` (`x ^^^ x = 0`), `T23` (`a ^^^ a = 0`), `T24` (`a ^^^ b = b ^^^ a`), `T28` (`g - 1 < g`), and `T29` (`(a - t) + (b + t) = a + b`). The count of 30 irreducible binary octics, the Toffoli/Fredkin involutions, and the invertibility of a 2×2 matrix with nonzero determinant are textbook facts; the contribution is a mechanised check against this codebase's definitions.
+- **Kernel replay:** The six-kernel acceptance (`lake check --paranoid`, `lake comparator --paranoid`) needs Linux `bubblewrap` and runs in Ubuntu CI alongside `scripts/test_lean_negative.py`; on Windows the Lean reference kernel (`lean4`, `leanchecker`, `leanchecker-paranoid`) and three independent Rust checkers (`nanoda_bin`, `con-leche`, `con-ron`) run locally.
 - **Performance Honesty:** Rapid genome mutation yields a `27.35%` JIT cache hit rate in `bench`, moderating end-to-end speedup to `1.04×–1.15×` (Win64) / `1.30×` (WSL2 Linux), while hot-loop cached RWX execution (Gate `T05`, 1M calls) achieves `~15.4–18.2 M execs/s` ([`docs/benchmarks.md`](docs/benchmarks.md), [`LIMITATIONS.md`](LIMITATIONS.md)).
 
 ---
 
-## Documentation, Citations & Licensing
+## AI-Contribution Disclosure & CRediT Authorship
 
+Full details are maintained in [`docs/AI_DISCLOSURE.md`](docs/AI_DISCLOSURE.md):
+- **Sole Human Author (Alexander Stephen Donahue — Independent Researcher, Spokane, WA, USA; ORCID `0009-0006-8168-9648`):** Conceptualization, Methodology, Investigation, Supervision, Project Administration, Software Architecture Direction, Epistemic Verification Policy, Visual/Typesetting Sign-Off, and Sole Scholarly Accountability.
+- **Disclosed AI Assistance (Non-Author Tooling — Gemini / Antigravity & Claude):** Assisted with C11/JIT/falsification engineering, Lean 4.35.0 Palomar proof refactoring and `AdversarialTests.lean`, Python property/citation/blueprint/timestamp scripts, Build Standard v1.2.0 / Playbook v1.3 documentation, and AMS-LaTeX typesetting under human direction and independent machine verification (6-kernel Lean CI, live negative tamper tests, ASan/UBSan, Crossref/DataCite citation checks).
+
+---
+
+## Documentation, FAIR Metadata, Citations & Licensing
+
+- **Portal & Blueprint:** [https://0thernes.github.io/autophage/](https://0thernes.github.io/autophage/) · [`docs/index.html`](docs/index.html) · [`docs/blueprint.html`](docs/blueprint.html)
 - **White Paper:** [`dist/Donahue_2026_autophage.pdf`](dist/Donahue_2026_autophage.pdf) · [`paper/main.tex`](paper/main.tex) · [`dist/arxiv_submission.tar.gz`](dist/arxiv_submission.tar.gz)
-- **Core Ledgers:** [`CLAIMS.md`](CLAIMS.md) · [`LIMITATIONS.md`](LIMITATIONS.md) · [`REPLICATION.md`](REPLICATION.md) · [`VERIFICATION.md`](VERIFICATION.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`docs/statement-fidelity.md`](docs/statement-fidelity.md) · [`docs/AI_DISCLOSURE.md`](docs/AI_DISCLOSURE.md)
-- **Citation:** See [`CITATION.cff`](CITATION.cff) and [`CITATION.bib`](CITATION.bib).
-- **Dual License:** Code, Lean 4.35.0 proofs, build scripts, and CI are licensed under **Apache-2.0** ([`LICENSE`](LICENSE)). White paper, PDFs, figures, and documentation are licensed under **CC-BY-4.0** ([`LICENSE-DOCS`](LICENSE-DOCS)).
+- **Core Ledgers:** [`CLAIMS.md`](CLAIMS.md) · [`LIMITATIONS.md`](LIMITATIONS.md) · [`ERRATA.md`](ERRATA.md) · [`SUBMISSION_READINESS.md`](SUBMISSION_READINESS.md) · [`REPLICATION.md`](REPLICATION.md) · [`VERIFICATION.md`](VERIFICATION.md) · [`ARCHITECTURE.md`](ARCHITECTURE.md) · [`docs/statement-fidelity.md`](docs/statement-fidelity.md) · [`docs/DATASHEET.md`](docs/DATASHEET.md) · [`docs/AI_DISCLOSURE.md`](docs/AI_DISCLOSURE.md)
+- **FAIR & Archival Metadata:** [`croissant.json`](croissant.json) · [`ro-crate-metadata.json`](ro-crate-metadata.json) · [`codemeta.json`](codemeta.json) · [`REUSE.toml`](REUSE.toml) · [`CHECKSUMS.sha256`](CHECKSUMS.sha256) (`.tsr` DigiCert RFC 3161 + `.ots` Bitcoin OTS) · [`CITATION.cff`](CITATION.cff) · [`CITATION.bib`](CITATION.bib)
+- **Dual License:** Code, Lean 4.35.0 proofs, build scripts, and CI are licensed under **Apache-2.0** ([`LICENSE`](LICENSE)). White paper, PDFs, figures, datasets, and documentation are licensed under **CC-BY-4.0** ([`LICENSE-DOCS`](LICENSE-DOCS)).

@@ -1,17 +1,18 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/mathlib-initiative/formalization.yaml/main/schema/formalization.schema.json
 # SPDX-License-Identifier: Apache-2.0
 version: "v0.4"
-release_version: "1.4.0"
+release_version: "1.5.0"
 
 project:
-  name: "AUTOPHAGE Formal Verification Suite (AutophageProofs)"
+  name: "AUTOPHAGE Formal Verification Suite (AutophageProofs + AdversarialTests)"
   description: >-
-    Zero-Mathlib Pure Lean 4.35.0 formalization of 48 audited theorems (42 core
+    Zero-Mathlib Pure Lean 4.35.0 formalization of 56 audited declarations (42 core
     algebraic, ledger, JIT-guard, Philox-isolation, OEE, and Weismann theorems
-    plus 6 concrete non-vacuity witnesses and sharp negative-boundary
-    refutations) about Lean models of the AUTOPHAGE bare-metal polymorphic
-    x86-64 Galois-field genetic engine. Six of the 48 (T21, T23, T24, T28, T29,
-    T30) are one-line arithmetic or XOR identities.
+    including upgraded multi-step ledger heat-sink monotonicity T30, plus 6 concrete
+    non-vacuity witnesses and boundary refutations T43-T48, plus 8 AdversarialTests.lean
+    false-variant refutations AT01-AT08) about the Lean models in Spec.lean (not emitted
+    x86-64 machine code). Five declarations (T21, T23, T24, T28, T29) are elementary
+    arithmetic or XOR helper lemmas.
   authors:
     - name: "Alexander Stephen Donahue"
       orcid: "0009-0006-8168-9648"
@@ -35,7 +36,7 @@ classification:
     - "68Q06"
 
 sources:
-  - title: "AUTOPHAGE v1.4.0: A Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Lean 4.35.0 Verification and 18-Gate Silicon Falsification"
+  - title: "AUTOPHAGE v1.5.0: A Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Lean 4.35.0 Verification and 19-Gate Silicon Falsification"
     authors:
       - "Alexander Stephen Donahue"
     id: "https://github.com/0thernes/autophage"
@@ -57,16 +58,20 @@ status:
     degree 1-4) and matching C11 GF2_IRRED_POLY8[30], Dobzhansky-Muller zero
     divisors, and 2x2 Cauchy MDS recovery in each of those 30 GF(2^8) fields;
     64-bit Toffoli/Fredkin involutions and exact Fredkin popcnt64 Hamming-weight
-    conservation; exact 32-bit tzcnt32 2-adic Strong Triangle Inequality; arithmetic
-    bounds of the JIT byte/qword masks and the gas decrement (emission not proved);
-    multi-step 5-pool integer ledger zero residual, plus the Nat lemma T30
-    (sink <= sink + rad), which is not a second-law statement about the engine; Philox 8-tuple
-    domain disjointness, 3-tier seed firewall, OEE archive monotonicity, Weismann
-    soma-only germline isolation, and 6 concrete non-vacuity and negative-boundary
-    theorems. Explicitly NOT formalized inside Lean: raw x86-64 machine-code emission
-    encodings (verified bit-exact against scalar reference oracle in Gates T04 and T09
-    and 1,000,000-execution canary fuzzing in Gate T05), IEEE-754 Kahan-Neumaier
-    floating-point drift (verified empirically in Gate T07), or any open scientific
+    conservation (with AT01 refuting Toffoli popcount conservation); exact 32-bit
+    tzcnt32 2-adic Strong Triangle Inequality; arithmetic bounds of the JIT
+    byte/qword masks and gas decrement (emission not proved); multi-step 5-pool
+    integer ledger zero residual (T29a) and radiated-heat sink monotonicity +
+    zero-alive oviGate (T30, over LedgerState/applyTransfers, not physical
+    calorimetry); Philox 8-tuple domain disjointness, 3-tier seed firewall, OEE
+    archive monotonicity, Weismann soma-only germline isolation, 6 concrete
+    non-vacuity/boundary theorems (T43-T48), and 8 AdversarialTests.lean false-variant
+    refutations (AT01-AT08). Five declarations (T21, T23, T24, T28, T29) are elementary
+    arithmetic/XOR helpers. Explicitly NOT formalized inside Lean: raw x86-64
+    machine-code emission encodings (verified bit-exact against scalar reference
+    oracle in Gates T04 and T09 and 1,000,000-execution canary fuzzing in Gate T05),
+    IEEE-754 Kahan-Neumaier floating-point drift (verified empirically in Gate T07),
+    C11 memory safety (verified via ASan/UBSan + Gate T19), or any open scientific
     conjecture in the Unsolved Problems Mega-Atlas (0/1,900 retired).
   sorry_count: 0
   sorry_in_definitions: 0
@@ -105,6 +110,11 @@ status:
       sorry_count: 0
       axioms: ["propext", "Quot.sound"]
       comparator_config: "lean/comparator.json"
+    - declaration: "Autophage.T30_ledger_heat_sink_monotone_and_zero_weight_gate"
+      file: "lean/Solution.lean"
+      sorry_count: 0
+      axioms: ["propext", "Quot.sound"]
+      comparator_config: "lean/comparator.json"
     - declaration: "Autophage.T39_philox_domain_disjoint"
       file: "lean/Solution.lean"
       sorry_count: 0
@@ -113,39 +123,52 @@ status:
     - declaration: "Autophage.T45_nonvacuous_ledger_multistep_witness"
       file: "lean/Solution.lean"
       sorry_count: 0
+      axioms: ["propext", "Classical.choice", "Quot.sound"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "Autophage.AT01_refute_toffoli_popcnt_conserved"
+      file: "lean/Solution.lean"
+      sorry_count: 0
       axioms: ["propext", "Quot.sound"]
+      comparator_config: "lean/comparator.json"
+    - declaration: "Autophage.AT04_refute_unguarded_ledger_transfer"
+      file: "lean/Solution.lean"
+      sorry_count: 0
+      axioms: ["propext"]
       comparator_config: "lean/comparator.json"
 
 automation:
   methods:
     - method: "manual"
-      notes: "Alexander Stephen Donahue conceived AUTOPHAGE's bare-metal x86-64 Galois-field architecture, thermodynamic ledger, falsification gates, formal proof scope, and multi-cycle hardening review, and bears sole scholarly accountability."
+      notes: "Alexander Stephen Donahue conceived AUTOPHAGE's bare-metal x86-64 Galois-field architecture, integer conservation ledger, falsification gates, formal proof scope, and multi-cycle hardening review, and bears sole scholarly accountability."
     - method: "agent"
       models:
         - "Gemini (Antigravity)"
+        - "Claude"
       framework: "Antigravity"
       notes: >-
-        Assisted with Lean 4.35.0 Palomar module refactoring, non-vacuity and
-        negative-boundary proof engineering, C11/fuzzer/CI hardening, Build Standard
-        v1.2.0 scaffolding, and AMS-LaTeX white-paper drafting under human direction
+        Assisted with Lean 4.35.0 Palomar module refactoring, upgraded T30,
+        AdversarialTests.lean (AT01-AT08), non-vacuity and negative-boundary proof
+        engineering, C11/ASan/fuzzer/CI hardening, Build Standard v1.2.0 & Playbook
+        v1.3 scaffolding, and AMS-LaTeX white-paper drafting under human direction
         and multi-kernel verification.
 
 fidelity:
   divergences: >-
     Lean 4.35.0 verifies exact BitVec/Int mathematical models of GFNI, PCLMULQDQ,
-    Cauchy MDS, Toffoli/Fredkin, TZCNT, JIT mask bounds, gas halting, 5-pool integer
-    conservation, Philox 8-tuple keys, seed bands, OEE archive, and Weismann isolation.
-    Raw x86-64 instruction byte emission, SIMD intrinsics, IEEE-754 Kahan-Neumaier
-    summation, and full-world evolutionary dynamics are verified differentially and
-    empirically in C11 (`test/test_falsification.c`, Gates T01-T18 + 6 planted mutants).
+    Cauchy MDS, Toffoli/Fredkin, TZCNT, JIT mask bounds, gas decrement, 5-pool integer
+    conservation & heat-sink monotonicity, Philox 8-tuple keys, seed bands, OEE archive,
+    Weismann isolation, and 8 false-variant refutations (AT01-AT08). Raw x86-64
+    instruction byte emission, SIMD intrinsics, IEEE-754 Kahan-Neumaier summation,
+    C11 memory safety, and full-world evolutionary dynamics are verified differentially
+    and empirically in C11 (`test/test_falsification.c`, Gates T01-T19 + 6 planted mutants).
     See `docs/statement-fidelity.md` for the complete row-by-row fidelity matrix.
 
 review:
   status: "self-assessed"
   notes: >-
-    Not externally peer-reviewed. Machine-checked locally by the Lean 4.35.0 kernel
-    plus 5 Windows-capable independent checkers (leanchecker --fresh,
-    leanchecker-paranoid --fresh, con-leche --verified, con-ron --verified,
-    nanoda_bin) and wired for all
-    6/6 kernels (+ lean4lean + lake check --paranoid + lake comparator --paranoid)
-    on Ubuntu Linux with bubblewrap in `.github/workflows/ci.yml`.
+    Not externally peer-reviewed. Machine-checked locally on Windows by the Lean 4.35.0
+    reference kernel (lean4, leanchecker --fresh, leanchecker-paranoid --fresh) plus
+    3 independent Rust checkers (nanoda_bin, con-leche --verified, con-ron --verified),
+    and verified across all 6 Palomar checkers (+ lean4lean + lake check --paranoid +
+    lake comparator --paranoid) plus scripts/test_lean_negative.py on Ubuntu Linux
+    with bubblewrap in `.github/workflows/ci.yml`.

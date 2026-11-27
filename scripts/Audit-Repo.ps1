@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
   Score any repository against the Build Standard for LLMs (90 items). Report-only: always exits 0 unless misused.
 .DESCRIPTION
@@ -21,6 +21,7 @@ if ($Json -and -not [System.IO.Path]::IsPathRooted($Json)) { $Json = Join-Path (
 if ($Markdown -and -not [System.IO.Path]::IsPathRooted($Markdown)) { $Markdown = Join-Path (Get-Location).Path $Markdown }
 Set-Location -LiteralPath $Path
 $Root = (Get-Location).Path
+[System.Environment]::CurrentDirectory = $Root
 
 function Test-Git { try { $null = git rev-parse --is-inside-work-tree 2>$null; return ($LASTEXITCODE -eq 0) } catch { return $false } }
 $IsGit = Test-Git

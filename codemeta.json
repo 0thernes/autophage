@@ -1,0 +1,59 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "name": "AUTOPHAGE",
+  "version": "1.5.0",
+  "datePublished": "2026-11-26",
+  "dateModified": "2026-11-26",
+  "description": "Zero-dependency C11 bare-metal polymorphic x86-64 Galois-field genetic engine (VGF2P8AFFINEQB, PCLMULQDQ, BMI1/2, POPCNT, live RWX JIT) with 56 Pure Lean 4.35.0 model declarations (48 core/non-vacuity + 8 AdversarialTests refutations AT01-AT08), 19-gate silicon falsification suite (+ 6 planted mutants + B07 ASan regression Gate T19), interactive Proof Blueprint portal, and companion AMS-LaTeX white paper. Independent research software (not peer-reviewed; 0/1,900 Mega-Atlas open problems retired).",
+  "codeRepository": "https://github.com/0thernes/autophage",
+  "url": "https://0thernes.github.io/autophage/",
+  "issueTracker": "https://github.com/0thernes/autophage/issues",
+  "license": "https://spdx.org/licenses/Apache-2.0",
+  "programmingLanguage": [
+    "C",
+    "Lean",
+    "Python",
+    "JavaScript",
+    "TeX"
+  ],
+  "operatingSystem": [
+    "Windows x86_64",
+    "Linux x86_64"
+  ],
+  "applicationCategory": "Scientific Research Software",
+  "developmentStatus": "active",
+  "identifier": "swh:1:snp:6ea23803655df1f9679deb98d44efbf53321a393",
+  "keywords": [
+    "artificial life",
+    "open-ended evolution",
+    "x86-64 JIT",
+    "Galois field",
+    "GFNI",
+    "reversible computing",
+    "bit-erasure accounting",
+    "Lean 4",
+    "formal verification",
+    "Cauchy MDS"
+  ],
+  "author": [
+    {
+      "@type": "Person",
+      "@id": "https://orcid.org/0009-0006-8168-9648",
+      "givenName": "Alexander Stephen",
+      "familyName": "Donahue",
+      "email": "0_0@0thernes.art",
+      "affiliation": {
+        "@type": "Organization",
+        "name": "Independent Researcher, Spokane, WA, USA"
+      }
+    }
+  ],
+  "maintainer": {
+    "@type": "Person",
+    "@id": "https://orcid.org/0009-0006-8168-9648",
+    "givenName": "Alexander Stephen",
+    "familyName": "Donahue",
+    "email": "0_0@0thernes.art"
+  }
+}

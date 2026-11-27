@@ -1,0 +1,114 @@
+{
+  "@context": {
+    "@language": "en",
+    "@vocab": "https://schema.org/",
+    "citeAs": "cr:citeAs",
+    "column": "cr:column",
+    "conformsTo": "dct:conformsTo",
+    "cr": "http://mlcommons.org/croissant/",
+    "data": {
+      "@id": "cr:data",
+      "@type": "@json"
+    },
+    "dataBiases": "cr:dataBiases",
+    "dataCollection": "cr:dataCollection",
+    "dataType": {
+      "@id": "cr:dataType",
+      "@type": "@vocab"
+    },
+    "dct": "http://purl.org/dc/terms/",
+    "extract": "cr:extract",
+    "field": "cr:field",
+    "fileObject": "cr:fileObject",
+    "fileProperty": "cr:fileProperty",
+    "fileSet": "cr:fileSet",
+    "format": "cr:format",
+    "includes": "cr:includes",
+    "isLiveDataset": "cr:isLiveDataset",
+    "jsonPath": "cr:jsonPath",
+    "key": "cr:key",
+    "md5": "cr:md5",
+    "parentField": "cr:parentField",
+    "path": "cr:path",
+    "personalSensitiveInformation": "cr:personalSensitiveInformation",
+    "recordSet": "cr:recordSet",
+    "references": "cr:references",
+    "regex": "cr:regex",
+    "repeated": "cr:repeated",
+    "replace": "cr:replace",
+    "sc": "https://schema.org/",
+    "separator": "cr:separator",
+    "source": "cr:source",
+    "subField": "cr:subField",
+    "transform": "cr:transform"
+  },
+  "@type": "sc:Dataset",
+  "conformsTo": "http://mlcommons.org/croissant/1.0",
+  "name": "AUTOPHAGE v1.5.0 Verification & Castration-Ablation Datasets",
+  "version": "1.5.0",
+  "datePublished": "2026-11-26",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "url": "https://github.com/0thernes/autophage",
+  "citeAs": "Donahue, Alexander Stephen (2026). AUTOPHAGE v1.5.0: Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine, 56 Pure Lean 4.35.0 Model Declarations, and 19-Gate Silicon Falsification. Independent research preprint (not peer-reviewed). https://github.com/0thernes/autophage",
+  "description": "Reproducible C11 bare-metal falsification outputs (19 gates + 6 planted mutants + B07 ASan regression), N=24 paired Holm-Bonferroni statistical records, 13-vector castration ablation CSV, 56-theorem Lean 4.35.0 axiom/checker transcripts, and live Crossref citation audit for AUTOPHAGE v1.5.0.",
+  "creator": {
+    "@type": "sc:Person",
+    "@id": "https://orcid.org/0009-0006-8168-9648",
+    "name": "Alexander Stephen Donahue",
+    "email": "0_0@0thernes.art"
+  },
+  "distribution": [
+    {
+      "@type": "cr:FileObject",
+      "@id": "castration_ablation_csv",
+      "name": "results/07_castration_ablation_13vec.csv",
+      "contentUrl": "results/07_castration_ablation_13vec.csv",
+      "encodingFormat": "text/csv"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "paired_stats_txt",
+      "name": "results/06_paired_stats_n24.txt",
+      "contentUrl": "results/06_paired_stats_n24.txt",
+      "encodingFormat": "text/plain"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "citation_audit_json",
+      "name": "results/citation-audit.json",
+      "contentUrl": "results/citation-audit.json",
+      "encodingFormat": "application/json"
+    },
+    {
+      "@type": "cr:FileObject",
+      "@id": "lean4_audit_txt",
+      "name": "results/lean4-audit.txt",
+      "contentUrl": "results/lean4-audit.txt",
+      "encodingFormat": "text/plain"
+    }
+  ],
+  "recordSet": [
+    {
+      "@type": "cr:RecordSet",
+      "@id": "ablation_13vec_records",
+      "name": "13-Vector Castration Ablation Matrix",
+      "description": "Deterministic ablation matrix evaluating OVBS-52, OVI, active replicators, and lineages across 13 restraint configurations.",
+      "field": [
+        {
+          "@type": "cr:Field",
+          "@id": "ablation_13vec_records/vector_id",
+          "name": "vector_id",
+          "dataType": "sc:Text",
+          "source": { "fileObject": { "@id": "castration_ablation_csv" } }
+        },
+        {
+          "@type": "cr:Field",
+          "@id": "ablation_13vec_records/ovi_score",
+          "name": "ovi_score",
+          "dataType": "sc:Float",
+          "source": { "fileObject": { "@id": "castration_ablation_csv" } }
+        }
+      ]
+    }
+  ]
+}

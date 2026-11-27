@@ -6,9 +6,9 @@ mkdir -p "$PROJ/bin" "$PROJ/results"
 
 CC="${CC:-gcc}"
 if [[ "${AUTOPHAGE_CI_PORTABLE:-0}" == "1" ]]; then
-  FLAGS=(-O3 -Wall -Wextra -Werror -Wno-unused-parameter -march=x86-64 -DAUTOPHAGE_CI_PORTABLE -I"$PROJ/include")
+  FLAGS=(-O3 -Wall -Wextra -Werror -Wno-unused-parameter -march=x86-64 -ffp-contract=off -DAUTOPHAGE_CI_PORTABLE -I"$PROJ/include")
 else
-  FLAGS=(-O3 -Wall -Wextra -Werror -Wno-unused-parameter -march=native -mgfni -mvpclmulqdq -mpclmul -mbmi -mbmi2 -mpopcnt -mavx2 -I"$PROJ/include")
+  FLAGS=(-O3 -Wall -Wextra -Werror -Wno-unused-parameter -march=native -ffp-contract=off -mgfni -mvpclmulqdq -mpclmul -mbmi -mbmi2 -mpopcnt -mavx2 -I"$PROJ/include")
 fi
 
 if [[ "${AUTOPHAGE_SANITIZE:-0}" == "1" ]]; then
@@ -43,7 +43,7 @@ done
 ar rcs "$PROJ/bin/libautophage_linux.a" "${OBJS[@]}"
 rm -f "${OBJS[@]}"
 
-echo "[4/4] Building & running Linux ELF64 18-gate falsification suite ..."
+echo "[4/4] Building & running Linux ELF64 19-gate falsification suite (18 core + B07 regression) ..."
 "$CC" "${FLAGS[@]}" "${CORE[@]}" "$PROJ/test/test_falsification.c" -o "$PROJ/bin/test_falsification_linux" -lm
 
 (
@@ -53,7 +53,7 @@ echo "[4/4] Building & running Linux ELF64 18-gate falsification suite ..."
 )
 
 if command -v lake >/dev/null 2>&1; then
-  echo "[5/5] Verifying 48 Pure-Kernel Lean 4.35.0 proofs (Palomar Challenge/Solution + strict axiom allowlist) ..."
+  echo "[5/5] Verifying 56 Pure-Kernel Lean 4.35.0 proofs (Palomar Challenge/Solution + AdversarialTests + strict axiom allowlist) ..."
   LOG="$(mktemp)"
   trap 'rm -f "$LOG"' EXIT
   (
@@ -87,10 +87,10 @@ with open(sys.argv[1], "r", encoding="utf-8") as f:
             audited += 1
             continue
         sys.exit(f"Unexpected Lean output line: {line}")
-if audited < 48:
-    sys.exit(f"Expected >= 48 audited theorems, found {audited}")
+if audited < 56:
+    sys.exit(f"Expected >= 56 audited theorems, found {audited}")
 print(f"PASS: {audited} pure-kernel Lean 4.35.0 theorems verified strictly within {sorted(allowed)}.")
 PY
 fi
 
-echo "AUTOPHAGE v1.4.0 LINUX ELF64 BUILD & VERIFICATION PASSED!"
+echo "AUTOPHAGE v1.5.0 LINUX ELF64 BUILD & VERIFICATION PASSED!"

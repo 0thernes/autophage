@@ -1,7 +1,7 @@
 #include "autophage_internal.h"
 
 /* ============================================================================
- * AUTOPHAGE v1.4.0 BRUTAL BARE-METAL FALSIFICATION HARNESS (18 GATES + 6 MUTANTS)
+ * AUTOPHAGE v1.5.0 BRUTAL BARE-METAL FALSIFICATION HARNESS (19 GATES + 6 MUTANTS)
  * Every assertion runs live on x86-64 silicon. Zero stubs, zero skipped gates.
  * ============================================================================ */
 
@@ -62,7 +62,9 @@ static int test_t02_gfni_hardware_and_weismann_inverse(void) {
     }
 
     /* 2. Compare AVX2 VGF2P8AFFINEQB against scalar across 500 matrices x 256 byte inputs */
-    uint8_t in64[64], hw_out[64], sw_out[64];
+    AP_ALIGN64 uint8_t in64[64];
+    AP_ALIGN64 uint8_t hw_out[64];
+    AP_ALIGN64 uint8_t sw_out[64];
     for (uint32_t m = 0; m < 500u; m++) {
         uint64_t mat = (m & 1u)
             ? gf2_mat_random_invertible(0x12345678ULL, 1u, m, 0ULL, 0u)
@@ -120,7 +122,7 @@ static int test_t03_galois_poly_and_pclmul(void) {
     }
 
     /* Verify hardware vs scalar clmul_hash64 exactness */
-    uint8_t buf[64];
+    AP_ALIGN64 uint8_t buf[64];
     for (int i = 0; i < 64; i++) buf[i] = (uint8_t)(i * 13 + 5);
     uint64_t h_hw = gf2_clmul_hash64(buf, 64u, 0x1Bu, 1);
     uint64_t h_sw = gf2_clmul_hash64(buf, 64u, 0x1Bu, 0);
@@ -139,7 +141,7 @@ static int test_t04_jit_vs_oracle_bit_exact(void) {
     static const uint8_t NERF_LEVELS[5] = { 0u, 25u, 50u, 75u, 100u };
 
     for (uint32_t trial = 0; trial < 5000u; trial++) {
-        uint8_t expr[64];
+        AP_ALIGN64 uint8_t expr[64];
         if (trial == 0u || trial == 1u) {
             /* Explicit coverage of all 32 opcodes (b7=0 and b7=1) under both rank-8 and singular */
             for (int i = 0; i < 64; i++) {
@@ -154,7 +156,10 @@ static int test_t04_jit_vs_oracle_bit_exact(void) {
         uint64_t smask = (trial < 10u) ? ~0ULL : philox_u64(0x704ULL, 1u, trial, 0ULL, 2u, 0u);
         uint8_t  nerf  = NERF_LEVELS[trial % 5u];
 
-        uint8_t ta_jit[128], tb_jit[128], ta_ref[128], tb_ref[128];
+        AP_ALIGN64 uint8_t ta_jit[128];
+        AP_ALIGN64 uint8_t tb_jit[128];
+        AP_ALIGN64 uint8_t ta_ref[128];
+        AP_ALIGN64 uint8_t tb_ref[128];
         for (int w = 0; w < 16; w++) {
             uint64_t ra = philox_u64(0x704ULL, 1u, trial, 1ULL, 1u, (uint32_t)w);
             uint64_t rb = philox_u64(0x704ULL, 1u, trial, 2ULL, 1u, (uint32_t)w);
@@ -215,14 +220,15 @@ static int test_t05_million_fuzz_silicon_safety(void) {
     CHECK(jit_cache_init(&cache, &caps) == 1, "JIT cache init failed");
 
     /* Guard canaries surrounding tape_a and tape_b */
-    uint8_t buf_a[256], buf_b[256];
+    AP_ALIGN64 uint8_t buf_a[256];
+    AP_ALIGN64 uint8_t buf_b[256];
     memset(buf_a, 0xA5, sizeof(buf_a));
     memset(buf_b, 0x5A, sizeof(buf_b));
     uint8_t* ta = buf_a + 64;
     uint8_t* tb = buf_b + 64;
 
     uint64_t s = 0xDEADBEEF1337C0DEULL;
-    uint8_t expr[64];
+    AP_ALIGN64 uint8_t expr[64];
     AutophageExecCtx ctx;
     memset(&ctx, 0, sizeof(ctx));
 
@@ -761,7 +767,7 @@ static int test_t16_weismann_barrier(void) {
     autophage_compute_telemetry(w_lobo, &t_lobo, 0);
 
     /* v1.3.0 Compiled Check (Lean T42): soma-only perturbation preserves germline Strand alpha bit-exact */
-    uint8_t germ_before[64];
+    AP_ALIGN64 uint8_t germ_before[64];
     memcpy(germ_before, w_lobo->cells[0].genome, 64u);
     for (int k = 64; k < 128; k++) w_lobo->cells[0].genome[k] ^= 0xA5u;
     for (int r = 0; r < 4; r++)    w_lobo->cells[0].regs[r]   ^= 0x5A5A5A5A5A5A5A5AULL;
@@ -853,10 +859,76 @@ static int test_t18_asmodensius_112_and_abstention(void) {
     return 1;
 }
 
+/* B07 Regression Helper: exercise metrology_excision_regen_cell under varied stack frame offsets
+ * to catch GCC AVX-512 vmovdqa64 + ASan 32-byte fake-stack redzone misalignment (#45904159100). */
+static double regression_excise_at_depth(const AutophageWorld* w, const AutophageCell* c,
+                                         uint32_t pct, int depth) {
+    volatile uint8_t pad[24];
+    pad[0] = (uint8_t)depth;
+    if (depth > 0) {
+        return regression_excise_at_depth(w, c, pct, depth - 1) + (double)(pad[0] & 0u);
+    }
+    return metrology_excision_regen_cell(w, c, pct);
+}
+
+/* T19 (B07 Regression): Excision Metrology 64B Stack Alignment & ASan/AVX-512 Safety (#45904159100) */
+static int test_t19_b07_regression_excision_alignment(void) {
+    AP_ALIGN64 uint8_t align_probe[64];
+    memset(align_probe, 0x5A, sizeof(align_probe));
+    CHECK((((uintptr_t)align_probe) & 63u) == 0u,
+          "AP_ALIGN64 stack buffer not 64-byte aligned: %p", (void*)align_probe);
+
+    AutophageConfig cfg;
+    autophage_default_config(&cfg);
+    cfg.width  = 16u;
+    cfg.height = 16u;
+    cfg.regime = AUTOPHAGE_REGIME_FERAL_SEEDED;
+    cfg.seed   = 5119ULL;
+
+    AutophageWorld* w = autophage_create(&cfg);
+    CHECK(w != NULL, "autophage_create failed in B07 regression test");
+    CHECK((((uintptr_t)w->cells) & 63u) == 0u,
+          "World cells arena not 64-byte aligned: %p", (void*)w->cells);
+
+    autophage_step_epochs(w, 15u);
+
+    char sha_before[65], sha_after[65];
+    autophage_state_sha256(w, NULL, sha_before);
+
+    static const uint32_t PCTS[6] = { 0u, 1u, 25u, 50u, 75u, 100u };
+    for (int depth = 0; depth < 8; depth++) {
+        for (int p = 0; p < 6; p++) {
+            double r_ecc  = regression_excise_at_depth(w, &w->cells[0], PCTS[p], depth);
+            double r_cell = regression_excise_at_depth(w, &w->cells[1], PCTS[p], depth);
+            CHECK(ap_isfinite(r_ecc) && r_ecc >= 0.0 && r_ecc <= 1.0,
+                  "Excision regen out of [0,1] for cell 0 pct=%u depth=%d: %.3f",
+                  (unsigned)PCTS[p], depth, r_ecc);
+            CHECK(ap_isfinite(r_cell) && r_cell >= 0.0 && r_cell <= 1.0,
+                  "Excision regen out of [0,1] for cell 1 pct=%u depth=%d: %.3f",
+                  (unsigned)PCTS[p], depth, r_cell);
+        }
+    }
+
+    /* Repeated deep-audit telemetry calls across evolved cells (exact trigger path of #45904159100) */
+    for (int rep = 0; rep < 4; rep++) {
+        AutophageTelemetry tel;
+        autophage_compute_telemetry(w, &tel, 1);
+        CHECK(ap_isfinite(tel.excision_regen_r50) &&
+              tel.excision_regen_r50 >= 0.0 && tel.excision_regen_r50 <= 1.0,
+              "Telemetry excision_regen_r50 invalid: %.3f", tel.excision_regen_r50);
+    }
+
+    autophage_state_sha256(w, NULL, sha_after);
+    autophage_destroy(w);
+    CHECK(strcmp(sha_before, sha_after) == 0,
+          "B07 regression: metrology_excision_regen_cell mutated world state!");
+    return 1;
+}
+
 int main(void) {
     hw_install_fault_shield();
     printf("===========================================================================\n");
-    printf("  AUTOPHAGE v1.4.0 BARE-METAL SILICON FALSIFICATION SUITE (18 GATES + 6 MUT)\n");
+    printf("  AUTOPHAGE v1.5.0 BARE-METAL SILICON FALSIFICATION SUITE (19 GATES + 6 MUT)\n");
     printf("===========================================================================\n");
 
     run_gate("T01", "Silicon CPUID, Live RWX JIT & NIST SHA-256",           test_t01_silicon_and_sha256);
@@ -864,7 +936,7 @@ int main(void) {
     run_gate("T03", "GF(2)[x] 30 Irreducible Polys & PCLMULQDQ Parity",     test_t03_galois_poly_and_pclmul);
     run_gate("T04", "Native x86-64 JIT vs Scalar Oracle (5,000 Genomes)",   test_t04_jit_vs_oracle_bit_exact);
     run_gate("T05", "1,000,000 Fuzz Execs on RWX Silicon + OOB Canaries",   test_t05_million_fuzz_silicon_safety);
-    run_gate("T06", "Exact Landauer Reversibility (0 Erased Bits & POPCNT)",test_t06_landauer_reversibility);
+    run_gate("T06", "Exact Bit-Erasure Reversibility (0 Bits & POPCNT)",    test_t06_landauer_reversibility);
     run_gate("T07", "First/Second Law (<1e-12) + Planted Mutants 1 & 2",    test_t07_thermodynamics_and_mutants);
     run_gate("T08", "Philox4x32-10 Domain Isolation + Planted Mutant 6",    test_t08_philox_domain_isolation);
     run_gate("T09", "Full-World Dual-Kernel SHA-256 Parity (JIT==SCALAR)",  test_t09_dual_kernel_world_parity);
@@ -877,6 +949,7 @@ int main(void) {
     run_gate("T16", "Weismann Barrier Shattering vs Lobotomized Control",   test_t16_weismann_barrier);
     run_gate("T17", "Constraint-Backlash Escape Signatures (4 Vectors)",    test_t17_constraint_backlash);
     run_gate("T18", "Asmodensius 112-Trait Bridge & Mating/Abstention",     test_t18_asmodensius_112_and_abstention);
+    run_gate("T19", "B07 Regression: Excision 64B Stack Alignment (ASan)",  test_t19_b07_regression_excision_alignment);
 
     printf("===========================================================================\n");
     printf("  SUMMARY: %d PASSED / %d FAILED (Total %d Gates)\n", g_pass, g_fail, g_pass + g_fail);

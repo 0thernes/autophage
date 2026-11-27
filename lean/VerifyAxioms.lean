@@ -3,9 +3,9 @@ module
 public import Solution
 
 /-!
-# AUTOPHAGE v1.4.0 — Standalone Axiom Audit Script (`VerifyAxioms.lean`)
+# AUTOPHAGE v1.5.0 — Standalone Axiom Audit Script (`VerifyAxioms.lean`)
 
-Runs `#print axioms` on all 48 audited Pure Lean 4.35.0 theorems exported by `Solution`.
+Runs `#print axioms` on all 56 audited Pure Lean 4.35.0 theorems exported by `Solution`.
 Every declaration MUST depend strictly on a subset of `[propext, Classical.choice, Quot.sound]`
 (or zero axioms), with ZERO `sorryAx`, `Lean.ofReduceBool`, `Lean.trustCompiler`, `_native`,
 or custom axioms.
@@ -57,7 +57,7 @@ or custom axioms.
 #print axioms Autophage.T28_jit_gas_strictly_decreasing
 #print axioms Autophage.T29_first_law_transfer_conservation
 #print axioms Autophage.T29a_first_law_ledger_multistep
-#print axioms Autophage.T30_second_law_monotone_and_noise_gate
+#print axioms Autophage.T30_ledger_heat_sink_monotone_and_zero_weight_gate
 
 -- Part VI: Philox Domain Isolation, 3-Tier Seed Firewall, OEE Archive & Weismann Isolation (4 theorems)
 #print axioms Autophage.T39_philox_domain_disjoint
@@ -72,3 +72,13 @@ or custom axioms.
 #print axioms Autophage.T46_nonvacuous_seed_firewall_witness
 #print axioms Autophage.T47_refute_reducible_poly_integral_domain
 #print axioms Autophage.T48_refute_unmasked_head_inbounds
+
+-- Part VIII: Adversarial False-Variant Refutations (`AdversarialTests.lean`, 8 theorems)
+#print axioms Autophage.AT01_refute_toffoli_popcnt_conserved
+#print axioms Autophage.AT02_refute_singular_ribosome_invertible
+#print axioms Autophage.AT03_refute_reducible_poly8_divisor_free
+#print axioms Autophage.AT04_refute_unguarded_ledger_transfer
+#print axioms Autophage.AT05_refute_and_mask_zero_erasure
+#print axioms Autophage.AT06_refute_wrong_mask_pext_pdep
+#print axioms Autophage.AT07_refute_unconstrained_philox_and_seed_bands
+#print axioms Autophage.AT08_refute_germline_write_isolated

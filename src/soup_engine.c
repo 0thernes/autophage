@@ -275,7 +275,7 @@ void soup_seed_plasmid(AutophageCell* cell, uint32_t archetype, uint64_t seed,
     cell->regs[2]          = r0 ^ 0x9E3779B97F4A7C15ULL;
     cell->regs[3]          = r1 ^ 0xBF58476D1CE4E5B9ULL;
 
-    uint8_t desired[64];
+    AP_ALIGN64 uint8_t desired[64];
     for (int i = 0; i < 64; i++) {
         uint64_t rr = philox_u64(seed, PRNG_DOMAIN_INIT_SOUP, slot, 0, 0x5EEDu, (uint32_t)(100 + i));
         uint8_t rev_op = (uint8_t)(rr & 7u);
@@ -813,9 +813,9 @@ static void step_single_epoch(AutophageWorld* w) {
         /* Choose partner B (respecting impermeable SILOING walls) */
         uint32_t j = choose_partner_slot(w, i, ernd_part, r_silo);
         int silo_wall_hit = (j == PARTNER_SILO_BLOCKED);
-        uint8_t dummy_wall_tape[128];
+        AP_ALIGN64 uint8_t dummy_wall_tape[128];
         AutophageCell* B = NULL;
-        uint8_t b_tape_backup[128];
+        AP_ALIGN64 uint8_t b_tape_backup[128];
         uint8_t* tape_b_ptr = NULL;
 
         if (silo_wall_hit) {
@@ -828,7 +828,7 @@ static void step_single_epoch(AutophageWorld* w) {
         }
 
         /* Step A's Ribosome: Translate Strand alpha[0..63] via VGF2P8AFFINEQB (8x8 F_2 matrix!) */
-        uint8_t expressed[64];
+        AP_ALIGN64 uint8_t expressed[64];
         hw_gfni_affine_64bytes(A->genome, expressed, A->ribosome_mat, A->ribosome_bias, use_hw_isa);
 
         /* Check ribosome rank: singular ribosomes (rank < 8) incur entropic degeneracy penalty */
@@ -1051,7 +1051,7 @@ static void step_single_epoch(AutophageWorld* w) {
             uint64_t new_mat = gf2_mat_elem_row_op(old_mat, ernd_ribo ^ ctx.ribo_param);
             uint64_t new_inv = 0;
             if (gf2_mat_invert(new_mat, &new_inv)) {
-                uint8_t old_expr[64];
+                AP_ALIGN64 uint8_t old_expr[64];
                 hw_gfni_affine_64bytes(A->genome, old_expr, old_mat, A->ribosome_bias, use_hw_isa);
                 uint8_t c_inv = gf2_mat_apply_byte(new_inv, A->ribosome_bias, 0);
                 for (int pc = 0; pc < 64; pc++) {
@@ -1239,7 +1239,7 @@ static void step_single_epoch(AutophageWorld* w) {
                     if (k_slot != PARTNER_SILO_BLOCKED && k_slot != i && k_slot != j) {
                         AutophageCell* C = &w->cells[k_slot];
                         if (!(C->flags & CELL_FLAG_ALIVE) || C->energy_uq < 600) {
-                            uint8_t child_alpha[64];
+                            AP_ALIGN64 uint8_t child_alpha[64];
                             gf2_polynomial_crossover(A->genome, B->genome, child_alpha,
                                                      A->centromere_poly, ernd_sex ^ ctx.mitosis_param, use_hw_isa);
                             memcpy(C->genome, child_alpha, 64u);
@@ -1259,7 +1259,7 @@ static void step_single_epoch(AutophageWorld* w) {
                             C->holobiont_root   = k_slot;
 
                             /* Only compute/set ECC if parent(s)/child genuinely express OP_SELF_HEAL_ECC! */
-                            uint8_t child_expr[64];
+                            AP_ALIGN64 uint8_t child_expr[64];
                             hw_gfni_affine_64bytes(C->genome, child_expr, C->ribosome_mat, C->ribosome_bias, use_hw_isa);
                             int child_has_ecc = ((acts & BIO_ACT_SELF_HEAL_ECC) ||
                                                  ((A->flags & CELL_FLAG_ECC_PROTECTED) && (B->flags & CELL_FLAG_ECC_PROTECTED))) &&
@@ -1865,7 +1865,7 @@ double autophage_vivisect_excise(AutophageWorld* world, uint32_t slot, uint32_t 
     if (excise_pct > 100u) excise_pct = 100u;
     AutophageCell* c = &world->cells[slot];
 
-    uint8_t orig_alpha[64];
+    AP_ALIGN64 uint8_t orig_alpha[64];
     memcpy(orig_alpha, c->genome, 64u);
 
     uint32_t cut_bytes = (64u * excise_pct) / 100u;

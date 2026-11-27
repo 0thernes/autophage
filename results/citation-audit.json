@@ -1,0 +1,270 @@
+{
+  "schema": "autophage-citation-audit/v1",
+  "generated_utc": "2026-11-26T23:48:36Z",
+  "bib_entries": 17,
+  "dois_checked": 14,
+  "urls_checked": 3,
+  "targets_checked": 17,
+  "targets_passed": 17,
+  "retractions_found": 0,
+  "records": [
+    {
+      "target": "https://arxiv.org/abs/2406.19108",
+      "source": "http",
+      "ok": true,
+      "retracted": false,
+      "status": "HTTP 200",
+      "key": "aguerayarcas2024"
+    },
+    {
+      "target": "https://arxiv.org/abs/2403.14064",
+      "source": "http",
+      "ok": true,
+      "retracted": false,
+      "status": "HTTP 200",
+      "key": "carneiro2024"
+    },
+    {
+      "target": "https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html",
+      "source": "http",
+      "ok": true,
+      "retracted": false,
+      "status": "HTTP 200",
+      "key": "intel2024sdm"
+    },
+    {
+      "target": "doi:10.1147/rd.53.0183",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Irreversibility and Heat Generation in the Computing Process",
+      "resolved_years": [
+        1961,
+        2010
+      ],
+      "status": "OK (Crossref)",
+      "key": "landauer1961"
+    },
+    {
+      "target": "doi:10.1147/rd.176.0525",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Logical Reversibility of Computation",
+      "resolved_years": [
+        1973,
+        2010
+      ],
+      "status": "OK (Crossref)",
+      "key": "bennett1973"
+    },
+    {
+      "target": "doi:10.1007/3-540-10003-2_104",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Reversible computing",
+      "resolved_years": [
+        1980,
+        2005,
+        2012
+      ],
+      "status": "OK (Crossref)",
+      "key": "toffoli1980"
+    },
+    {
+      "target": "doi:10.1007/BF01857727",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Conservative logic",
+      "resolved_years": [
+        1982,
+        2005
+      ],
+      "status": "OK (Crossref)",
+      "key": "fredkin1982"
+    },
+    {
+      "target": "doi:10.1007/BF00623322",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Selforganization of matter and the evolution of biological macromolecules",
+      "resolved_years": [
+        1971,
+        2004
+      ],
+      "status": "OK (Crossref)",
+      "key": "eigen1971"
+    },
+    {
+      "target": "doi:10.1007/BF02458289",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "\u201cThe arrival of the fittest\u201d: Toward a theory of biological organization",
+      "resolved_years": [
+        1994,
+        2006
+      ],
+      "status": "OK (Crossref)",
+      "key": "fontana1994"
+    },
+    {
+      "target": "doi:10.1162/106454600300103683",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Open Problems in Artificial Life",
+      "resolved_years": [
+        2000,
+        2002
+      ],
+      "status": "OK (Crossref)",
+      "key": "bedau2000"
+    },
+    {
+      "target": "doi:10.48550/arXiv.2406.19108",
+      "source": "datacite",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Computational Life: How Well-formed, Self-replicating Programs Emerge from Simple Interaction",
+      "resolved_years": [
+        2024
+      ],
+      "status": "OK (DataCite)",
+      "key": "aguerayarcas2024"
+    },
+    {
+      "target": "doi:10.1038/s41586-023-06600-9",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Assembly theory explains and quantifies selection and evolution",
+      "resolved_years": [
+        2023
+      ],
+      "status": "OK (Crossref)",
+      "key": "sharma2023"
+    },
+    {
+      "target": "doi:10.1007/s12064-020-00313-7",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "The information theory of individuality",
+      "resolved_years": [
+        2020
+      ],
+      "status": "OK (Crossref)",
+      "key": "krakauer2020"
+    },
+    {
+      "target": "doi:10.1145/2063384.2063405",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Parallel random numbers",
+      "resolved_years": [
+        2011
+      ],
+      "status": "OK (Crossref)",
+      "key": "salmon2011"
+    },
+    {
+      "target": "doi:10.1002/zamm.19740540106",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "Rundungsfehleranalyse einiger Verfahren zur Summation endlicher Summen",
+      "resolved_years": [
+        1974,
+        2006,
+        2007
+      ],
+      "status": "OK (Crossref)",
+      "key": "neumaier1974"
+    },
+    {
+      "target": "doi:10.1007/978-3-030-79876-5_37",
+      "source": "crossref",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 1.0,
+      "resolved_title": "The Lean 4 Theorem Prover and Programming Language",
+      "resolved_years": [
+        2021
+      ],
+      "status": "OK (Crossref)",
+      "key": "moura2021"
+    },
+    {
+      "target": "doi:10.48550/arXiv.2403.14064",
+      "source": "datacite",
+      "ok": true,
+      "retracted": false,
+      "year_ok": true,
+      "title_ok": true,
+      "author_ok": true,
+      "title_overlap": 0.75,
+      "resolved_title": "Lean4Lean: Verifying a Typechecker for Lean, in Lean",
+      "resolved_years": [
+        2024
+      ],
+      "status": "OK (DataCite)",
+      "key": "carneiro2024"
+    }
+  ]
+}
