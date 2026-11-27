@@ -1,6 +1,6 @@
-# AUTOPHAGE v1.4.0 — Architecture & Silicon Specification
+# AUTOPHAGE v1.5.0 — Architecture & Silicon Specification
 
-Canonical architectural reference (mirrors root [`ARCHITECTURE.md`](../ARCHITECTURE.md) with v1.4.0 Palomar and ABI `0x00010400` updates).
+Canonical architectural reference (mirrors root [`ARCHITECTURE.md`](../ARCHITECTURE.md) with v1.5.0 Palomar (`56/56` Lean 4.35.0 declarations) and ABI `0x00010500` updates).
 
 ## 1. Exact Cache-Line Memory Layouts
 

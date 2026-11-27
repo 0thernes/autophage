@@ -1,4 +1,4 @@
-# AUTOPHAGE v1.4.0 — Bare-Metal Architecture & Silicon Specification
+# AUTOPHAGE v1.5.0 — Bare-Metal Architecture & Silicon Specification
 
 ## 1. Exact Cache-Line Memory Layouts
 
