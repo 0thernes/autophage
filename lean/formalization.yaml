@@ -14,15 +14,9 @@ project:
     x86-64 machine code). Five declarations (T21, T23, T24, T28, T29) are elementary
     arithmetic or XOR helper lemmas.
   authors:
-    - name: "Alexander Stephen Donahue"
-      orcid: "0009-0006-8168-9648"
-      email: "0_0@0thernes.art"
-      affiliation: "Independent Researcher, Spokane, WA, USA"
+    - "Alexander Stephen Donahue (ORCID 0009-0006-8168-9648, Independent Researcher, Spokane, WA, USA)"
   responsible_maintainers:
-    - name: "Alexander Stephen Donahue"
-      github: "0thernes"
-      orcid: "0009-0006-8168-9648"
-      email: "0_0@0thernes.art"
+    - "Alexander Stephen Donahue (@0thernes, ORCID 0009-0006-8168-9648, 0_0@0thernes.art)"
   license: "Apache-2.0"
 
 classification:
@@ -38,7 +32,7 @@ classification:
 sources:
   - title: "AUTOPHAGE v1.5.0: A Bare-Metal Polymorphic x86-64 Galois-Field Genetic Engine with Six-Kernel Lean 4.35.0 Verification and 19-Gate Silicon Falsification"
     authors:
-      - "Alexander Stephen Donahue"
+      - "Alexander Stephen Donahue (ORCID 0009-0006-8168-9648, Independent Researcher, Spokane, WA, USA)"
     id: "https://github.com/0thernes/autophage"
     type: "original-proof"
     relationship: "other"
